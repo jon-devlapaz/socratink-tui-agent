@@ -1,0 +1,15 @@
+{
+  "concept": "Correlation vs causation",
+  "learner_goal": "I want to explain why ice cream sales and drowning both rise in summer without one causing the other.",
+  "launch_attempt": "Two things can move together because a third factor affects both, not because one causes the other.",
+  "cold_attempt": [
+    "I'm not sure — does more ice cream cause more drowning?",
+    "Heat is a confounder: summer drives swimming and ice cream separately, so correlation does not imply causation."
+  ],
+  "repair_dialogue_turns": [
+    "The preview helps because both go up in summer.",
+    "Hot weather is the confounder: summer heat raises swimming and ice cream demand independently, so the correlation does not imply ice cream causes drowning."
+  ],
+  "run_gap_drill": false,
+  "spaced_attempt": "Ice cream sales and drowning correlate in summer because heat is a confounder: it increases swimming exposure and ice cream consumption separately. Correlation alone does not establish causation without ruling out confounds and showing a direct mechanism."
+}

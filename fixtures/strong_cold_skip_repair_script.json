@@ -1,0 +1,8 @@
+{
+  "concept": "Immune memory",
+  "learner_goal": "I want to explain why vaccines work.",
+  "launch_attempt": "Vaccines show the immune system a safer preview so it can react faster later.",
+  "cold_attempt": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+  "run_gap_drill": false,
+  "spaced_attempt": "A vaccine safely presents antigen, immune cells that match it expand, memory cells remain, and those memory cells respond faster during a later infection."
+}

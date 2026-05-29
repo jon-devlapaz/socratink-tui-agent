@@ -1,0 +1,1161 @@
+{
+  "source_mode": "source_less",
+  "concept": "Immune memory",
+  "learner_goal": "understand why vaccines help later",
+  "concept_id": "immune-memory",
+  "route": {
+    "provisional_map": {
+      "metadata": {
+        "source_title": "Immune memory source-less route",
+        "core_thesis": "Immune memory depends on a safe preview creating durable response memory.",
+        "architecture_type": "causal_chain",
+        "difficulty": "easy",
+        "governing_assumptions": [
+          "Source-less route is provisional until learner evidence accumulates."
+        ],
+        "low_density": false
+      },
+      "backbone": [
+        {
+          "id": "b1",
+          "principle": "Safe preview creates durable response memory.",
+          "dependent_clusters": [
+            "c1"
+          ]
+        }
+      ],
+      "clusters": [
+        {
+          "id": "c1",
+          "label": "Memory bridge",
+          "description": "The local bridge between safe exposure and faster later response.",
+          "subnodes": [
+            {
+              "id": "c1_s1",
+              "label": "Immune memory",
+              "mechanism": "A vaccine safely presents antigen, matching immune cells expand, memory cells remain, and those cells respond faster later.",
+              "learner_scaffold": {
+                "bloom_level": "understand",
+                "learner_move": "reconstruct the causal link",
+                "task_label": "Explain the immune memory mechanism",
+                "task_cue": "Use your own words before reading the study note.",
+                "tailoring_anchor": "Connect the launch attempt to one local causal bridge.",
+                "entry_prompt": "In your own words, why does a safe preview make the later response faster?",
+                "expected_shape": "safe preview -> immune selection -> memory -> faster later response",
+                "sentence_starter": "A safe preview helps because...",
+                "blank_hint": "Name what remains after the preview.",
+                "evidence_goal": "The learner reconstructs how immune memory links safe exposure to faster response."
+              },
+              "drill_status": null,
+              "gap_type": null,
+              "gap_description": null,
+              "last_drilled": null
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "domain_mechanics": [],
+        "learning_prerequisites": []
+      },
+      "frameworks": []
+    },
+    "first_node": {
+      "id": "c1_s1",
+      "label": "Immune memory",
+      "mechanism": "A vaccine safely presents antigen, matching immune cells expand, memory cells remain, and those cells respond faster later.",
+      "learner_prompt": "In your own words, why does a safe preview make the later response faster?",
+      "task_label": "Explain the immune memory mechanism",
+      "blank_hint": "Name what remains after the preview.",
+      "evidence_goal": "The learner reconstructs how immune memory links safe exposure to faster response."
+    },
+    "map_displayed": {
+      "framing": "hypothesis map — not graph truth yet",
+      "core_thesis": "Immune memory depends on a safe preview creating durable response memory.",
+      "backbone": [
+        {
+          "id": "b1",
+          "principle": "Safe preview creates durable response memory.",
+          "dependent_clusters": [
+            "c1"
+          ]
+        }
+      ],
+      "rooms": [
+        {
+          "id": "c1_s1",
+          "cluster_id": "c1",
+          "cluster_label": "Memory bridge",
+          "subnode_label": "Immune memory",
+          "task_label": "Explain the immune memory mechanism",
+          "status": "active"
+        }
+      ],
+      "active_subnode_id": "c1_s1",
+      "active_task_label": "Explain the immune memory mechanism"
+    },
+    "retry_count": 0,
+    "retry_reasons": []
+  },
+  "product_loop": {
+    "repair_position": "before_model_bridge",
+    "strong_cold_path": "not_taken",
+    "graph_truth": "only spaced strong reconstruction may derive solidified",
+    "graph_neutral_events": [
+      "cold_help_turn",
+      "cold_support_exhausted",
+      "gap_identified",
+      "repair_dialogue_turn",
+      "repair_state_bucketed",
+      "repair_cap_selected",
+      "repair_recovery_started",
+      "repair_abandoned",
+      "repair_recovery_turn",
+      "repair_recovery_closed",
+      "repair",
+      "model_bridge",
+      "post_bridge_transfer_skipped"
+    ]
+  },
+  "agent_contract": {
+    "orchestrator": "Socratink Orchestrator",
+    "truth_contract": "Agents propose moves. Training store records events. Derivation decides truth. Graph displays only derived evidence.",
+    "state_owner": "training-store/training-derive"
+  },
+  "events": [
+    {
+      "type": "idle_new_concept",
+      "concept": "Immune memory"
+    },
+    {
+      "type": "launch_attempt",
+      "text": "A vaccine gives a safe preview so the body responds faster later."
+    },
+    {
+      "type": "route_generated"
+    },
+    {
+      "type": "cold_help_turn",
+      "turn_index": 1,
+      "text": "I am not sure",
+      "answer_mode": "help_request",
+      "score_eligible": false,
+      "classification": null,
+      "routing": "SCAFFOLD",
+      "help_request_reason": "explicit_unknown",
+      "graph_neutral": true,
+      "kc_id": "c1_s1",
+      "agent_response": "Try one rough causal guess in your own words. We have not scored this yet.",
+      "generative_commitment": false
+    },
+    {
+      "type": "cold_help_turn",
+      "turn_index": 2,
+      "text": "I am not sure",
+      "answer_mode": "help_request",
+      "score_eligible": false,
+      "classification": null,
+      "routing": "SCAFFOLD",
+      "help_request_reason": "explicit_unknown",
+      "graph_neutral": true,
+      "kc_id": "c1_s1",
+      "agent_response": "Try one rough causal guess in your own words. We have not scored this yet.",
+      "generative_commitment": false
+    },
+    {
+      "type": "cold_support_exhausted",
+      "help_turns": 2,
+      "reason": "no_substantive_cold_attempt",
+      "graph_neutral": true,
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "gap_identified",
+      "surface": "delta",
+      "cue": "Repair Immune memory by naming what changes between before and after.",
+      "gap_log": {
+        "kc_id": "c1_s1",
+        "before": "The learner has a rough setup but not the missing transition.",
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "after": "The Immune memory explanation now links to the intended outcome.",
+        "internal_bloom_lens": "understand",
+        "question_style": "analogical"
+      },
+      "repair_scaffold": {
+        "repair_target": "Repair Immune memory by naming what changes between before and after.",
+        "before": "The learner has a rough setup but not the missing transition.",
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "after": "The Immune memory explanation now links to the intended outcome.",
+        "internal_bloom_lens": "understand",
+        "question_style": "analogical",
+        "socratic_question": "Using your own analogy, what change must happen between The learner has a rough setup but not the missing transition. and The Immune memory explanation now links to the intended outcome.?",
+        "analogical_prompt": "Imagine this as a before/after workflow: what intermediate change makes the after-state possible?",
+        "micro_scaffold_prompt": "Immune memory works when ___ connects the before-state to the after-state.",
+        "misconception_counter": null
+      },
+      "scaffold_rejections": [],
+      "prompt": "Using your own analogy, what change must happen between The learner has a rough setup but not the missing transition. and The Immune memory explanation now links to the intended outcome.?",
+      "graph_neutral": true,
+      "training_store_note": "uses study_revealed_at internally to unlock repair without revealing model bridge"
+    },
+    {
+      "type": "repair_dialogue_turn",
+      "gap_id": "gap-c1_s1-1",
+      "turn_index": 1,
+      "text": "it has something to do with germs and practice",
+      "prompt_type": "probe",
+      "support_level": "probe",
+      "classification": "thin",
+      "gap_delta": {
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "causal_link_present": false,
+        "missing_operation_addressed": false
+      },
+      "score_eligible": false,
+      "graph_neutral": true,
+      "causal_link_present": false,
+      "missing_operation_addressed": false,
+      "echo_risk": true,
+      "bridge_ready": false,
+      "next_dialogue_action": "probe_again",
+      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
+      "next_prompt": "Stay on this link: what changes because of Learner produced zero schema; nudge to guess., and how does that change cause the after-state?",
+      "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
+      "repair_state": {
+        "turn_index": 1,
+        "escalation_level": 0,
+        "uncertainty_recovery_count": 0,
+        "hint_count": 0,
+        "last_hint_level": 0,
+        "ladder_policy_version": "uncertainty-ladder-v1"
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "repair_dialogue_turn",
+      "gap_id": "gap-c1_s1-1",
+      "turn_index": 2,
+      "text": "it has something to do with germs and practice",
+      "prompt_type": "probe",
+      "support_level": "probe",
+      "classification": "thin",
+      "gap_delta": {
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "causal_link_present": false,
+        "missing_operation_addressed": false
+      },
+      "score_eligible": false,
+      "graph_neutral": true,
+      "causal_link_present": false,
+      "missing_operation_addressed": false,
+      "echo_risk": true,
+      "bridge_ready": false,
+      "next_dialogue_action": "probe_again",
+      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
+      "next_prompt": "Stay on this link: what changes because of Learner produced zero schema; nudge to guess., and how does that change cause the after-state?",
+      "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
+      "repair_state": {
+        "turn_index": 2,
+        "escalation_level": 1,
+        "uncertainty_recovery_count": 0,
+        "hint_count": 0,
+        "last_hint_level": 0,
+        "ladder_policy_version": "uncertainty-ladder-v1"
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "repair_dialogue_turn",
+      "gap_id": "gap-c1_s1-1",
+      "turn_index": 3,
+      "text": "it has something to do with germs and practice",
+      "prompt_type": "probe",
+      "support_level": "probe",
+      "classification": "thin",
+      "gap_delta": {
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "causal_link_present": false,
+        "missing_operation_addressed": false
+      },
+      "score_eligible": false,
+      "graph_neutral": true,
+      "causal_link_present": false,
+      "missing_operation_addressed": false,
+      "echo_risk": true,
+      "bridge_ready": false,
+      "next_dialogue_action": "probe_again",
+      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
+      "next_prompt": "Stay on this link: what changes because of Learner produced zero schema; nudge to guess., and how does that change cause the after-state?",
+      "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
+      "repair_state": {
+        "turn_index": 3,
+        "escalation_level": 2,
+        "uncertainty_recovery_count": 0,
+        "hint_count": 0,
+        "last_hint_level": 0,
+        "ladder_policy_version": "uncertainty-ladder-v1"
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "repair_dialogue_turn",
+      "gap_id": "gap-c1_s1-1",
+      "turn_index": 4,
+      "text": "it has something to do with germs and practice",
+      "prompt_type": "probe",
+      "support_level": "probe",
+      "classification": "thin",
+      "gap_delta": {
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "causal_link_present": false,
+        "missing_operation_addressed": false
+      },
+      "score_eligible": false,
+      "graph_neutral": true,
+      "causal_link_present": false,
+      "missing_operation_addressed": false,
+      "echo_risk": true,
+      "bridge_ready": false,
+      "next_dialogue_action": "probe_again",
+      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
+      "next_prompt": "Stay on this link: what changes because of Learner produced zero schema; nudge to guess., and how does that change cause the after-state?",
+      "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
+      "repair_state": {
+        "turn_index": 4,
+        "escalation_level": 3,
+        "uncertainty_recovery_count": 0,
+        "hint_count": 0,
+        "last_hint_level": 0,
+        "ladder_policy_version": "uncertainty-ladder-v1"
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "repair_dialogue_turn",
+      "gap_id": "gap-c1_s1-1",
+      "turn_index": 5,
+      "text": "it has something to do with germs and practice",
+      "prompt_type": "probe",
+      "support_level": "probe",
+      "classification": "thin",
+      "gap_delta": {
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "causal_link_present": false,
+        "missing_operation_addressed": false
+      },
+      "score_eligible": false,
+      "graph_neutral": true,
+      "causal_link_present": false,
+      "missing_operation_addressed": false,
+      "echo_risk": true,
+      "bridge_ready": false,
+      "next_dialogue_action": "probe_again",
+      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
+      "next_prompt": "Stay on this link: what changes because of Learner produced zero schema; nudge to guess., and how does that change cause the after-state?",
+      "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
+      "repair_state": {
+        "turn_index": 5,
+        "escalation_level": 4,
+        "uncertainty_recovery_count": 0,
+        "hint_count": 0,
+        "last_hint_level": 0,
+        "ladder_policy_version": "uncertainty-ladder-v1"
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "repair_state_bucketed",
+      "source_event_type": "repair_dialogue_turn",
+      "bucket": "partial_link",
+      "bucket_reason": "unresolved_gap",
+      "concept_id": "immune-memory",
+      "kc_id": "c1_s1",
+      "policy_version": "repair-recovery-v1-shadow",
+      "graph_neutral": true
+    },
+    {
+      "type": "repair_cap_selected",
+      "bucket": "partial_link",
+      "cap_value": 5,
+      "cap_policy_version": "repair-recovery-v1-shadow",
+      "inputs_fingerprint": "partial_link:5",
+      "concept_id": "immune-memory",
+      "kc_id": "c1_s1",
+      "policy_version": "repair-recovery-v1-shadow",
+      "graph_neutral": true
+    },
+    {
+      "type": "repair_recovery_started",
+      "trigger": "repair_abandoned",
+      "recovery_mode": "same_kc_single_turn",
+      "concept_id": "immune-memory",
+      "kc_id": "c1_s1",
+      "policy_version": "repair-recovery-v1-shadow",
+      "graph_neutral": true
+    },
+    {
+      "type": "repair_abandoned",
+      "text": "it has something to do with germs and practice",
+      "reason": "unresolved_gap",
+      "graph_neutral": true,
+      "next_step": "recovery_prompt"
+    },
+    {
+      "type": "repair_recovery_turn",
+      "turn_index": 1,
+      "learner_text": "Memory cells remain after the preview and respond faster later.",
+      "judge_next_action": "resume_repair",
+      "progression_state": "ready",
+      "improvement_observed": true,
+      "improvement_note": "Learner now connects missing operation to the after-state.",
+      "score_eligible": false,
+      "graph_neutral": true,
+      "concept_id": "immune-memory",
+      "kc_id": "c1_s1",
+      "policy_version": "repair-recovery-v1-shadow"
+    },
+    {
+      "type": "repair_dialogue_turn",
+      "gap_id": "gap-c1_s1-1",
+      "turn_index": 6,
+      "text": "Memory cells remain after the preview and respond faster later.",
+      "prompt_type": "probe",
+      "support_level": "probe",
+      "classification": "strong",
+      "gap_delta": {
+        "missing_operation": "Learner produced zero schema; nudge to guess.",
+        "causal_link_present": true,
+        "missing_operation_addressed": true
+      },
+      "score_eligible": false,
+      "graph_neutral": true,
+      "causal_link_present": true,
+      "missing_operation_addressed": true,
+      "echo_risk": false,
+      "bridge_ready": true,
+      "next_dialogue_action": "commit_repair",
+      "judge_reason": "The learner connected the before state to the after state through the missing operation.",
+      "next_prompt": "",
+      "not_mastery_reason": "Inner repair dialogue is scaffold-adjacent practice; only spaced reconstruction can prove durable evidence.",
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "repair_recovery_closed",
+      "outcome": "recovered",
+      "next_phase": "repair",
+      "concept_id": "immune-memory",
+      "kc_id": "c1_s1",
+      "policy_version": "repair-recovery-v1-shadow",
+      "graph_neutral": true
+    },
+    {
+      "type": "repair",
+      "text": "Memory cells remain after the preview and respond faster later.",
+      "kc_id": "c1_s1",
+      "graph_neutral": true
+    },
+    {
+      "type": "model_bridge",
+      "text": "A vaccine safely presents antigen, matching immune cells expand, memory cells remain, and those cells respond faster later.",
+      "graph_neutral": true
+    },
+    {
+      "type": "post_bridge_transfer_skipped",
+      "graph_neutral": true,
+      "at": "2026-05-15T10:15:00.000Z",
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "spacing_advanced",
+      "from": "2026-05-15T10:00:00.000Z",
+      "to": "2026-05-16T06:00:00.000Z"
+    },
+    {
+      "type": "spaced_redrill",
+      "text": "Memory cells remain and help the body respond faster later.",
+      "evaluation": {
+        "agent_response": "You named pieces of Immune memory, but not the causal step that links first request to later speed — what must happen in between?",
+        "generative_commitment": true,
+        "answer_mode": "attempt",
+        "score_eligible": true,
+        "help_request_reason": "none",
+        "classification": "shallow",
+        "gap_description": "Name the missing causal step in Immune memory and how it creates the later faster result.",
+        "routing": "NEXT",
+        "response_tier": 3,
+        "response_band": "chain",
+        "tier_reason": null
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "idle_exit"
+    }
+  ],
+  "derived": [
+    {
+      "event": "gap_identified",
+      "nodes": {
+        "c1_s1": {
+          "state": "needs repair",
+          "next_action": "repair",
+          "strongest_turn_text": "I am not sure",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "needs repair",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 1,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "repair_abandoned",
+      "nodes": {
+        "c1_s1": {
+          "state": "needs repair",
+          "next_action": "repair",
+          "strongest_turn_text": "I am not sure",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "needs repair",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 1,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "repair",
+      "nodes": {
+        "c1_s1": {
+          "state": "needs repair",
+          "next_action": "repair",
+          "strongest_turn_text": "I am not sure",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 1
+        }
+      },
+      "concept_status": {
+        "badge": "needs repair",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 1,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "model_bridge",
+      "nodes": {
+        "c1_s1": {
+          "state": "needs repair",
+          "next_action": "repair",
+          "strongest_turn_text": "I am not sure",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 1
+        }
+      },
+      "concept_status": {
+        "badge": "needs repair",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 1,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "post_bridge_transfer_skipped",
+      "nodes": {
+        "c1_s1": {
+          "state": "needs repair",
+          "next_action": "repair",
+          "strongest_turn_text": "I am not sure",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 1
+        }
+      },
+      "concept_status": {
+        "badge": "needs repair",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 1,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "spacing_advanced",
+      "nodes": {
+        "c1_s1": {
+          "state": "needs repair",
+          "next_action": "repair",
+          "strongest_turn_text": "I am not sure",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 1
+        }
+      },
+      "concept_status": {
+        "badge": "needs repair",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 1,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "spaced_redrill",
+      "nodes": {
+        "c1_s1": {
+          "state": "primed",
+          "next_action": "repair",
+          "strongest_turn_text": "Memory cells remain and help the body respond faster later.",
+          "gaps": [
+            {
+              "mechanism": "target mechanism",
+              "correction": "Name the missing causal step in Immune memory and how it creates the later faster result."
+            }
+          ],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-16T06:00:00.000Z",
+          "attempt_count": 2,
+          "repair_count": 1
+        }
+      },
+      "concept_status": {
+        "badge": "primed",
+        "composition": {
+          "untested": 0,
+          "primed": 1,
+          "needs_repair": 0,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    }
+  ],
+  "evidence_holds": [],
+  "llm_calls": [
+    {
+      "agent": "Route Agent",
+      "agent_id": "route",
+      "job": "Create a provisional map hypothesis and first reconstruction target.",
+      "required_outputs": [
+        "provisional_map",
+        "first_node"
+      ],
+      "may_propose_events": [
+        "route_generated"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Treating generated route topology as learner evidence.",
+      "stage": "route_generated",
+      "provider": "fake",
+      "model": "fake-source-less-route",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Cold Attempt Agent",
+      "agent_id": "cold_attempt",
+      "job": "Elicit the learner's current model before recognition or model-bridge material.",
+      "required_outputs": [
+        "learner_prompt"
+      ],
+      "may_propose_events": [
+        "cold_attempt"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Leaking the answer before the learner generates.",
+      "stage": "cold_attempt_prompt",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Evidence Judge",
+      "agent_id": "evidence_judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation.",
+      "stage": "cold_attempt",
+      "provider": "fake",
+      "model": "fake-drill-evaluator",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Evidence Judge",
+      "agent_id": "evidence_judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation.",
+      "stage": "cold_attempt",
+      "provider": "fake",
+      "model": "fake-drill-evaluator",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Delta Agent",
+      "agent_id": "delta",
+      "job": "Find the missing causal link and express it as a concrete repair slot.",
+      "required_outputs": [
+        "repair_target",
+        "before",
+        "missing",
+        "after",
+        "prompt"
+      ],
+      "may_propose_events": [
+        "study_reveal"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Naming a vague gap instead of one fillable causal link.",
+      "stage": "repair_scaffold",
+      "provider": "fake",
+      "model": "fake-repair-scaffold",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Socratic Repair Drill Agent",
+      "agent_id": "socratic_repair_drill",
+      "job": "Write one learner-facing Socratic question from sanitized repair slot boundaries.",
+      "required_outputs": [
+        "socratic_question"
+      ],
+      "may_propose_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Quoting tutor/rubric phrasing or revealing the missing mechanism in the drill question.",
+      "stage": "socratic_question",
+      "provider": "fake",
+      "model": "fake-socratic-repair-drill",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_prompt",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_dialogue",
+      "turn_index": 1,
+      "provider": "fake",
+      "model": "fake-repair-dialogue",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_dialogue",
+      "turn_index": 2,
+      "provider": "fake",
+      "model": "fake-repair-dialogue",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_dialogue",
+      "turn_index": 3,
+      "provider": "fake",
+      "model": "fake-repair-dialogue",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_dialogue",
+      "turn_index": 4,
+      "provider": "fake",
+      "model": "fake-repair-dialogue",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_dialogue",
+      "turn_index": 5,
+      "provider": "fake",
+      "model": "fake-repair-dialogue",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Repair Agent",
+      "agent_id": "repair",
+      "job": "Force own-words reconstruction of the missing link.",
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof.",
+      "stage": "repair_dialogue",
+      "turn_index": 6,
+      "provider": "fake",
+      "model": "fake-repair-dialogue",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Model Bridge Agent",
+      "agent_id": "model_bridge",
+      "job": "Reveal compact comparison material only after generation.",
+      "required_outputs": [
+        "model_bridge_text"
+      ],
+      "may_propose_events": [
+        "model_bridge"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Turning comparison material into evidence or broad study.",
+      "stage": "model_bridge",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Re-Drill Agent",
+      "agent_id": "redrill",
+      "job": "Vary spaced reconstruction pressure after spacing is available.",
+      "required_outputs": [
+        "spaced_prompt"
+      ],
+      "may_propose_events": [
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Repeating the same wording so the learner can mimic instead of reconstruct.",
+      "stage": "spaced_prompt",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Evidence Judge",
+      "agent_id": "evidence_judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation.",
+      "stage": "spaced_redrill",
+      "provider": "fake",
+      "model": "fake-drill-evaluator",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    }
+  ],
+  "training": {
+    "concept_id": "immune-memory",
+    "schema_version": 1,
+    "source_mode": "source_less",
+    "grounding": "learner_sketch",
+    "source_ref": null,
+    "sketch": {
+      "text": "A vaccine gives a safe preview so the body responds faster later.",
+      "at": "2026-05-15T10:00:00.000Z"
+    },
+    "node_records": {
+      "c1_s1": {
+        "attempts": [
+          {
+            "id": "zero-schema-entry",
+            "at": "2026-05-15T10:00:00.000Z",
+            "user_text": "I am not sure",
+            "classification": "thin",
+            "gaps": [],
+            "grader_version": "tui-zero-schema",
+            "kind": "cold"
+          },
+          {
+            "id": "spaced-1",
+            "at": "2026-05-16T06:00:00.000Z",
+            "user_text": "Memory cells remain and help the body respond faster later.",
+            "classification": "partial",
+            "gaps": [
+              {
+                "mechanism": "target mechanism",
+                "correction": "Name the missing causal step in Immune memory and how it creates the later faster result."
+              }
+            ],
+            "grader_version": "fake-drill-evaluator",
+            "kind": "spaced"
+          }
+        ],
+        "repairs": [
+          {
+            "id": "repair-1",
+            "at": "2026-05-15T10:10:00.000Z",
+            "text": "Memory cells remain after the preview and respond faster later."
+          }
+        ],
+        "study_revealed_at": "2026-05-15T10:12:00.000Z"
+      }
+    }
+  }
+}

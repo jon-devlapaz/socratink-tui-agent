@@ -1,0 +1,436 @@
+{
+  "source_mode": "source_less",
+  "concept": "Immune memory",
+  "learner_goal": "I want to explain why vaccines work.",
+  "concept_id": "immune-memory",
+  "route": {
+    "provisional_map": {
+      "metadata": {
+        "source_title": "Immune memory source-less route",
+        "core_thesis": "Immune memory depends on a safe preview creating durable response memory.",
+        "architecture_type": "causal_chain",
+        "difficulty": "easy",
+        "governing_assumptions": [
+          "Source-less route is provisional until learner evidence accumulates."
+        ],
+        "low_density": false
+      },
+      "backbone": [
+        {
+          "id": "b1",
+          "principle": "Safe preview creates durable response memory.",
+          "dependent_clusters": [
+            "c1"
+          ]
+        }
+      ],
+      "clusters": [
+        {
+          "id": "c1",
+          "label": "Memory bridge",
+          "description": "The local bridge between safe exposure and faster later response.",
+          "subnodes": [
+            {
+              "id": "c1_s1",
+              "label": "Immune memory",
+              "mechanism": "A vaccine safely presents antigen, matching immune cells expand, memory cells remain, and those cells respond faster later.",
+              "learner_scaffold": {
+                "bloom_level": "understand",
+                "learner_move": "reconstruct the causal link",
+                "task_label": "Explain the immune memory mechanism",
+                "task_cue": "Use your own words before reading the study note.",
+                "tailoring_anchor": "Connect the launch attempt to one local causal bridge.",
+                "entry_prompt": "In your own words, why does a safe preview make the later response faster?",
+                "expected_shape": "safe preview -> immune selection -> memory -> faster later response",
+                "sentence_starter": "A safe preview helps because...",
+                "blank_hint": "Name what remains after the preview.",
+                "evidence_goal": "The learner reconstructs how immune memory links safe exposure to faster response."
+              },
+              "drill_status": null,
+              "gap_type": null,
+              "gap_description": null,
+              "last_drilled": null
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "domain_mechanics": [],
+        "learning_prerequisites": []
+      },
+      "frameworks": []
+    },
+    "first_node": {
+      "id": "c1_s1",
+      "label": "Immune memory",
+      "mechanism": "A vaccine safely presents antigen, matching immune cells expand, memory cells remain, and those cells respond faster later.",
+      "learner_prompt": "In your own words, why does a safe preview make the later response faster?",
+      "task_label": "Explain the immune memory mechanism",
+      "blank_hint": "Name what remains after the preview.",
+      "evidence_goal": "The learner reconstructs how immune memory links safe exposure to faster response."
+    },
+    "map_displayed": {
+      "framing": "hypothesis map — not graph truth yet",
+      "core_thesis": "Immune memory depends on a safe preview creating durable response memory.",
+      "backbone": [
+        {
+          "id": "b1",
+          "principle": "Safe preview creates durable response memory.",
+          "dependent_clusters": [
+            "c1"
+          ]
+        }
+      ],
+      "rooms": [
+        {
+          "id": "c1_s1",
+          "cluster_id": "c1",
+          "cluster_label": "Memory bridge",
+          "subnode_label": "Immune memory",
+          "task_label": "Explain the immune memory mechanism",
+          "status": "active"
+        }
+      ],
+      "active_subnode_id": "c1_s1",
+      "active_task_label": "Explain the immune memory mechanism"
+    },
+    "retry_count": 0,
+    "retry_reasons": []
+  },
+  "product_loop": {
+    "repair_position": "before_model_bridge",
+    "strong_cold_path": "skip_repair_until_spacing",
+    "graph_truth": "only spaced strong reconstruction may derive solidified",
+    "graph_neutral_events": [
+      "strong_cold_path"
+    ]
+  },
+  "agent_contract": {
+    "orchestrator": "Socratink Orchestrator",
+    "truth_contract": "Agents propose moves. Training store records events. Derivation decides truth. Graph displays only derived evidence.",
+    "state_owner": "training-store/training-derive"
+  },
+  "events": [
+    {
+      "type": "idle_new_concept",
+      "concept": "Immune memory"
+    },
+    {
+      "type": "launch_attempt",
+      "text": "Vaccines show the immune system a safer preview so it can react faster later."
+    },
+    {
+      "type": "route_generated"
+    },
+    {
+      "type": "cold_attempt",
+      "text": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+      "evaluation": {
+        "agent_response": "You named what starts it, what changes, and what results — that is a full causal chain in your own words.",
+        "generative_commitment": true,
+        "answer_mode": "attempt",
+        "score_eligible": true,
+        "help_request_reason": "none",
+        "classification": "solid",
+        "gap_description": null,
+        "routing": "NEXT",
+        "response_tier": 4,
+        "response_band": "clear",
+        "tier_reason": "The response names the key causal transition."
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "strong_cold_path",
+      "reason": "cold_reconstruction_solid",
+      "graph_neutral": true,
+      "next_step": "spaced_redrill",
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "spacing_advanced",
+      "from": "2026-05-15T10:00:00.000Z",
+      "to": "2026-05-16T06:00:00.000Z"
+    },
+    {
+      "type": "spaced_redrill",
+      "text": "A vaccine safely presents antigen, immune cells that match it expand, memory cells remain, and those memory cells respond faster during a later infection.",
+      "evaluation": {
+        "agent_response": "You named what starts it, what changes, and what results — that is a full causal chain in your own words.",
+        "generative_commitment": true,
+        "answer_mode": "attempt",
+        "score_eligible": true,
+        "help_request_reason": "none",
+        "classification": "solid",
+        "gap_description": null,
+        "routing": "NEXT",
+        "response_tier": 4,
+        "response_band": "clear",
+        "tier_reason": "The response names the key causal transition."
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "idle_exit"
+    }
+  ],
+  "derived": [
+    {
+      "event": "cold_attempt",
+      "nodes": {
+        "c1_s1": {
+          "state": "primed",
+          "next_action": "study",
+          "strongest_turn_text": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "primed",
+        "composition": {
+          "untested": 0,
+          "primed": 1,
+          "needs_repair": 0,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "strong_cold_path",
+      "nodes": {
+        "c1_s1": {
+          "state": "primed",
+          "next_action": "study",
+          "strongest_turn_text": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "primed",
+        "composition": {
+          "untested": 0,
+          "primed": 1,
+          "needs_repair": 0,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "spacing_advanced",
+      "nodes": {
+        "c1_s1": {
+          "state": "primed",
+          "next_action": "study",
+          "strongest_turn_text": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-15T10:00:00.000Z",
+          "attempt_count": 1,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "primed",
+        "composition": {
+          "untested": 0,
+          "primed": 1,
+          "needs_repair": 0,
+          "solidified": 0,
+          "total": 1
+        }
+      }
+    },
+    {
+      "event": "spaced_redrill",
+      "nodes": {
+        "c1_s1": {
+          "state": "solidified",
+          "next_action": null,
+          "strongest_turn_text": "A vaccine safely presents antigen, immune cells that match it expand, memory cells remain, and those memory cells respond faster during a later infection.",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-16T06:00:00.000Z",
+          "attempt_count": 2,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "solidified",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 0,
+          "solidified": 1,
+          "total": 1
+        }
+      }
+    }
+  ],
+  "evidence_holds": [],
+  "llm_calls": [
+    {
+      "agent": "Route Agent",
+      "agent_id": "route",
+      "job": "Create a provisional map hypothesis and first reconstruction target.",
+      "required_outputs": [
+        "provisional_map",
+        "first_node"
+      ],
+      "may_propose_events": [
+        "route_generated"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Treating generated route topology as learner evidence.",
+      "stage": "route_generated",
+      "provider": "fake",
+      "model": "fake-source-less-route",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Cold Attempt Agent",
+      "agent_id": "cold_attempt",
+      "job": "Elicit the learner's current model before recognition or model-bridge material.",
+      "required_outputs": [
+        "learner_prompt"
+      ],
+      "may_propose_events": [
+        "cold_attempt"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Leaking the answer before the learner generates.",
+      "stage": "cold_attempt_prompt",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Evidence Judge",
+      "agent_id": "evidence_judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation.",
+      "stage": "cold_attempt",
+      "provider": "fake",
+      "model": "fake-drill-evaluator",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Re-Drill Agent",
+      "agent_id": "redrill",
+      "job": "Vary spaced reconstruction pressure after spacing is available.",
+      "required_outputs": [
+        "spaced_prompt"
+      ],
+      "may_propose_events": [
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Repeating the same wording so the learner can mimic instead of reconstruct.",
+      "stage": "spaced_prompt",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Evidence Judge",
+      "agent_id": "evidence_judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation.",
+      "stage": "spaced_redrill",
+      "provider": "fake",
+      "model": "fake-drill-evaluator",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    }
+  ],
+  "training": {
+    "concept_id": "immune-memory",
+    "schema_version": 1,
+    "source_mode": "source_less",
+    "grounding": "learner_sketch",
+    "source_ref": null,
+    "sketch": {
+      "text": "Vaccines show the immune system a safer preview so it can react faster later.",
+      "at": "2026-05-15T10:00:00.000Z"
+    },
+    "node_records": {
+      "c1_s1": {
+        "attempts": [
+          {
+            "id": "cold-1",
+            "at": "2026-05-15T10:00:00.000Z",
+            "user_text": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+            "classification": "strong",
+            "gaps": [],
+            "grader_version": "fake-drill-evaluator",
+            "kind": "cold"
+          },
+          {
+            "id": "spaced-1",
+            "at": "2026-05-16T06:00:00.000Z",
+            "user_text": "A vaccine safely presents antigen, immune cells that match it expand, memory cells remain, and those memory cells respond faster during a later infection.",
+            "classification": "strong",
+            "gaps": [],
+            "grader_version": "fake-drill-evaluator",
+            "kind": "spaced"
+          }
+        ],
+        "repairs": []
+      }
+    }
+  }
+}

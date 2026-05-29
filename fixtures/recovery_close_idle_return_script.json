@@ -1,0 +1,14 @@
+{
+  "concept": "Socratink",
+  "learner_goal": "make socratink better",
+  "launch_attempt": "Socratink is an evidence-weighted learning map with cold attempts, gap identification, repair, and spaced reconstruction.",
+  "cold_attempt": ["I am not sure", "I am not sure"],
+  "repair_dialogue_turns": [
+    "i am not sure.",
+    "i am not sure.",
+    "i am not sure.",
+    "i am not sure."
+  ],
+  "run_gap_drill": false,
+  "spaced_attempt": "Socratink weights the map from cold attempts, routes through repair when gaps remain, and schedules spaced reconstruction."
+}

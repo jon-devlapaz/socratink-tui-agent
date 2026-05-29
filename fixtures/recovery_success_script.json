@@ -1,0 +1,19 @@
+{
+  "concept": "Immune memory",
+  "learner_goal": "understand why vaccines help later",
+  "launch_attempt": "A vaccine gives a safe preview so the body responds faster later.",
+  "cold_attempt": [
+    "I am not sure",
+    "I am not sure"
+  ],
+  "repair_dialogue_turns": [
+    "it has something to do with germs and practice",
+    "it has something to do with germs and practice",
+    "it has something to do with germs and practice",
+    "it has something to do with germs and practice",
+    "it has something to do with germs and practice"
+  ],
+  "repair_recovery": "Memory cells remain after the preview and respond faster later.",
+  "run_gap_drill": false,
+  "spaced_attempt": "Memory cells remain and help the body respond faster later."
+}

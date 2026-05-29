@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+ENV_FILE="${SOCRATINK_TUI_ENV_FILE:-.env}"
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  . "$ENV_FILE"
+  set +a
+fi
+# Stale shell exports should not silently keep sandbox mode when .env is live.
+if [[ ! -f "$ENV_FILE" ]] || ! grep -qE '^[[:space:]]*SOCRATINK_TUI_FAKE_LLM=1[[:space:]]*$' "$ENV_FILE"; then
+  unset SOCRATINK_TUI_FAKE_LLM
+fi
+exec node --no-warnings loop-server.mjs

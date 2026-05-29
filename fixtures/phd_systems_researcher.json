@@ -1,0 +1,14 @@
+{
+  "concept": "Immune memory",
+  "learner_goal": "Map vaccine priming to a durable, faster secondary response — analogous to warming a read-through cache after a safe prefetch.",
+  "launch_attempt": "A vaccine is a controlled, attenuated exposure: the immune system runs a training pass on antigen shape without paying the full pathogenic cost, so a later real infection can short-circuit to a faster effector response.",
+  "cold_attempt": "Primary exposure presents antigen; B and T lineages expand; some differentiated effectors clear the signal. On re-exposure, titers rise faster and symptoms shrink — so the system must be reusing prior state, but I have not specified which cellular state is retained between encounters.",
+  "repair_dialogue_turns": [
+    "If I borrow a CS frame: the first encounter writes a key (antigen epitope) and bumps counters, but I am still treating the retained artifact as circulating antibody alone — not a dedicated memory lymphocyte compartment that lowers activation latency.",
+    "Revision: clonal selection leaves a long-lived memory B/T pool. Second challenge does not cold-start from naive repertoire search; memory cells expand quickly into effectors, which is the mechanism that compresses time-to-clearance.",
+    "Concrete chain: safe prime → antigen-specific lymphocyte expansion → subset differentiates into memory cells that persist → on real re-exposure those memory cells re-activate and produce effectors faster, so the observable outcome is accelerated clearance before pathology."
+  ],
+  "run_gap_drill": true,
+  "gap_attempt": "After the model bridge: the persisted memory lymphocyte population is the hinge — it encodes the first exposure and is what makes the second response faster, not antibody alone floating without a cellular source.",
+  "spaced_attempt": "Spaced reconstruction: vaccine delivers a safe antigen preview; adaptive immune cells specific to that antigen proliferate; a fraction become long-lived memory B and T cells; when the same pathogen returns, those memory cells recognize the antigen immediately, re-enter expansion, and generate effectors with shorter lag — hence faster control and milder disease."
+}

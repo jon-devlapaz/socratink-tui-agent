@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#141210">
+  <title>socratink loop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/loop/loop.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="chrome">
+      <div class="brand">
+        <span class="brand-name">socratink</span>
+        <span class="brand-loop">loop</span>
+      </div>
+      <div class="chrome-meta">
+        <span id="llm-pill" class="llm-pill" data-mode="checking">llm…</span>
+        <span id="phase-pill" class="phase-pill" data-phase="—">—</span>
+        <span id="session-tag" class="session-tag" hidden></span>
+      </div>
+    </header>
+
+    <section id="terminal" class="terminal" aria-label="Learning loop terminal" aria-busy="false">
+      <p id="sr-status" class="sr-only" role="status" aria-live="polite"></p>
+      <div id="transcript" class="transcript" aria-live="polite"></div>
+      <form id="composer" class="composer" autocomplete="off">
+        <div id="composer-idle" class="composer-idle">
+          <span class="prompt-glyph" aria-hidden="true">›</span>
+          <input
+            id="input"
+            type="text"
+            spellcheck="true"
+            autocomplete="off"
+            placeholder="Type your answer… (/help, /hint, /feedback, /exit)"
+          />
+          <button type="submit" class="send" aria-label="Send (Return)">
+            <span class="send-label">return</span>
+            <kbd class="send-key">↵</kbd>
+          </button>
+        </div>
+        <div id="composer-busy" class="composer-busy" hidden>
+          <span class="prompt-glyph" aria-hidden="true">›</span>
+          <span class="braille-spinner" aria-hidden="true"></span>
+          <span id="composer-busy-label" class="composer-busy-label">thinking…</span>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="/loop/loop.js"></script>
+</body>
+</html>

@@ -44,6 +44,19 @@ repair turns, bridge readiness, final evidence state, and LLM latency per varian
 ./socratink-tui
 ```
 
+## Hosted loop (faithful chat UI)
+
+Same SEDA + `bridge.py` over HTTP — for Railway/sandbox, not Vercel:
+
+```bash
+./socratink-loop-server
+# http://127.0.0.1:8787/loop
+```
+
+Deploy and `app.socratink.ai/loop` proxy: **`deploy/LOOP-HOSTING.md`**.  
+Power-user dogfood (MVD checklist + invite copy): **`deploy/MINIMUM-VIABLE-DEPLOYMENT.md`**.  
+Railway step-by-step plan: **`deploy/RAILWAY.md`**.
+
 ## What was omitted from the full lab repo
 
 - Dashboard, persona QA runs, learnops-extract, founder-only docs

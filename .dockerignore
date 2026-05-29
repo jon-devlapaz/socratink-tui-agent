@@ -1,0 +1,13 @@
+.env
+.env.*
+.venv
+__pycache__
+.pytest_cache
+.qa-runs
+.demo-map-vis
+.cursor
+.git
+.playwright-cli
+learning_cases/traces/.capture-tmp
+**/.capture-run
+node_modules

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,8 +19,16 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const WORKSPACE_ROOT = path.resolve(__dirname, "../..");
 
+/** PYTHON env, else .venv when bootstrapped, else CI/setup-python interpreter. */
+function resolveBridgePython() {
+  if (process.env.PYTHON) return process.env.PYTHON;
+  const venvPython = path.join(WORKSPACE_ROOT, ".venv/bin/python");
+  if (existsSync(venvPython)) return venvPython;
+  return "python3";
+}
+
 function promptTemplateVersions() {
-  const python = path.join(WORKSPACE_ROOT, ".venv/bin/python");
+  const python = resolveBridgePython();
   const script = `
 import json
 from prompt_templates import TEMPLATES

@@ -9,7 +9,15 @@ import { stdin as input, stdout as output } from "node:process";
 import { createBridgeClient } from "./lib/bridge/client.mjs";
 import { resolveTuiPaths, preflightTuiPaths } from "./lib/config/paths.mjs";
 import { HANDLERS } from "./lib/seda/handlers/index.mjs";
-import { isHelpCommand } from "./lib/seda/prompt-commands.mjs";
+import {
+  feedbackMetaFromCtx,
+  handleFeedbackCommand,
+} from "./lib/feedback/handle.mjs";
+import {
+  isExitCommand,
+  isFeedbackCommand,
+  isHelpCommand,
+} from "./lib/seda/prompt-commands.mjs";
 import { runSedaLoop } from "./lib/seda/run-loop.mjs";
 import { buildSessionRecord } from "./lib/seda/session-record.mjs";
 import { initTrainingDerive } from "./lib/seda/training-summary.mjs";
@@ -168,7 +176,7 @@ function printPromptHelp(key) {
   console.log(`[Help] ${help.title}: ${help.body}`);
 }
 
-async function makePrompt(scripted) {
+async function makePrompt(scripted, ctx) {
   if (scripted) {
     const indexes = new Map();
     return {
@@ -202,6 +210,13 @@ async function makePrompt(scripted) {
           printPromptHelp(key);
           continue;
         }
+        if (isFeedbackCommand(trimmed)) {
+          await handleFeedbackCommand(trimmed, feedbackMetaFromCtx(ctx, { phase: key }));
+          continue;
+        }
+        if (isExitCommand(trimmed)) {
+          throw new Error("exit-requested");
+        }
         return trimmed || fallback;
       }
     },
@@ -226,7 +241,6 @@ async function run(options) {
   const scripted = await loadScripted(options.scripted);
   const agentContracts = await loadAgentContracts();
   const agentLookup = makeAgentLookup(agentContracts);
-  const prompt = await makePrompt(scripted);
   const colorEnabled = useColor(options.color);
   const section = makeSections(colorEnabled);
   const logDir = await createSessionLogDir();
@@ -267,17 +281,27 @@ async function run(options) {
     logDir,
   };
 
-  await runSedaLoop({
-    handlers: HANDLERS,
-    events,
-    derived,
-    store,
-    bridge: { callBridge, callBridgeResult },
-    prompt,
-    options,
-    ctx,
-    onLlmCalls: (calls) => llmCalls.push(...calls),
-  });
+  const prompt = await makePrompt(scripted, ctx);
+
+  try {
+    await runSedaLoop({
+      handlers: HANDLERS,
+      events,
+      derived,
+      store,
+      bridge: { callBridge, callBridgeResult },
+      prompt,
+      options,
+      ctx,
+      onLlmCalls: (calls) => llmCalls.push(...calls),
+    });
+  } catch (error) {
+    if (error?.message !== "exit-requested") throw error;
+    if (!events.some((e) => e.type === "idle_exit")) {
+      events.push({ type: "idle_exit" });
+    }
+    console.log("\nSession ended.");
+  }
 
   const finalTraining = await store.loadTraining(ctx.conceptId);
 

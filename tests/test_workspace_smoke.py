@@ -121,8 +121,14 @@ def test_repair_dialogue_llm_calls_are_logged(tmp_path: Path) -> None:
         and event.get("judge_reason")
     ]
     assert len(dialogue_turns) == 2
-    assert "Still not bridge-ready: missing operation =" in result.stdout
-    assert "Retry frame:" in result.stdout
+    not_ready_turns = [t for t in dialogue_turns if not t.get("bridge_ready")]
+    assert len(not_ready_turns) == 1
+    assert not_ready_turns[0].get("next_prompt", "").startswith("Stay on this link:")
+    assert (
+        "The learner named pieces but didn't connect the key process to the outcome."
+        in result.stdout
+    )
+    assert "Stay on this link:" in result.stdout
     ready_idx = result.stdout.index("Bridge readiness: ready")
     assert "[Repair Dialogue]" not in result.stdout[ready_idx + 1 :]
 
@@ -259,7 +265,7 @@ def test_repair_abandon_stays_idle_when_recovery_flag_off(tmp_path: Path) -> Non
 
     assert result.returncode == 0, result.stderr
     assert "[Recovery]" not in result.stdout
-    assert "Next best step: run /redrill" in result.stdout
+    assert "Next best step: when you're ready" in result.stdout
 
     session = json.loads(sorted(tmp_path.glob("*/session.json"))[0].read_text())
     event_types = [event["type"] for event in session["events"]]
@@ -272,7 +278,7 @@ def test_repair_abandon_stays_idle_when_recovery_flag_off(tmp_path: Path) -> Non
     ]
     assert closure
     assert "learner_next_action" in closure[-1]
-    assert "run /redrill" in closure[-1]["learner_next_action"]
+    assert "when you're ready" in closure[-1]["learner_next_action"]
 
 
 def test_repair_recovery_branch_runs_single_turn_when_flag_on(tmp_path: Path) -> None:

@@ -287,11 +287,23 @@ def _fake_map_uses_cache_route(concept_token: str) -> bool:
     )
 
 
+def _fake_map_uses_immune_route(concept_token: str) -> bool:
+    """Immune-memory fixture route for vaccine/immunity dogfood scripts only."""
+    return any(
+        token in concept_token
+        for token in ("immune", "vaccine", "antigen", "antibody", "immunity")
+    )
+
+
 def _fake_map(concept: str) -> ProvisionalMap:
     concept_clean = concept.strip() or "Core concept"
     concept_token = concept_clean.lower()
+    cluster_label = "Memory bridge"
+    backbone_principle = "Safe preview creates durable response memory."
     if _fake_map_uses_cache_route(concept_token):
         bridge_label = "Cache hit path"
+        cluster_label = "Cache bridge"
+        backbone_principle = "Storing a result makes a later identical request faster."
         mechanism = (
             "The first request computes and stores the result, then later identical "
             "requests read from cache and return faster."
@@ -306,7 +318,7 @@ def _fake_map(concept: str) -> ProvisionalMap:
             "The learner reconstructs how storing an earlier result enables a faster repeat response."
         )
         core_thesis = f"{concept_clean} depends on storing and reusing prior computation."
-    else:
+    elif _fake_map_uses_immune_route(concept_token):
         bridge_label = "Immune memory"
         mechanism = (
             "A vaccine safely presents antigen, matching immune cells expand, "
@@ -325,6 +337,31 @@ def _fake_map(concept: str) -> ProvisionalMap:
         )
         core_thesis = (
             f"{concept_clean} depends on a safe preview creating durable response memory."
+        )
+    else:
+        bridge_label = concept_clean
+        cluster_label = f"{concept_clean} bridge"
+        backbone_principle = (
+            f"An early pass at {concept_clean} shapes how you respond when it appears again."
+        )
+        mechanism = (
+            f"A first encounter with {concept_clean} leaves a trace, and a later encounter "
+            "can build on that trace instead of starting from zero."
+        )
+        entry_prompt = (
+            f"In your own words, how does an earlier encounter with {concept_clean} "
+            "change a later response?"
+        )
+        expected_shape = (
+            f"first encounter with {concept_clean} -> retained trace -> later reuse -> changed response"
+        )
+        sentence_starter = f"When {concept_clean} shows up again,"
+        blank_hint = f"Name what carries over from the first {concept_clean} encounter."
+        evidence_goal = (
+            f"The learner reconstructs how {concept_clean} links an earlier encounter to a later response."
+        )
+        core_thesis = (
+            f"{concept_clean} depends on carrying something forward from an earlier encounter."
         )
 
     scaffold = LearnerScaffold(
@@ -353,15 +390,15 @@ def _fake_map(concept: str) -> ProvisionalMap:
         backbone=[
             BackboneItem(
                 id="b1",
-                principle="Safe preview creates durable response memory.",
+                principle=backbone_principle,
                 dependent_clusters=["c1"],
             )
         ],
         clusters=[
             Cluster(
                 id="c1",
-                label="Memory bridge",
-                description="The local bridge between safe exposure and faster later response.",
+                label=cluster_label,
+                description=f"The local bridge for {concept_clean}.",
                 subnodes=[
                     Subnode(
                         id="c1_s1",

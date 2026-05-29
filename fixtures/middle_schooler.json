@@ -1,0 +1,13 @@
+{
+  "concept": "Immune memory",
+  "learner_goal": "I want to understand how vaccines help my body fight germs.",
+  "launch_attempt": "Vaccines put a little bit of the germ in you so your body learns how to fight it.",
+  "cold_attempt": "The vaccine has weak germs and your body makes medicine to kill them, then remembers how for next time.",
+  "repair_dialogue_turns": [
+    "I think the body makes special medicine that stays in the blood.",
+    "ohh so it's not medicine. the body keeps some fighter cells that remember the germ shape?"
+  ],
+  "run_gap_drill": true,
+  "gap_attempt": "The body keeps memory cells that know how to fight that specific germ faster next time.",
+  "spaced_attempt": "A vaccine shows your body a safe version of the germ. Your body makes fighter cells and keeps some as memory cells. When the real germ comes later, the memory cells already know what to do so they fight it off much faster before you even get sick."
+}

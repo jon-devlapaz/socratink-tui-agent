@@ -1,0 +1,13 @@
+{
+  "concept": "artificial intelligence",
+  "learner_goal": "i am curious about it",
+  "launch_attempt": "I know that it involves data.",
+  "cold_attempt": "I believe neural networks are involved.",
+  "repair_dialogue_turns": [
+    "large data sets are required to train the system so it may learn the concepts",
+    "the training process maps patterns so the model can predict outcomes for new data"
+  ],
+  "run_gap_drill": true,
+  "gap_attempt": "it uses learned mappings from data to make predictions",
+  "spaced_attempt": "it learns from examples and generalizes patterns to new inputs"
+}

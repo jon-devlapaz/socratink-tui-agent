@@ -1,0 +1,9 @@
+{
+  "concept": "Meta-cognition",
+  "learner_goal": "understand thinking about thinking",
+  "launch_attempt": "It is thinking about your own thinking.",
+  "cold_attempt": ["I am not sure", "I am not sure"],
+  "repair": "Monitoring your thinking helps you choose strategies before acting.",
+  "run_gap_drill": false,
+  "spaced_attempt": "You monitor your thinking, adjust strategies, and control how you learn."
+}

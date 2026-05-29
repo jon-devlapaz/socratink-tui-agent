@@ -1,0 +1,5 @@
+# Minimal runtime deps for the vendored Python LLM seam (vendor/python/).
+# Pinned to the app versions the seam was vendored from; bump via sync.
+pydantic==2.13.3
+google-genai==1.74.0
+python-dotenv==1.2.2

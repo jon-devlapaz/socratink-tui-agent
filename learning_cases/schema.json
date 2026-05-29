@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Socratink TUI Learning Case",
+  "type": "object",
+  "required": [
+    "case_id",
+    "case_type",
+    "case_source",
+    "promotion_status",
+    "session_log",
+    "concept",
+    "product_question",
+    "observed_failure",
+    "expected_invariant",
+    "expected_invariants"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string"
+    },
+    "case_type": {
+      "enum": ["golden", "regression", "research"]
+    },
+    "case_source": {
+      "enum": ["human_dogfood", "scripted_fixture", "simulated_learner", "regression_trace"]
+    },
+    "promotion_status": {
+      "enum": ["candidate", "active_regression", "active_golden", "research_only"]
+    },
+    "session_log": {
+      "type": "string"
+    },
+    "concept": {
+      "type": "string"
+    },
+    "agent_contract_version": {
+      "type": "string"
+    },
+    "product_question": {
+      "type": "string"
+    },
+    "observed_failure": {
+      "type": "string"
+    },
+    "expected_invariant": {
+      "type": "string"
+    },
+    "test_added": {
+      "type": "string"
+    },
+    "expected_invariants": {
+      "type": "object",
+      "required": [
+        "event_order",
+        "final_node_state",
+        "spaced_evaluator_classification",
+        "evidence_hold_required",
+        "truth_source"
+      ],
+      "properties": {
+        "event_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "final_node_state": {
+          "enum": ["primed", "needs repair", "solidified"]
+        },
+        "spaced_evaluator_classification": {
+          "type": "string"
+        },
+        "evidence_hold_required": {
+          "type": "boolean"
+        },
+        "truth_source": {
+          "const": "training_derivation"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

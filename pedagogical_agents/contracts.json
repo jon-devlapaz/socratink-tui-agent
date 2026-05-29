@@ -1,0 +1,199 @@
+{
+  "architecture": {
+    "orchestrator": "Socratink Orchestrator",
+    "truth_contract": "Agents propose moves. Training store records events. Derivation decides truth. Graph displays only derived evidence.",
+    "state_owner": "training-store/training-derive",
+    "notes": [
+      "Subagents are pedagogical contracts, not autonomous graph mutators.",
+      "The orchestrator owns traversal, learner state, event recording, and graph-truth boundaries.",
+      "No subagent may write training events, mutate derived state, or produce solidified directly."
+    ]
+  },
+  "agents": [
+    {
+      "id": "route",
+      "name": "Route Agent",
+      "job": "Create a provisional map hypothesis and first reconstruction target.",
+      "inputs_allowed": [
+        "concept",
+        "learner_goal",
+        "launch_attempt"
+      ],
+      "required_outputs": [
+        "provisional_map",
+        "first_node"
+      ],
+      "may_propose_events": [
+        "route_generated"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Treating generated route topology as learner evidence."
+    },
+    {
+      "id": "cold_attempt",
+      "name": "Cold Attempt Agent",
+      "job": "Elicit the learner's current model before recognition or model-bridge material.",
+      "inputs_allowed": [
+        "first_node",
+        "learner_goal",
+        "launch_attempt"
+      ],
+      "required_outputs": [
+        "learner_prompt"
+      ],
+      "may_propose_events": [
+        "cold_attempt"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Leaking the answer before the learner generates."
+    },
+    {
+      "id": "delta",
+      "name": "Delta Agent",
+      "job": "Find the missing causal link and express it as a concrete repair slot.",
+      "inputs_allowed": [
+        "target_node",
+        "learner_attempt",
+        "judge_classification",
+        "gap_description"
+      ],
+      "required_outputs": [
+        "repair_target",
+        "before",
+        "missing",
+        "after",
+        "prompt"
+      ],
+      "may_propose_events": [
+        "study_reveal"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Naming a vague gap instead of one fillable causal link."
+    },
+    {
+      "id": "socratic_repair_drill",
+      "name": "Socratic Repair Drill Agent",
+      "job": "Write one learner-facing Socratic question from sanitized repair slot boundaries.",
+      "inputs_allowed": [
+        "target_node",
+        "repair_target",
+        "before",
+        "missing_operation",
+        "after",
+        "learner_attempt",
+        "question_style"
+      ],
+      "required_outputs": [
+        "socratic_question"
+      ],
+      "may_propose_events": [],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Quoting tutor/rubric phrasing or revealing the missing mechanism in the drill question."
+    },
+    {
+      "id": "repair",
+      "name": "Repair Agent",
+      "job": "Force own-words reconstruction of the missing link.",
+      "inputs_allowed": [
+        "repair_scaffold",
+        "gap_id",
+        "missing_operation",
+        "learner_repair",
+        "hint_request"
+      ],
+      "required_outputs": [
+        "repair_prompt",
+        "repair_dialogue_judge",
+        "bridge_ready",
+        "contract_version",
+        "next_action",
+        "progression_state",
+        "improvement_observed",
+        "improvement_note"
+      ],
+      "may_propose_events": [
+        "repair_hint_requested",
+        "repair_dialogue_turn",
+        "repair_abandoned",
+        "repair"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Counting scaffold echo or circular repair as proof."
+    },
+    {
+      "id": "model_bridge",
+      "name": "Model Bridge Agent",
+      "job": "Reveal compact comparison material only after generation.",
+      "inputs_allowed": [
+        "target_node",
+        "learner_attempt",
+        "learner_repair"
+      ],
+      "required_outputs": [
+        "model_bridge_text"
+      ],
+      "may_propose_events": [
+        "model_bridge"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Turning comparison material into evidence or broad study."
+    },
+    {
+      "id": "redrill",
+      "name": "Re-Drill Agent",
+      "job": "Vary spaced reconstruction pressure after spacing is available.",
+      "inputs_allowed": [
+        "target_node",
+        "prior_attempts",
+        "repair_history",
+        "spacing_state"
+      ],
+      "required_outputs": [
+        "spaced_prompt"
+      ],
+      "may_propose_events": [
+        "spaced_redrill"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Repeating the same wording so the learner can mimic instead of reconstruct."
+    },
+    {
+      "id": "evidence_judge",
+      "name": "Evidence Judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "inputs_allowed": [
+        "target_node",
+        "learner_text",
+        "drill_mode",
+        "repair_context"
+      ],
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "cannot": [
+        "mutate training store",
+        "set graph state",
+        "produce solidified directly"
+      ],
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation."
+    }
+  ]
+}

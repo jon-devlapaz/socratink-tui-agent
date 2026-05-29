@@ -1,0 +1,13 @@
+{
+  "concept": "Immune memory",
+  "learner_goal": "I want to explain why vaccines work.",
+  "launch_attempt": "Vaccines safely preview an antigen so the body responds faster later.",
+  "cold_attempt": "A vaccine presents antigen safely and leaves memory cells for later exposure.",
+  "repair_dialogue_turns": [
+    "/hint",
+    "Memory cells keep the pattern from the safe preview, so later exposure triggers a faster response."
+  ],
+  "run_gap_drill": true,
+  "gap_attempt": "The repaired link is that memory cells connect safe first exposure to a faster later response.",
+  "spaced_attempt": "Vaccination creates memory cells after safe antigen exposure, and those memory cells drive a faster response during later infection."
+}

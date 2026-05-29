@@ -69,6 +69,7 @@ jobs:
             tests/test_bridge_post_call_hooks.py \
             tests/test_bridge_route_runtime.py \
             tests/test_prompt_eval_repair_dialogue.py \
+            tests/test_prompt_eval_evaluator.py \
             tests/test_fake_repair_dialogue_golden.py \
             -q
       - name: Harness replay + routing proofs

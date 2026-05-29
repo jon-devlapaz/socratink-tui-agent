@@ -75,7 +75,7 @@
     "evaluate-attempt": {
       "bridge_function": "evaluate_attempt",
       "template_key": "evaluator",
-      "template_version": "socratink-evaluator-v5",
+      "template_version": "socratink-evaluator-v6",
       "response_schema": "ai_service.DrillEvaluation",
       "request": {
         "required": ["node_id", "node_label", "node_mechanism", "learner_text"],

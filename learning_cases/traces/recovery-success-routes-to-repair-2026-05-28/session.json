@@ -145,7 +145,7 @@
       "help_request_reason": "explicit_unknown",
       "graph_neutral": true,
       "kc_id": "c1_s1",
-      "agent_response": "Try one rough causal guess in your own words. We have not scored this yet.",
+      "agent_response": "Try one rough guess in your own words — what do you think has to happen the first time versus the next time? We have not scored this yet.",
       "generative_commitment": false
     },
     {
@@ -159,7 +159,7 @@
       "help_request_reason": "explicit_unknown",
       "graph_neutral": true,
       "kc_id": "c1_s1",
-      "agent_response": "Try one rough causal guess in your own words. We have not scored this yet.",
+      "agent_response": "Try one rough guess in your own words — what do you think has to happen the first time versus the next time? We have not scored this yet.",
       "generative_commitment": false
     },
     {
@@ -478,13 +478,13 @@
       "type": "spaced_redrill",
       "text": "Memory cells remain and help the body respond faster later.",
       "evaluation": {
-        "agent_response": "You named pieces of Immune memory, but not the causal step that links first request to later speed — what must happen in between?",
+        "agent_response": "You named pieces of Immune memory, but not the key process yet — what has to happen between the first time and the next time?",
         "generative_commitment": true,
         "answer_mode": "attempt",
         "score_eligible": true,
         "help_request_reason": "none",
         "classification": "shallow",
-        "gap_description": "Name the missing causal step in Immune memory and how it creates the later faster result.",
+        "gap_description": "what changes during immune memory",
         "routing": "NEXT",
         "response_tier": 3,
         "response_band": "chain",
@@ -657,7 +657,7 @@
           "gaps": [
             {
               "mechanism": "target mechanism",
-              "correction": "Name the missing causal step in Immune memory and how it creates the later faster result."
+              "correction": "what changes during immune memory"
             }
           ],
           "solidify_unlocks_at": null,
@@ -1146,7 +1146,7 @@
             "gaps": [
               {
                 "mechanism": "target mechanism",
-                "correction": "Name the missing causal step in Immune memory and how it creates the later faster result."
+                "correction": "what changes during immune memory"
               }
             ],
             "grader_version": "fake-drill-evaluator",

@@ -141,7 +141,7 @@
       "help_request_reason": "explicit_unknown",
       "graph_neutral": true,
       "kc_id": "c1_s1",
-      "agent_response": "Try one rough causal guess in your own words. We have not scored this yet.",
+      "agent_response": "Try one rough guess in your own words — what do you think has to happen the first time versus the next time? We have not scored this yet.",
       "generative_commitment": false
     },
     {
@@ -155,7 +155,7 @@
       "help_request_reason": "explicit_unknown",
       "graph_neutral": true,
       "kc_id": "c1_s1",
-      "agent_response": "Try one rough causal guess in your own words. We have not scored this yet.",
+      "agent_response": "Try one rough guess in your own words — what do you think has to happen the first time versus the next time? We have not scored this yet.",
       "generative_commitment": false
     },
     {

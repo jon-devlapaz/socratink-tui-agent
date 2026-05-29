@@ -565,7 +565,7 @@ def _fake_evaluator_classification(
     *,
     drill_mode: str,
 ) -> tuple[str | None, str, bool, str | None, str]:
-    """Fake L2 classifier aligned with evaluator v5 causal rubric (CI only)."""
+    """Fake L2 classifier aligned with evaluator v6 causal rubric (CI only)."""
     from models.drill_attempts import has_substantive_attempt, infer_help_request_reason
 
     if drill_mode == "cold_attempt" and not has_substantive_attempt(learner_text):
@@ -600,8 +600,8 @@ def _fake_cold_help_evaluation(learner_text: str) -> dict[str, Any]:
     help_reason = infer_help_request_reason(learner_text) or "explicit_unknown"
     return {
         "agent_response": (
-            "Try one rough causal guess in your own words. "
-            "We have not scored this yet."
+            "Try one rough guess in your own words — what do you think has to happen "
+            "the first time versus the next time? We have not scored this yet."
         ),
         "generative_commitment": False,
         "answer_mode": "help_request",
@@ -684,31 +684,29 @@ def _fake_evaluation(request: dict[str, Any]) -> dict[str, Any]:
         )
     elif classification == "misconception":
         response = (
-            "That story cannot be right as written — walk the timeline again: "
-            "what must happen before the faster outcome?"
+            "That story cannot work as written — what would have to change "
+            "in the mechanism for the outcome to make sense?"
         )
     elif classification == "deep":
         response = (
-            "You have the before and after; name the step that must happen "
-            "between them in your own words."
+            "You have the starting situation and the outcome — name the key "
+            "process that connects them in your own words."
         )
     elif answer_mode == "help_request":
         response = (
-            "What do you think must happen between the slow first case "
-            "and the faster repeat?"
+            "What do you think has to happen the first time versus "
+            "when it happens again?"
         )
     else:
         response = (
-            f"You named pieces of {node_label}, but not the causal step "
-            "that links first request to later speed — what must happen in between?"
+            f"You named pieces of {node_label}, but not the key process yet — "
+            "what has to happen between the first time and the next time?"
         )
 
     gap_description = None
     if classification and classification != "solid":
-        gap_description = (
-            f"Name the missing causal step in {node_label} and how it "
-            "creates the later faster result."
-        )
+        label = node_label.lower()
+        gap_description = f"what changes during {label}"
 
     return {
         "evaluation": {

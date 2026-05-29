@@ -4,6 +4,7 @@
 __pycache__/
 .pytest_cache/
 .qa-runs/
+.playwright-cli/
 .demo-map-vis/
 .cursor/
 learning_cases/traces/.capture-tmp/

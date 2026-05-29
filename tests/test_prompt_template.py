@@ -51,7 +51,7 @@ class TestPromptBuilder:
             },
         )
         assert "Socratink's Delta repair scaffold agent" in result["system_prompt"]
-        assert "Generate escalating scaffolds" in result["system_prompt"]
+        assert "mechanism-first scaffolds" in result["system_prompt"]
 
     def test_system_prompt_contains_output_rules(self, delta_template):
         result = build_prompt(

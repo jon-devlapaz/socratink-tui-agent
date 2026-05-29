@@ -52,7 +52,7 @@
     {
       "id": "delta",
       "name": "Delta Agent",
-      "job": "Find the missing causal link and express it as a concrete repair slot.",
+      "job": "Find the missing causal process and express it as a mechanism-first repair slot (hinge + in-domain contrast).",
       "inputs_allowed": [
         "target_node",
         "learner_attempt",
@@ -61,6 +61,8 @@
       ],
       "required_outputs": [
         "repair_target",
+        "hinge_focus",
+        "contrast_prompt",
         "before",
         "missing",
         "after",
@@ -76,10 +78,12 @@
     {
       "id": "socratic_repair_drill",
       "name": "Socratic Repair Drill Agent",
-      "job": "Write one learner-facing Socratic question from sanitized repair slot boundaries.",
+      "job": "Write one curious in-domain question from hinge_focus and contrast_prompt (sanitized scaffold slots).",
       "inputs_allowed": [
         "target_node",
         "repair_target",
+        "hinge_focus",
+        "contrast_prompt",
         "before",
         "missing_operation",
         "after",

@@ -47,7 +47,9 @@ graph truth; the TUI holds a checksum-gated mirror (`scripts/check-canon-drift.s
 
 ### Python Bridge (bridge.py)
 
-Five actions dispatched from Node via subprocess:
+Five actions dispatched from Node via subprocess. Full function catalog (template
+versions, I/O schemas, emitted events, `nextPhase` routing fields):
+`HARNESS-BRIDGE-REGISTRY.md` / `lib/bridge/registry.json`.
 
 | CLI arg | Function | Template |
 |---|---|---|
@@ -104,6 +106,10 @@ To add or modify a prompt:
   contingent load reduction over early abandonment.
 - **Misconception handling**: `is_misconception` flag triggers
   `misconception_counter` in the bridge scaffold.
+- **Mechanism-first scaffolds**: Delta emits `hinge_focus` (verb-led process)
+  and `contrast_prompt` (in-domain curiosity hook). JS sanitization in
+  `repair-scaffold.mjs` rejects meta before/after phrasing and off-domain
+  analogies; learner copy should use hinge/contrast, not abstract slot labels.
 
 ## Testing
 

@@ -11,7 +11,7 @@ map (what to gate at each tier), see [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEAB
 | Layer | Responsibility | Artifacts |
 | --- | --- | --- |
 | **Strategy** | Graph honesty, phase catalog, canon boundaries | `AGENTS.md`, `pedagogical_agents/contracts.json`, prompt versions in `prompt_templates.py` |
-| **Substrate** | Orchestration, event log, routing, bridge calls | `app.mjs` (`HANDLERS`), `lib/seda/run-loop.mjs`, `lib/seda/next-phase.mjs`, `lib/seda/handlers/`, `lib/bridge/client.mjs`, `bridge.py` |
+| **Substrate** | Orchestration, event log, routing, bridge calls | `app.mjs` (`HANDLERS`), `lib/seda/run-loop.mjs`, `lib/seda/next-phase.mjs`, `lib/seda/handlers/`, `lib/bridge/client.mjs`, `lib/bridge/registry.json`, `bridge.py` |
 | **App** | Founder-facing session UX | `./socratink-tui`, scripted fixtures under `fixtures/` |
 | **Observability** | Read-only truth over runs | `session.json`, `./socratink-harness replay`, `./socratink-dashboard`, `DOGFOODING.md` |
 
@@ -119,6 +119,7 @@ promoted traces in `learning_cases/`.
 | --- | --- |
 | `SOCRATINK_TUI_LOG_ROOT/<ts>/session.json` | Full fact chain, `derived`, `llm_calls`, `product_loop` |
 | `./socratink-harness replay` | Assert `expected_invariants` on promoted cases (`learning_cases/cases.jsonl`) |
+| `./socratink-harness routing-proof` | Verify `nextPhase` routes each promoted trace (`lib/seda/routing-proofs.mjs`) |
 | `./socratink-dashboard --json` | Founder summaries for dogfooding |
 | `DOGFOODING.md` | Closed loop: replay → dashboard → triage JSON |
 
@@ -144,6 +145,38 @@ Traversal rules (dungeon crawl intent, current TUI scope):
 5. **Interleave** at spaced re-drill, not as immediate hops to adjacent rooms after repair.
 
 Over-decomposed subnodes are **fake dungeon rooms** (see `learnops-extract/extract-system-v1.txt`).
+
+## Graph completion (session vs KC)
+
+Two different “done” signals — do not conflate them in copy or dashboard triage:
+
+| Signal | Meaning | Where it lives |
+| --- | --- | --- |
+| **Session complete** | Learner ran the product loop to `idle` (often after `spaced_redrill`) | `events[]` ends with `idle_exit` or idle after spacing |
+| **Bridge gate passed** | Own-words repair satisfied `bridge_ready`; model bridge may reveal | Last `repair_dialogue_turn.bridge_ready === true` |
+| **KC complete (graph truth)** | Node derived to **`solidified`** | `training-derive.js` on `node_records[].attempts[]` |
+
+**Derivation gate** (`lib/canon/training-derive.js`):
+
+1. Only **`cold_attempt`** and **`spaced_redrill`** call `store.appendAttempt` (evidence candidates).
+2. Evaluator **`solid`** maps to store **`strong`** (`classifyForStore` in `cold-gating.mjs`).
+3. **`solidified`** requires **two** `strong` attempts **≥ 18h apart** (`SPACING_INTERVAL_MS`).
+
+**Typical paths:**
+
+```text
+Strong cold (one session can solidify):
+  cold solid → strong #1 → primed → strong_cold_path → spacing → spaced solid → strong #2 → solidified
+
+Repair path (session complete ≠ solidified):
+  cold shallow → partial → delta → repair_dialogue → bridge_ready → model bridge
+  → spacing → spaced solid → strong #1 only → primed (+ evidence_hold if UI explains)
+  → second strong spaced later (/redrill) → solidified
+```
+
+Replay enforces `final_node_state` and `evidence_hold_required` on promoted cases.
+The UI must explain holds when evaluator `solid` disagrees with derived state
+(`lib/seda/evidence-hold.mjs`).
 
 ## Worked example: Moss-style timeline
 
@@ -194,8 +227,16 @@ SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
 
 See `AGENTS.md` for graph-honesty rules and fixture format.
 
+## Bridge function catalog
+
+Wire contracts for the five `bridge.py` actions (template version, I/O schema, emitted
+events, routing fields read by `nextPhase`): [`HARNESS-BRIDGE-REGISTRY.md`](HARNESS-BRIDGE-REGISTRY.md).
+Machine-readable: `lib/bridge/registry.json`. Summary table is generated from
+`registry.json` via `node scripts/refresh-bridge-registry-doc.mjs`.
+
 ## Further reading
 
+- [`HARNESS-BRIDGE-REGISTRY.md`](HARNESS-BRIDGE-REGISTRY.md) — bridge action registry (function catalog)
 - [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md) — V-model map, verification vs validation, agent checklist
 - [Moss README](https://github.com/cybernetix-lab/moss-harness) — closed-loop orchestrator, two-stage routing
 - [Moss ARCHITECTURE.md](https://github.com/cybernetix-lab/moss-harness/blob/main/ARCHITECTURE.md) — invariants and runtime layout

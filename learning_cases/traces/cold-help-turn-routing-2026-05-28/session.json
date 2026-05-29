@@ -99,7 +99,7 @@
   },
   "product_loop": {
     "repair_position": "before_model_bridge",
-    "bridge_gate": "before -> missing operation -> after",
+    "bridge_gate": "own-words hinge process must connect starting situation to outcome (bridge_ready gate)",
     "graph_truth": "only spaced strong reconstruction may derive solidified",
     "graph_neutral_events": [
       "cold_help_turn",
@@ -167,30 +167,34 @@
       "cue": "Name the missing causal step in Immune memory and how it creates the later faster result.",
       "gap_log": {
         "kc_id": "c1_s1",
+        "hinge_focus": "what changes during immune memory",
+        "contrast_prompt": "Think about two moments with immune memory: what's different the second time?",
         "before": "you described it as \"You notice your thinking, monitor it, and choose a strategy before acting.\"",
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "after": "immune memory is correctly explained",
         "internal_bloom_lens": "understand",
         "question_style": "direct"
       },
       "repair_scaffold": {
         "repair_target": "Name the missing causal step in Immune memory and how it creates the later faster result.",
+        "hinge_focus": "what changes during immune memory",
+        "contrast_prompt": "Think about two moments with immune memory: what's different the second time?",
         "before": "you described it as \"You notice your thinking, monitor it, and choose a strategy before acting.\"",
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "after": "immune memory is correctly explained",
         "internal_bloom_lens": "understand",
         "question_style": "direct",
-        "socratic_question": "What must happen between you described it as \"You notice your thinking, monitor it, and choose a strategy before acting.\" and immune memory is correctly explained?"
+        "socratic_question": "Think about two moments with immune memory: what's different the second time? What has to happen: what changes during immune memory?"
       },
       "scaffold_rejections": [
         {
           "reason": "answer_shaped_scaffold",
-          "rejected_missing_operation": "Name the missing causal step in Immune memory and how it creates the later faster result.",
-          "rejected_after": "After-state for Immune memory.",
-          "rejected_before": "Before-state for Immune memory."
+          "rejected_missing_operation": "memory cells form and stay ready",
+          "rejected_after": "the response is faster on the next exposure",
+          "rejected_before": "your body meets the germ for the first time"
         }
       ],
-      "prompt": "What must happen between you described it as \"You notice your thinking, monitor it, and choose a strategy before acting.\" and immune memory is correctly explained?",
+      "prompt": "Think about two moments with immune memory: what's different the second time? What has to happen: what changes during immune memory?",
       "graph_neutral": true,
       "training_store_note": "uses study_revealed_at internally to unlock repair without revealing model bridge"
     },
@@ -203,7 +207,7 @@
       "support_level": "probe",
       "classification": "thin",
       "gap_delta": {
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "causal_link_present": false,
         "missing_operation_addressed": false
       },
@@ -214,8 +218,8 @@
       "echo_risk": true,
       "bridge_ready": false,
       "next_dialogue_action": "probe_again",
-      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
-      "next_prompt": "Stay on this link: what changes because of the causal step that links the before state to the after state, and how does that change cause the after-state?",
+      "judge_reason": "The learner named pieces but didn't connect the key process to the outcome.",
+      "next_prompt": "Stay on this link: what has to happen — what changes during immune memory — to get from the starting situation to the outcome?",
       "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
       "repair_state": {
         "turn_index": 1,
@@ -236,7 +240,7 @@
       "support_level": "probe",
       "classification": "thin",
       "gap_delta": {
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "causal_link_present": false,
         "missing_operation_addressed": false
       },
@@ -247,8 +251,8 @@
       "echo_risk": true,
       "bridge_ready": false,
       "next_dialogue_action": "probe_again",
-      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
-      "next_prompt": "Stay on this link: what changes because of the causal step that links the before state to the after state, and how does that change cause the after-state?",
+      "judge_reason": "The learner named pieces but didn't connect the key process to the outcome.",
+      "next_prompt": "Stay on this link: what has to happen — what changes during immune memory — to get from the starting situation to the outcome?",
       "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
       "repair_state": {
         "turn_index": 2,
@@ -269,7 +273,7 @@
       "support_level": "probe",
       "classification": "thin",
       "gap_delta": {
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "causal_link_present": false,
         "missing_operation_addressed": false
       },
@@ -280,8 +284,8 @@
       "echo_risk": true,
       "bridge_ready": false,
       "next_dialogue_action": "probe_again",
-      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
-      "next_prompt": "Stay on this link: what changes because of the causal step that links the before state to the after state, and how does that change cause the after-state?",
+      "judge_reason": "The learner named pieces but didn't connect the key process to the outcome.",
+      "next_prompt": "Stay on this link: what has to happen — what changes during immune memory — to get from the starting situation to the outcome?",
       "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
       "repair_state": {
         "turn_index": 3,
@@ -302,7 +306,7 @@
       "support_level": "probe",
       "classification": "thin",
       "gap_delta": {
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "causal_link_present": false,
         "missing_operation_addressed": false
       },
@@ -313,8 +317,8 @@
       "echo_risk": true,
       "bridge_ready": false,
       "next_dialogue_action": "probe_again",
-      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
-      "next_prompt": "Stay on this link: what changes because of the causal step that links the before state to the after state, and how does that change cause the after-state?",
+      "judge_reason": "The learner named pieces but didn't connect the key process to the outcome.",
+      "next_prompt": "Stay on this link: what has to happen — what changes during immune memory — to get from the starting situation to the outcome?",
       "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
       "repair_state": {
         "turn_index": 4,
@@ -335,7 +339,7 @@
       "support_level": "probe",
       "classification": "thin",
       "gap_delta": {
-        "missing_operation": "the causal step that links the before state to the after state",
+        "missing_operation": "what changes during immune memory",
         "causal_link_present": false,
         "missing_operation_addressed": false
       },
@@ -346,8 +350,8 @@
       "echo_risk": true,
       "bridge_ready": false,
       "next_dialogue_action": "probe_again",
-      "judge_reason": "The learner repeated the setup without connecting the missing operation to the result.",
-      "next_prompt": "Stay on this link: what changes because of the causal step that links the before state to the after state, and how does that change cause the after-state?",
+      "judge_reason": "The learner named pieces but didn't connect the key process to the outcome.",
+      "next_prompt": "Stay on this link: what has to happen — what changes during immune memory — to get from the starting situation to the outcome?",
       "not_mastery_reason": "This turn is dialogue routing, not independent spaced reconstruction evidence.",
       "repair_state": {
         "turn_index": 5,
@@ -393,7 +397,7 @@
       "type": "repair_recovery_closed",
       "outcome": "idle_return",
       "next_phase": "idle",
-      "learner_next_action": "Next best step: run /redrill and explain \"the causal step that links the before state to the after state\" in one sentence using before -> operation -> after.",
+      "learner_next_action": "Next best step: run /redrill and explain \"what changes during immune memory\" in one sentence — what had to happen between the two situations.",
       "concept_id": "meta-cognition",
       "kc_id": "c1_s1",
       "policy_version": "repair-recovery-v1-shadow",
@@ -604,9 +608,11 @@
     {
       "agent": "Delta Agent",
       "agent_id": "delta",
-      "job": "Find the missing causal link and express it as a concrete repair slot.",
+      "job": "Find the missing causal process and express it as a mechanism-first repair slot (hinge + in-domain contrast).",
       "required_outputs": [
         "repair_target",
+        "hinge_focus",
+        "contrast_prompt",
         "before",
         "missing",
         "after",
@@ -629,7 +635,7 @@
     {
       "agent": "Socratic Repair Drill Agent",
       "agent_id": "socratic_repair_drill",
-      "job": "Write one learner-facing Socratic question from sanitized repair slot boundaries.",
+      "job": "Write one curious in-domain question from hinge_focus and contrast_prompt (sanitized scaffold slots).",
       "required_outputs": [
         "socratic_question"
       ],

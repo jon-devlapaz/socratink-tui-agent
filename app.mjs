@@ -140,11 +140,11 @@ const PROMPT_HELP = {
   },
   repair: {
     title: "Repair dialogue",
-    body: "Fill the missing causal link in your own words: before state -> missing operation -> after state. Type /hint anytime for a bounded nudge.",
+    body: "Name the key process (hinge) that connects the starting situation to the outcome — in your own words. Type /hint anytime for a bounded nudge.",
   },
   repair_dialogue_turns: {
     title: "Repair dialogue",
-    body: "Stay on the same bottleneck. Explain how the missing operation changes the before state into the after state. Type /hint for adaptive support.",
+    body: "Stay on the same bottleneck. What had to happen between the two situations you were asked about? Type /hint for adaptive support.",
   },
   run_gap_drill: {
     title: "Post-bridge transfer check",

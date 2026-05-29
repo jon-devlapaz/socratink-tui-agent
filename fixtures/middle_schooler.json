@@ -5,7 +5,8 @@
   "cold_attempt": "The vaccine has weak germs and your body makes medicine to kill them, then remembers how for next time.",
   "repair_dialogue_turns": [
     "I think the body makes special medicine that stays in the blood.",
-    "ohh so it's not medicine. the body keeps some fighter cells that remember the germ shape?"
+    "ohh so it's not medicine. the body keeps some fighter cells that remember the germ shape?",
+    "Some of the fighter cells that beat the weak germs become memory cells that stay in the body for years."
   ],
   "run_gap_drill": true,
   "gap_attempt": "The body keeps memory cells that know how to fight that specific germ faster next time.",

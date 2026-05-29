@@ -1,0 +1,336 @@
+{
+  "schema_version": "1",
+  "description": "Wire contract for bridge.py subprocess actions. Function-catalog shape: stable action id, prompt template pin, I/O schema, emitted events, and nextPhase routing fields.",
+  "scope": {
+    "covers": "bridge.py subprocess wire actions only",
+    "excludes": [
+      "nextPhase coarse table",
+      "handler policy gates",
+      "training-derive"
+    ],
+    "see_also": [
+      "HARNESS.md",
+      "lib/seda/cold-gating.mjs",
+      "repair_policy.mjs"
+    ]
+  },
+  "transport": {
+    "protocol": "subprocess-json-stdin-stdout",
+    "entry": "bridge.py",
+    "client": "lib/bridge/client.mjs",
+    "invocation": "python bridge.py <action>  # JSON request on stdin, JSON response on stdout",
+    "errors": {
+      "exit_code_nonzero": "{ \"error\": \"<ExceptionName>\", \"message\": \"...\" }",
+      "unknown_action": "ValueError unknown-action:<name>"
+    }
+  },
+  "actions": {
+    "generate-route": {
+      "bridge_function": "generate_route",
+      "template_key": "route",
+      "template_version": "socratink-route-v2",
+      "template_runtime_note": "Contract-only in prompt_templates.py; live prompt is ai_service.generate_smallest_provisional_map (vendor/python/ai_service.py). Version pin is validated by tests/test_prompt_template.py.",
+      "response_schema": null,
+      "response_schema_note": "ProvisionalMap (Pydantic) serialized as provisional_map; first drillable subnode as first_node.",
+      "request": {
+        "required": ["concept", "launch_attempt"],
+        "optional": [
+          "learner_goal",
+          "log_raw_llm",
+          "route_attempt",
+          "route_retry_reason"
+        ]
+      },
+      "response": {
+        "required": ["provisional_map", "first_node", "llm_call"],
+        "payload_keys": {
+          "provisional_map": "ProvisionalMap JSON (clusters, backbone, metadata, relationships)",
+          "first_node": "{ id, label, mechanism, learner_prompt, task_label, blank_hint, evidence_goal }",
+          "llm_call": "{ provider, model, latency_ms, usage, raw_text?, raw_prompt? }"
+        }
+      },
+      "callers": [
+        {
+          "module": "lib/seda/route-generation.mjs",
+          "handler_phase": "route",
+          "method": "callBridgeResult",
+          "retry": "SmallestRouteCapExceeded → route_retry event, up to 2 attempts"
+        }
+      ],
+      "emitted_events": ["route_generated", "route_retry"],
+      "next_phase_routing": {
+        "consumes_bridge_fields": [],
+        "event_type": "route_generated",
+        "via": "DIRECT_PHASE",
+        "next_phase": "cold_attempt"
+      },
+      "graph_role": "context",
+      "route_runtime": {
+        "implementation": "ai_service.generate_smallest_provisional_map",
+        "prompt_path": "vendor/python/app_prompts/generate-smallest-route-system-v1.txt",
+        "prompt_version": "v1",
+        "prompt_sha256": "8c05a934a108a8b5781852c1f1fca219a534cb7aafceaf4e04280e8cfa11eb23"
+      }
+    },
+    "evaluate-attempt": {
+      "bridge_function": "evaluate_attempt",
+      "template_key": "evaluator",
+      "template_version": "socratink-evaluator-v5",
+      "response_schema": "ai_service.DrillEvaluation",
+      "request": {
+        "required": ["node_id", "node_label", "node_mechanism", "learner_text"],
+        "optional": [
+          "drill_mode",
+          "knowledge_map",
+          "repair_drill_context",
+          "log_raw_llm"
+        ],
+        "drill_modes": {
+          "cold_attempt": "evaluator mode cold_attempt",
+          "gap_drill": "evaluator mode gap_drill",
+          "spaced_redrill": "evaluator mode re_drill"
+        }
+      },
+      "response": {
+        "required": ["evaluation", "llm_call"],
+        "evaluation_fields": [
+          "agent_response",
+          "generative_commitment",
+          "answer_mode",
+          "score_eligible",
+          "help_request_reason",
+          "classification",
+          "gap_description",
+          "routing",
+          "response_tier",
+          "response_band",
+          "tier_reason"
+        ]
+      },
+      "modes": {
+        "cold_attempt": {
+          "prompt_mode": "cold_attempt",
+          "handler": "lib/seda/handlers/cold-attempt.mjs",
+          "handler_phase": "cold_attempt",
+          "handler_gate": "lib/seda/cold-gating.mjs isSubstantiveColdEvaluation",
+          "emitted_events": [
+            "cold_attempt",
+            "cold_help_turn",
+            "cold_support_exhausted"
+          ],
+          "next_phase_routing_fields": ["evaluation.classification"],
+          "routing_rule": "classification === solid → strong_cold_path; else → delta",
+          "graph_role": "evidence_candidate"
+        },
+        "gap_drill": {
+          "prompt_mode": "gap_drill",
+          "handler": "lib/seda/handlers/post-bridge-transfer.mjs",
+          "handler_phase": "post_bridge_transfer",
+          "emitted_events": ["post_bridge_transfer_check"],
+          "next_phase_routing_fields": [],
+          "routing_rule": "→ spacing via DIRECT_PHASE (graph-neutral)",
+          "graph_role": "graph_neutral"
+        },
+        "spaced_redrill": {
+          "prompt_mode": "re_drill",
+          "handler": "lib/seda/handlers/spaced-redrill.mjs",
+          "handler_phase": "spaced_redrill",
+          "emitted_events": ["spaced_redrill"],
+          "next_phase_routing_fields": [],
+          "routing_rule": "→ idle via DIRECT_PHASE (derivation owns graph truth)",
+          "graph_role": "evidence_candidate"
+        }
+      }
+    },
+    "repair-scaffold": {
+      "bridge_function": "build_repair_scaffold",
+      "template_key": "delta",
+      "template_version": "socratink-delta-v5",
+      "response_schema": "bridge.RepairScaffold",
+      "request": {
+        "required": ["node_label", "node_mechanism", "learner_text"],
+        "optional": [
+          "gap_description",
+          "evidence_goal",
+          "blank_hint",
+          "is_misconception",
+          "log_raw_llm"
+        ]
+      },
+      "response": {
+        "required": ["repair_scaffold", "llm_call"],
+        "repair_scaffold_fields": [
+          "repair_target",
+          "hinge_focus",
+          "contrast_prompt",
+          "before",
+          "missing_operation",
+          "after",
+          "internal_bloom_lens",
+          "question_style",
+          "socratic_question",
+          "analogical_prompt",
+          "micro_scaffold_prompt",
+          "misconception_counter"
+        ]
+      },
+      "callers": [
+        {
+          "module": "lib/seda/handlers/delta.mjs",
+          "handler_phase": "delta"
+        }
+      ],
+      "post_processing": "lib/seda/repair-scaffold.mjs prepareRepairScaffold + applySocraticRepairDrillQuestion",
+      "emitted_events": ["gap_identified"],
+      "next_phase_routing": {
+        "event_type": "gap_identified",
+        "consumes_bridge_fields": [],
+        "via": "DIRECT_PHASE",
+        "next_phase": "repair_dialogue"
+      },
+      "graph_role": "context"
+    },
+    "socratic-repair-drill": {
+      "bridge_function": "build_socratic_repair_drill",
+      "template_key": "socratic_repair_drill",
+      "template_version": "socratink-socratic-drill-v3",
+      "response_schema": "bridge.SocraticRepairDrill",
+      "request": {
+        "required": ["before", "after"],
+        "optional": [
+          "node_label",
+          "repair_target",
+          "hinge_focus",
+          "contrast_prompt",
+          "missing_operation",
+          "learner_text",
+          "question_style",
+          "log_raw_llm"
+        ]
+      },
+      "response": {
+        "required": ["socratic_question", "llm_call"]
+      },
+      "callers": [
+        {
+          "module": "lib/seda/handlers/delta.mjs",
+          "handler_phase": "delta",
+          "note": "Second bridge call in delta; question merged into repair scaffold (hinge_focus + contrast_prompt from sanitized scaffold)"
+        }
+      ],
+      "emitted_events": ["gap_identified"],
+      "next_phase_routing": {
+        "consumes_bridge_fields": [],
+        "note": "Routing follows gap_identified from delta handler, not this response directly"
+      },
+      "graph_role": "context"
+    },
+    "repair-dialogue": {
+      "bridge_function": "judge_repair_dialogue",
+      "template_key": "repair_dialogue",
+      "template_version": "socratink-repair-dialogue-v4",
+      "response_schema": "bridge.RepairDialogueJudge",
+      "response_normalizer": "bridge._normalize_repair_dialogue_judge",
+      "request": {
+        "required": [
+          "node_label",
+          "node_mechanism",
+          "missing_operation",
+          "before",
+          "after",
+          "learner_text"
+        ],
+        "optional": ["gap_id", "turn_index", "log_raw_llm"]
+      },
+      "response": {
+        "required": ["repair_dialogue", "llm_call"],
+        "repair_dialogue_fields": [
+          "contract_version",
+          "classification",
+          "support_level",
+          "causal_link_present",
+          "missing_operation_addressed",
+          "echo_risk",
+          "bridge_ready",
+          "next_action",
+          "progression_state",
+          "improvement_observed",
+          "improvement_note",
+          "next_dialogue_action",
+          "judge_reason",
+          "next_prompt",
+          "not_mastery_reason"
+        ]
+      },
+      "callers": [
+        {
+          "module": "lib/seda/handlers/repair-dialogue.mjs",
+          "handler_phase": "repair_dialogue",
+          "pre_bridge_gates": [
+            "blank → repair_policy.decideBlankTurn (no bridge call)",
+            "uncertain → repair_policy.decideUncertainTurn (no bridge call)"
+          ]
+        },
+        {
+          "module": "lib/seda/handlers/repair-recovery.mjs",
+          "handler_phase": "repair_recovery",
+          "note": "Recovery branch; routes via repair_recovery_closed.next_phase, not repair_dialogue_turn policy"
+        }
+      ],
+      "event_mapping": "lib/seda/repair-dialogue-helpers.mjs repairDialogueEvent(judge → repair_dialogue_turn)",
+      "emitted_events": ["repair_dialogue_turn", "repair_recovery_turn"],
+      "next_phase_routing": [
+        {
+          "event_type": "repair_dialogue_turn",
+          "routing_fields": [
+            "bridge_ready",
+            "next_dialogue_action",
+            "turn_index"
+          ],
+          "rules": [
+            "bridge_ready → repair",
+            "next_dialogue_action in (escalate, recover_uncertainty) → repair_dialogue",
+            "turn_index >= MAX_REPAIR_TURNS OR next_dialogue_action === abandon → repair_abandoned",
+            "else → repair_dialogue"
+          ],
+          "handler_policy": "repair_policy.decidePostJudgeTurn uses next_dialogue_action before next event"
+        }
+      ],
+      "graph_role": "graph_neutral"
+    }
+  },
+  "post_call_hooks": {
+    "evaluate-attempt": {
+      "function": "bridge._normalize_tui_evaluation",
+      "authoritative_fields": [
+        "score_eligible",
+        "classification",
+        "answer_mode",
+        "generative_commitment"
+      ]
+    },
+    "repair-dialogue": {
+      "function": "bridge._normalize_repair_dialogue_judge",
+      "invariants": [
+        "bridge_ready=true → next_dialogue_action=commit_repair, next_action=commit_repair, progression_state=ready"
+      ]
+    }
+  },
+  "policy_gates": {
+    "cold_substantive": {
+      "module": "lib/seda/cold-gating.mjs",
+      "function": "isSubstantiveColdEvaluation",
+      "runs_before": "cold_attempt event append",
+      "fail_mode": "emit cold_help_turn (graph-neutral)"
+    },
+    "repair_uncertainty": {
+      "module": "repair_policy.mjs",
+      "functions": [
+        "decideBlankTurn",
+        "decideUncertainTurn",
+        "decidePostJudgeTurn"
+      ],
+      "runs_before": "repair-dialogue bridge call OR next event"
+    }
+  }
+}

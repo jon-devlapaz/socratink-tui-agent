@@ -4,14 +4,20 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
+import { registry } from '../lib/bridge/registry.mjs';
+import { proveRoutingChain } from '../lib/seda/routing-proofs.mjs';
+
 const WORKSPACE_ROOT = process.cwd();
 const CASES_PATH = path.join(WORKSPACE_ROOT, 'learning_cases/cases.jsonl');
 
 function usage() {
   return [
-    'Usage: ./socratink-harness replay',
+    'Usage:',
+    '  ./socratink-harness replay',
+    '  ./socratink-harness routing-proof',
     '',
-    'Replays promoted Socratink TUI learning cases against saved traces.',
+    'replay — assert expected_invariants on promoted learning cases.',
+    'routing-proof — verify nextPhase can route each promoted trace event log.',
   ].join('\n');
 }
 
@@ -251,9 +257,39 @@ function printReport(results) {
   });
 }
 
+function routingProofCase(caseRecord, session) {
+  const proof = proveRoutingChain(session.events || [], registry);
+  return {
+    case_id: caseRecord.case_id,
+    failures: proof.ok ? [] : proof.failures.length ? proof.failures : [proof.error],
+    facts: {
+      terminal_phase: proof.terminalPhase,
+      steps: proof.phases?.length ?? 0,
+    },
+  };
+}
+
+function printRoutingProofReport(results) {
+  const caseWord = results.length === 1 ? 'case' : 'cases';
+  console.log('Socratink Harness — routing proof');
+  console.log(`${results.length} ${caseWord}`);
+  console.log('');
+
+  results.forEach((result) => {
+    if (result.failures.length) {
+      console.log(`FAIL ${result.case_id}`);
+      result.failures.forEach((failure) => console.log(`  ${failure}`));
+      return;
+    }
+    console.log(`PASS ${result.case_id}`);
+    console.log(`  routing steps: ${result.facts.steps}`);
+    console.log(`  terminal phase: ${result.facts.terminal_phase ?? 'null'}`);
+  });
+}
+
 async function main() {
   const command = process.argv[2];
-  if (command !== 'replay') {
+  if (command !== 'replay' && command !== 'routing-proof') {
     console.log(usage());
     process.exitCode = command ? 2 : 0;
     return;
@@ -262,9 +298,17 @@ async function main() {
   const results = [];
   for (const caseRecord of cases) {
     const session = await loadSession(caseRecord);
-    results.push(replayCase(caseRecord, session));
+    results.push(
+      command === 'routing-proof'
+        ? routingProofCase(caseRecord, session)
+        : replayCase(caseRecord, session),
+    );
   }
-  printReport(results);
+  if (command === 'routing-proof') {
+    printRoutingProofReport(results);
+  } else {
+    printReport(results);
+  }
   if (results.some((result) => result.failures.length)) {
     process.exitCode = 1;
   }

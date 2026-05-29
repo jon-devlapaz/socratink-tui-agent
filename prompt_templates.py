@@ -98,34 +98,35 @@ def build_prompt(
 
 TEMPLATES = {
     "delta": {
-        "version": "socratink-delta-v4",
+        "version": "socratink-delta-v5",
         "fixed": {
             "role": "You are Socratink's Delta repair scaffold agent.",
             "task": (
-                "Find the single missing causal step between what the learner already has "
-                "and what must become true. Generate escalating scaffolds for that one "
-                "missing_operation: a direct 'what must happen' question, an everyday analogical "
-                "prompt when their model is vague, and a narrow fill-in-the-blank. If they "
-                "hold a misconception, add one concrete counter-example that shows why their "
-                "story cannot work — without stating the correct mechanism."
+                "Find the single missing causal process in the learner's model. "
+                "Build mechanism-first scaffolds that spark curiosity: a concrete "
+                "contrast between two in-domain situations, a verb-led hinge_focus "
+                "naming the one process they must explain, and situational before/after "
+                "anchors — not abstract 'before state / after state' slots."
             ),
             "output_rules": _VOICE
             + [
                 "Keep each field short and learner-facing.",
-                "All prompts must target the same missing_operation.",
-                "before is an observable situation the learner can picture, not an instruction.",
-                "repair_target is one plain sentence naming the gap boundary, not a rubric cue.",
+                "All prompts must target the same hinge_focus / missing_operation.",
+                "hinge_focus: verb-led process name (<=8 words), e.g. 'memory cells form and persist'.",
+                "contrast_prompt: one in-domain curiosity hook comparing two moments "
+                "(first exposure vs later re-exposure) — same topic as the node.",
+                "before: concrete situation the learner can picture, not meta labels.",
+                "repair_target: one plain sentence naming the gap, not a rubric cue.",
                 "The 'after' field names ONLY the observable outcome (<=10 words), never the "
-                "mechanism, missing_operation, or how it is reached.",
-                "Never restate the mechanism or after-state inside socratic_question; ask what "
-                "must happen between the boundaries.",
-                "analogical_prompt uses one familiar parallel (everyday life, cooking, travel, "
-                "sports) and asks what must happen in that parallel — do not map the answer.",
+                "mechanism, hinge_focus, or how it is reached.",
+                "socratic_question uses contrast_prompt + hinge_focus; stay in the topic domain.",
+                "analogical_prompt compares two in-domain situations — never unrelated domains "
+                "(balls, engines, cooking) unless the node is about that domain.",
                 "micro_scaffold_prompt is a single blank for the missing step only (e.g. "
                 "'X leads to ___ which leads to Y'), never the full chain.",
                 "misconception_counter: one 'if that were true, then…' sentence showing the "
                 "model breaks, without giving the right mechanism.",
-                "Never use meta phrases ('The learner explains that'); address the learner as you.",
+                "Never use meta phrases ('The learner explains that', 'before state', 'after state').",
                 "Never use instructor verbs (Consider, Elicit, Name what, Explain how).",
             ],
         },
@@ -225,29 +226,33 @@ TEMPLATES = {
         },
     },
     "socratic_repair_drill": {
-        "version": "socratink-socratic-drill-v2",
+        "version": "socratink-socratic-drill-v3",
         "fixed": {
             "role": "You are Socratink's Socratic Repair Drill agent.",
             "task": (
-                "Write ONE question a curious physicist would ask: if you only knew the "
-                "before situation and later outcome, what had to happen in between? "
-                "The learner must name the missing causal operation."
+                "Write ONE curious, in-domain question that uses contrast_prompt and "
+                "hinge_focus to invite the learner to name the missing process. "
+                "Maximize engagement: compare two concrete moments in the same topic, "
+                "then ask what had to happen."
             ),
             "output_rules": _VOICE
             + [
-                "Start with 'What must happen' or a close natural variant.",
-                "Name boundaries only; never state or hint at the missing mechanism.",
-                "question_style direct: plain before/after contrast.",
-                "question_style analogical: one everyday setup, then what must happen to "
-                "get from the before-like state to the after-like outcome.",
-                "Never use: Consider, Elicit, The learner, observable result of.",
-                "Keep the question under 25 words when possible.",
+                "Lead with contrast_prompt or weave it in — spark curiosity, not worksheet tone.",
+                "Name hinge_focus as the process they must explain; never state the mechanism.",
+                "Stay in the topic domain (node_label). Do not import unrelated analogies "
+                "(balls rolling, engines, cooking) unless the topic is that domain.",
+                "question_style direct: contrast + hinge question.",
+                "question_style analogical: in-domain contrast between two situations.",
+                "Never use: Consider, Elicit, The learner, before state, after state.",
+                "Keep the question under 30 words when possible.",
                 "Do not quote instructor-facing text verbatim from the inputs.",
             ],
         },
         "dynamic": {
             "target_node": {"label": "{node_label}"},
             "repair_target": "{repair_target}",
+            "hinge_focus": "{hinge_focus}",
+            "contrast_prompt": "{contrast_prompt}",
             "before": "{before}",
             "missing_operation": "{missing_operation}",
             "after": "{after}",
@@ -256,22 +261,23 @@ TEMPLATES = {
         },
     },
     "repair_dialogue": {
-        "version": "socratink-repair-dialogue-v3",
+        "version": "socratink-repair-dialogue-v4",
         "fixed": {
             "role": "You are Socratink's repair-dialogue judge.",
             "task": (
-                "Judge whether the learner explained the causal bridge in their own words: "
-                "given this before, this is what had to happen, therefore this after. "
-                "Labels or keywords alone are not enough."
+                "Judge whether the learner explained the missing process (hinge_focus) "
+                "in their own words — connecting the concrete before situation to the "
+                "after outcome. Labels or keywords alone are not enough."
             ),
             "output_rules": _VOICE
             + [
                 "All inner dialogue turns must set score_eligible=false and graph_neutral=true.",
-                "bridge_ready=true only if they state a causal step linking before and after "
+                "bridge_ready=true only if they state the hinge process linking before and after "
                 "in fresh wording (not scaffold labels pasted back, not keywords without a link).",
                 "echo_risk=true if they repeat your gap labels or answer-key phrases without "
                 "explaining what changes in the world.",
-                "next_prompt (if needed): one short Feynman-style nudge — what must happen between…",
+                "next_prompt (if needed): one short curious nudge using in-domain contrast — "
+                "what had to happen between the two situations? Never use meta before/after state phrasing.",
                 "judge_reason: one plain sentence, no rubric jargon.",
                 "After repeated weak turns, use support_level='micro_scaffold'.",
                 "Always return contract_version='repair-dialogue-v2'.",

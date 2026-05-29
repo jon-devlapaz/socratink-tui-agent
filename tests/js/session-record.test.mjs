@@ -37,7 +37,8 @@ test("deriveProductLoopBranch: terminal abandon when repair never reaches bridge
     ev("idle_exit"),
   ]);
   assert.deepEqual(branch, {
-    bridge_gate: "before -> missing operation -> after",
+    bridge_gate:
+      "own-words hinge process must connect starting situation to outcome (bridge_ready gate)",
   });
 });
 
@@ -51,7 +52,8 @@ test("deriveProductLoopBranch: recovery idle_return is terminal abandon", () => 
     ev("idle_exit"),
   ]);
   assert.deepEqual(branch, {
-    bridge_gate: "before -> missing operation -> after",
+    bridge_gate:
+      "own-words hinge process must connect starting situation to outcome (bridge_ready gate)",
   });
 });
 
@@ -125,7 +127,8 @@ test("promoted trace: recovery-close-idle-return should broadcast bridge_gate", 
   const session = loadTraceSession("recovery-close-idle-return-2026-05-28");
   const branch = deriveProductLoopBranch(session.events);
   assert.deepEqual(branch, {
-    bridge_gate: "before -> missing operation -> after",
+    bridge_gate:
+      "own-words hinge process must connect starting situation to outcome (bridge_ready gate)",
   });
 });
 
@@ -133,7 +136,8 @@ test("promoted trace: cold-help-turn-routing should broadcast bridge_gate", () =
   const session = loadTraceSession("cold-help-turn-routing-2026-05-28");
   const branch = deriveProductLoopBranch(session.events);
   assert.deepEqual(branch, {
-    bridge_gate: "before -> missing operation -> after",
+    bridge_gate:
+      "own-words hinge process must connect starting situation to outcome (bridge_ready gate)",
   });
 });
 

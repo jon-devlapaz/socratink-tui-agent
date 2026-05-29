@@ -99,7 +99,7 @@
   },
   "product_loop": {
     "repair_position": "before_model_bridge",
-    "bridge_gate": "before -> missing operation -> after",
+    "bridge_gate": "own-words hinge process must connect starting situation to outcome (bridge_ready gate)",
     "graph_truth": "only spaced strong reconstruction may derive solidified",
     "graph_neutral_events": [
       "cold_help_turn",
@@ -171,6 +171,8 @@
       "cue": "Repair Immune memory by naming what changes between before and after.",
       "gap_log": {
         "kc_id": "c1_s1",
+        "hinge_focus": "Learner produced zero schema; nudge to guess.",
+        "contrast_prompt": "Think about two moments with immune memory: what's different the second time?",
         "before": "The learner has a rough setup but not the missing transition.",
         "missing_operation": "Learner produced zero schema; nudge to guess.",
         "after": "The Immune memory explanation now links to the intended outcome.",
@@ -179,18 +181,20 @@
       },
       "repair_scaffold": {
         "repair_target": "Repair Immune memory by naming what changes between before and after.",
+        "hinge_focus": "Learner produced zero schema; nudge to guess.",
+        "contrast_prompt": "Think about two moments with immune memory: what's different the second time?",
         "before": "The learner has a rough setup but not the missing transition.",
         "missing_operation": "Learner produced zero schema; nudge to guess.",
         "after": "The Immune memory explanation now links to the intended outcome.",
         "internal_bloom_lens": "understand",
         "question_style": "analogical",
-        "socratic_question": "Using your own analogy, what change must happen between The learner has a rough setup but not the missing transition. and The Immune memory explanation now links to the intended outcome.?",
+        "socratic_question": "Think about two moments with immune memory: what's different the second time? What process — Learner produced zero schema; nudge to guess. — would explain the difference?",
         "analogical_prompt": "Imagine this as a before/after workflow: what intermediate change makes the after-state possible?",
         "micro_scaffold_prompt": "Immune memory works when ___ connects the before-state to the after-state.",
         "misconception_counter": null
       },
       "scaffold_rejections": [],
-      "prompt": "Using your own analogy, what change must happen between The learner has a rough setup but not the missing transition. and The Immune memory explanation now links to the intended outcome.?",
+      "prompt": "Think about two moments with immune memory: what's different the second time? What process — Learner produced zero schema; nudge to guess. — would explain the difference?",
       "graph_neutral": true,
       "training_store_note": "uses study_revealed_at internally to unlock repair without revealing model bridge"
     },
@@ -324,7 +328,7 @@
       "type": "repair_recovery_closed",
       "outcome": "idle_return",
       "next_phase": "idle",
-      "learner_next_action": "Next best step: run /redrill and explain \"Learner produced zero schema; nudge to guess.\" in one sentence using before -> operation -> after.",
+      "learner_next_action": "Next best step: run /redrill and explain \"Learner produced zero schema; nudge to guess.\" in one sentence — what had to happen between the two situations.",
       "concept_id": "socratink",
       "kc_id": "c1_s1",
       "policy_version": "repair-recovery-v1-shadow",
@@ -495,9 +499,11 @@
     {
       "agent": "Delta Agent",
       "agent_id": "delta",
-      "job": "Find the missing causal link and express it as a concrete repair slot.",
+      "job": "Find the missing causal process and express it as a mechanism-first repair slot (hinge + in-domain contrast).",
       "required_outputs": [
         "repair_target",
+        "hinge_focus",
+        "contrast_prompt",
         "before",
         "missing",
         "after",
@@ -520,7 +526,7 @@
     {
       "agent": "Socratic Repair Drill Agent",
       "agent_id": "socratic_repair_drill",
-      "job": "Write one learner-facing Socratic question from sanitized repair slot boundaries.",
+      "job": "Write one curious in-domain question from hinge_focus and contrast_prompt (sanitized scaffold slots).",
       "required_outputs": [
         "socratic_question"
       ],

@@ -55,18 +55,36 @@ class RepairScaffold(BaseModel):
     repair_target: str = Field(
         description="One direct sentence naming the gap boundary without completing the answer."
     )
+    hinge_focus: str = Field(
+        default="",
+        description=(
+            "Verb-led name for the one process the learner must explain (<=8 words), "
+            "e.g. 'memory cells form and persist' — not meta labels like 'the missing link'."
+        ),
+    )
+    contrast_prompt: str = Field(
+        default="",
+        description=(
+            "In-domain contrast that sparks curiosity: two situations in the same topic "
+            "(e.g. first germ exposure vs later re-exposure). One short question fragment."
+        ),
+    )
     before: str = Field(
-        description="The part of the learner's model before the missing operation."
+        description=(
+            "Concrete situational anchor the learner can picture (e.g. 'your body meets "
+            "the germ for the first time') — not meta 'before state' phrasing."
+        )
     )
     missing_operation: str = Field(
-        description="A terse name for the missing operation, not a full mechanism."
+        description=(
+            "Same as hinge_focus: a terse verb-led process name, not a full mechanism "
+            "or meta placeholder."
+        )
     )
     after: str = Field(
         description=(
-            "The observable outcome the missing operation leads to, in plain "
-            "learner-facing words (<=10 words). State the RESULT only, never the "
-            "mechanism, the missing_operation, or how the outcome is reached. Never "
-            "use meta phrasing like 'The learner explains that'."
+            "The observable outcome the process leads to, in plain learner-facing words "
+            "(<=10 words). State the RESULT only, never the mechanism."
         )
     )
     internal_bloom_lens: str = Field(
@@ -77,14 +95,16 @@ class RepairScaffold(BaseModel):
     )
     socratic_question: str = Field(
         description=(
-            "One question beginning with 'What must happen' that forces the learner "
-            "to generate the missing operation. Name only the before/after boundary; "
-            "never restate the mechanism or after-state content, and never use meta "
-            "phrasing like 'The learner explains that'."
+            "One curious, learner-facing question that uses contrast_prompt and hinge_focus. "
+            "Must stay in the topic domain. Never use meta before/after state phrasing."
         )
     )
     analogical_prompt: str = Field(
-        description="An analogical question using a familiar parallel (engineering, cooking, sports, everyday life) to help the learner reconstruct the missing operation. Must not reveal the answer."
+        description=(
+            "An in-domain contrast question (same topic as the node): compare two "
+            "situations and ask what process connects them. Must not use unrelated "
+            "domains (sports balls, cooking) unless the node is about that domain."
+        )
     )
     micro_scaffold_prompt: str = Field(
         description="A narrow fill-in-the-blank prompt like 'X leads to ___ which causes Y.' Must not complete the missing operation. The blank targets the missing operation."
@@ -98,8 +118,9 @@ class RepairScaffold(BaseModel):
 class SocraticRepairDrill(BaseModel):
     socratic_question: str = Field(
         description=(
-            "One learner-facing question beginning with 'What must happen' that asks "
-            "the learner to name the missing causal operation between before and after."
+            "One curious learner-facing question using contrast_prompt and hinge_focus "
+            "from the repair slot. Stay in the topic domain; do not import unrelated "
+            "analogies (balls, engines, cooking) unless the topic is that domain."
         )
     )
 
@@ -809,19 +830,25 @@ def _fake_repair_scaffold(request: dict[str, Any]) -> dict[str, Any]:
         }
 
     scaffold = RepairScaffold(
-        repair_target=f"Repair the missing causal link in {node_label}.",
-        before=f"Before-state for {node_label}.",
-        missing_operation=gap_description or "the missing causal operation",
-        after=f"After-state for {node_label}.",
+        repair_target=f"Name what has to happen for {node_label} to hold.",
+        hinge_focus="memory cells form and stay ready",
+        contrast_prompt=(
+            "Your body meets a germ for the first time versus the second time"
+        ),
+        before="your body meets the germ for the first time",
+        missing_operation="memory cells form and stay ready",
+        after="the response is faster on the next exposure",
         internal_bloom_lens="understand",
         question_style="direct",
         socratic_question=(
-            f"What must happen between the before-state and after-state for {node_label} to hold?"
+            "The first time versus the second time your body sees a germ — "
+            "what has to happen so the response is faster?"
         ),
         analogical_prompt=(
-            f"If {node_mechanism} is true, what intermediate step has to occur before the downstream effect appears?"
+            "Compare meeting a new kid at school versus recognizing them again — "
+            "what had to happen between those two moments?"
         ),
-        micro_scaffold_prompt="Before-state leads to ___ which causes the after-state.",
+        micro_scaffold_prompt="First exposure leads to ___ which makes the next response faster.",
     )
     return {
         "repair_scaffold": scaffold.model_dump(),
@@ -898,9 +925,9 @@ def _fake_repair_dialogue(request: dict[str, Any]) -> dict[str, Any]:
             next_action="commit_repair",
             progression_state="ready",
             improvement_observed=True,
-            improvement_note="Learner now connects missing operation to the after-state.",
+            improvement_note="Learner now connects the hinge process to the outcome.",
             next_dialogue_action="commit_repair",
-            judge_reason="The learner connected the before state to the after state through the missing operation.",
+            judge_reason="The learner connected the starting situation to the outcome through the key process.",
             next_prompt="",
             not_mastery_reason="Inner repair dialogue is scaffold-adjacent practice; only spaced reconstruction can prove durable evidence.",
         )
@@ -920,8 +947,11 @@ def _fake_repair_dialogue(request: dict[str, Any]) -> dict[str, Any]:
             improvement_observed=False,
             improvement_note="Learner repeated setup language without causal bridge.",
             next_dialogue_action="probe_again",
-            judge_reason="The learner repeated the setup without connecting the missing operation to the result.",
-            next_prompt=f"Stay on this link: what changes because of {missing_operation}, and how does that change cause the after-state?",
+            judge_reason="The learner named pieces but didn't connect the key process to the outcome.",
+            next_prompt=(
+                f"Stay on this link: what has to happen — {missing_operation} — "
+                "to get from the starting situation to the outcome?"
+            ),
             not_mastery_reason="This turn is dialogue routing, not independent spaced reconstruction evidence.",
         )
     return {
@@ -1006,13 +1036,17 @@ def build_socratic_repair_drill(request: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("socratic-drill-boundaries-required")
 
     if os.environ.get("SOCRATINK_TUI_FAKE_LLM") == "1":
+        hinge = str(request.get("hinge_focus") or request.get("missing_operation") or "the key process")
+        contrast = str(
+            request.get("contrast_prompt")
+            or f"Picture {before} versus later when {after}"
+        )
         if question_style == "analogical":
             question = (
-                f"Using your own analogy, what change must happen between "
-                f"{before} and {after}?"
+                f"{contrast} What process — {hinge} — would explain the difference?"
             )
         else:
-            question = f"What must happen between {before} and {after}?"
+            question = f"{contrast} What has to happen: {hinge}?"
         return {
             "socratic_question": question,
             "llm_call": {
@@ -1026,6 +1060,8 @@ def build_socratic_repair_drill(request: dict[str, Any]) -> dict[str, Any]:
     node_label = str(request.get("node_label") or "").strip()
     repair_target = str(request.get("repair_target") or "").strip()
     missing_operation = str(request.get("missing_operation") or "").strip()
+    hinge_focus = str(request.get("hinge_focus") or missing_operation).strip()
+    contrast_prompt = str(request.get("contrast_prompt") or "").strip()
     learner_text = str(request.get("learner_text") or "").strip()
     include_raw = bool(request.get("log_raw_llm"))
     if not node_label or not repair_target or not missing_operation:
@@ -1037,6 +1073,8 @@ def build_socratic_repair_drill(request: dict[str, Any]) -> dict[str, Any]:
         {
             "node_label": node_label,
             "repair_target": repair_target,
+            "hinge_focus": hinge_focus,
+            "contrast_prompt": contrast_prompt,
             "before": before,
             "missing_operation": missing_operation,
             "after": after,

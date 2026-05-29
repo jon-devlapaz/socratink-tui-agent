@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { prepareRepairScaffold } from "../../lib/seda/repair-scaffold.mjs";
+import {
+  applySocraticRepairDrillQuestion,
+  prepareRepairScaffold,
+} from "../../lib/seda/repair-scaffold.mjs";
 
 const firstNode = {
   id: "kc-immune-memory",
@@ -115,5 +118,58 @@ test("instructor-facing before is sanitized to learner before-state", () => {
   assert.doesNotMatch(scaffold.after, /observable result of/i);
   assert.match(scaffold.after, /glucose and oxygen/i);
   assert.doesNotMatch(scaffold.socratic_question, /consider what plants/i);
-  assert.match(scaffold.socratic_question, /what must happen/i);
+  assert.match(scaffold.socratic_question, /what had to happen|what has to happen/i);
+});
+
+test("rejected scaffold never falls back to meta before/after phrasing", () => {
+  const { scaffold, rejections } = prepareRepairScaffold(
+    leakedScaffold,
+    { gap_description: "memory cells persist" },
+    firstNode,
+  );
+  assert.equal(rejections.length, 1);
+  assert.doesNotMatch(scaffold.missing_operation, /before state/i);
+  assert.doesNotMatch(scaffold.socratic_question, /before state|after state/i);
+  assert.ok(scaffold.hinge_focus);
+  assert.ok(scaffold.contrast_prompt);
+});
+
+test("off-domain socratic question is rejected", () => {
+  const scaffold = {
+    hinge_focus: "memory cells form",
+    contrast_prompt: "First germ exposure versus the second time",
+    missing_operation: "memory cells form",
+    before: "your body meets the germ",
+    after: "the response is faster",
+    socratic_question:
+      "First germ exposure versus the second time — what has to happen: memory cells form?",
+  };
+  const node = {
+    label: "immune memory",
+    mechanism: "memory lymphocytes enable faster secondary response",
+  };
+  const result = applySocraticRepairDrillQuestion(
+    scaffold,
+    "What must happen for a ball at rest to start rolling?",
+    node,
+  );
+  assert.equal(result.socratic_question, scaffold.socratic_question);
+});
+
+test("mechanism-first good scaffold preserves hinge and contrast", () => {
+  const good = {
+    repair_target: "Name the link between exposure and speed.",
+    hinge_focus: "memory cells form and persist",
+    contrast_prompt:
+      "Your body meets a germ for the first time versus the second time",
+    before: "your body meets the germ for the first time",
+    missing_operation: "memory cells form and persist",
+    after: "the response is faster on second exposure",
+    socratic_question:
+      "The first time versus the second time — what has to happen: memory cells form and persist?",
+  };
+  const { scaffold, rejections } = prepareRepairScaffold(good, {}, firstNode);
+  assert.equal(rejections.length, 0);
+  assert.equal(scaffold.hinge_focus, "memory cells form and persist");
+  assert.match(scaffold.contrast_prompt, /first time versus the second/i);
 });

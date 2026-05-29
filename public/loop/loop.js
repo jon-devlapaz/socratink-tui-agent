@@ -136,7 +136,7 @@ function appendTranscript(lines) {
 }
 
 function promptPlaceholder(label) {
-  const base = "Type your answer… (/help, /hint, /feedback, /exit)";
+  const base = "Type your answer… · /help · /hint · /feedback · /exit";
   if (!label) return base;
   const clean = label.replace(/:\s*$/, "").trim();
   return clean ? `${clean}…` : base;
@@ -327,7 +327,7 @@ function applyTurnResponse(data) {
     lastLlmStamp = null;
     showAwaitingPrompt({ label: "Concept: ", key: "concept" });
     setComposerEnabled(true);
-    input.placeholder = "Type a concept to explore… (/help, /feedback, /exit)";
+    input.placeholder = "Type a concept to explore… · /help · /feedback · /exit";
     setPhaseChrome("idle");
     input.focus();
     return;

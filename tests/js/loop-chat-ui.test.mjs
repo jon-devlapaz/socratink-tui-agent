@@ -99,11 +99,12 @@ test("loop API /help returns phase help without advancing", async () => {
   assert.equal(turn.status, 200);
   const body = await turn.json();
   assert.equal(body.status, "awaiting_input");
-  const helpLine = (body.transcript || []).find((line) =>
+  const helpLines = (body.transcript || []).filter((line) =>
     String(line.text || "").startsWith("[Help]"),
   );
-  assert.ok(helpLine, "expected [Help] line in transcript");
-  assert.match(helpLine.text, /concept|idle/i);
+  assert.ok(helpLines.length >= 2, "expected idle help (path + commands)");
+  assert.match(helpLines[0].text, /Path:/i);
+  assert.match(helpLines[1].text, /Commands:/i);
 });
 
 test("loop API /help at launch_attempt matches launch step not learner goal", async () => {
@@ -124,6 +125,7 @@ test("loop API /help at launch_attempt matches launch step not learner goal", as
   );
   assert.ok(helpLine);
   assert.match(helpLine.text, /Launch attempt/i);
+  assert.match(helpLine.text, /have not seen the map/i);
   assert.doesNotMatch(helpLine.text, /Learner goal:/i);
   assert.match(body.awaiting?.label || "", /Launch attempt/i);
 });

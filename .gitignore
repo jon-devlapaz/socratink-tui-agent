@@ -6,3 +6,6 @@ __pycache__/
 .qa-runs/
 .demo-map-vis/
 .cursor/
+learning_cases/traces/.capture-tmp/
+learning_cases/traces/**/.capture-run/
+learning_cases/traces/*/*T*/

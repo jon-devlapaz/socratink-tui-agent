@@ -9,6 +9,9 @@ const phasePill = document.getElementById("phase-pill");
 const llmPill = document.getElementById("llm-pill");
 const sessionTag = document.getElementById("session-tag");
 const srStatus = document.getElementById("sr-status");
+const composerCtaEl = document.getElementById("composer-cta");
+const composerCtaLabel = document.getElementById("composer-cta-label");
+const composerCtaText = document.getElementById("composer-cta-text");
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -119,10 +122,18 @@ function appendChatLine(role, text, options = {}) {
   appendDomLine(el, raw);
 }
 
+function isSkippedTranscriptLine(text) {
+  const t = String(text ?? "").trim();
+  if (!t) return true;
+  if (t.startsWith("[Question]")) return true;
+  if (/^First question:\s*$/i.test(t)) return true;
+  return false;
+}
+
 function appendTranscript(lines) {
   for (const entry of lines || []) {
     const t = entry.text || "";
-    if (!t.trim()) continue;
+    if (!t.trim() || isSkippedTranscriptLine(t)) continue;
     if (t.startsWith("[Help]")) {
       appendChatLine("help", t);
       continue;
@@ -133,6 +144,27 @@ function appendTranscript(lines) {
     }
     appendChatLine("system", t);
   }
+}
+
+function setComposerCta(awaiting) {
+  if (!composerCtaEl) return;
+  const label = String(awaiting?.ctaLabel ?? "").trim();
+  const text = String(awaiting?.ctaText ?? "").trim();
+
+  if (text) {
+    composerCtaEl.hidden = false;
+    if (composerCtaLabel) {
+      composerCtaLabel.textContent = label || "Your turn";
+      composerCtaLabel.hidden = !label;
+    }
+    if (composerCtaText) composerCtaText.textContent = text;
+    srStatus.textContent = label ? `${label}: ${text}` : text;
+    return;
+  }
+
+  composerCtaEl.hidden = true;
+  if (composerCtaLabel) composerCtaLabel.textContent = "";
+  if (composerCtaText) composerCtaText.textContent = "";
 }
 
 function promptPlaceholder(label) {
@@ -235,19 +267,21 @@ function setBusy(isBusy, phase) {
 function showAwaitingPrompt(awaiting) {
   if (!awaiting) {
     lastPromptMarker = null;
+    setComposerCta(null);
     input.placeholder = promptPlaceholder();
     return;
   }
-  const marker = `${awaiting.key ?? ""}:${awaiting.label ?? ""}`;
+  const marker = `${awaiting.key ?? ""}:${awaiting.ctaText ?? ""}:${awaiting.label ?? ""}`;
   if (marker !== lastPromptMarker) {
     lastPromptMarker = marker;
-    const label = String(awaiting.label ?? "").trim();
-    // Composer already shows ›; skip bare REPL prompts like ">" or "> ".
-    if (label && !/^>\s*$/.test(label)) {
-      appendChatLine("prompt", label);
-    }
   }
-  input.placeholder = promptPlaceholder(awaiting.label);
+  setComposerCta(awaiting);
+  const hasCtaBody = Boolean(String(awaiting.ctaText ?? "").trim());
+  if (hasCtaBody) {
+    input.placeholder = "Type your answer… · /help · /hint · /feedback · /exit";
+  } else {
+    input.placeholder = promptPlaceholder(awaiting.ctaLabel || awaiting.label);
+  }
 }
 
 function setComposerEnabled(enabled) {

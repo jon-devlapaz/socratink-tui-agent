@@ -441,6 +441,36 @@ body {
   font-family: var(--font-mono);
 }
 
+.composer-cta {
+  margin-bottom: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-left: 3px solid var(--violet);
+  background: rgba(167, 139, 250, 0.08);
+  border-radius: 0 6px 6px 0;
+}
+
+.composer-cta[hidden] {
+  display: none !important;
+}
+
+.composer-cta-label {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--violet);
+}
+
+.composer-cta-text {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--cream);
+}
+
 .composer-idle,
 .composer-busy {
   display: flex;

@@ -18,6 +18,7 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /refreshHealth/);
   assert.match(js, /appendLlmReceipt/);
   assert.match(html, /id="composer-busy"/);
+  assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
   assert.match(html, /class="terminal"/);
   assert.match(js, /showThinkingLine/);

@@ -131,7 +131,15 @@ git commit && redeploy Railway
 
 ```bash
 curl -s https://YOUR-LOOP-HOST/health | jq .
-# Open https://YOUR-LOOP-HOST/loop — start concept, complete one cold path with fake LLM
+
+# API: live Gemini (not fake templates)
+SOCRATINK_LOOP_BASE_URL=https://YOUR-LOOP-HOST node scripts/verify-loop-gemini.mjs
+
+# Browser: customer persona (Maya) — exploration, uses Gemini spend
+chmod +x scripts/loop-customer-qa.sh
+./scripts/loop-customer-qa.sh
+# Local: SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 ./scripts/loop-customer-qa.sh
+# Report + screenshots: .qa-runs/webwright/customer-persona-loop/
 ```
 
 Production parity with terminal:

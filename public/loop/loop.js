@@ -22,6 +22,7 @@ let lastLlmStamp = null;
 const THINKING_COPY = {
   idle: "starting session",
   ignition: "sketching route",
+  substrate_gate: "checking starting point",
   route: "building provisional map",
   map: "rendering route map",
   cold_attempt: "reading your answer",
@@ -39,6 +40,8 @@ const THINKING_COPY = {
 const PHASE_SLUG = {
   idle: "idle",
   ignition: "ignition",
+  substrate: "substrate_gate",
+  "substrate gate": "substrate_gate",
   route: "route",
   map: "map",
   "cold attempt": "cold_attempt",
@@ -58,6 +61,7 @@ const PHASE_SLUG = {
 const PHASE_LABELS = {
   idle: "idle",
   ignition: "starting point",
+  substrate_gate: "starting point",
   route: "route",
   map: "map",
   cold_attempt: "cold attempt",

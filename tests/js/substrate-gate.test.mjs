@@ -174,7 +174,9 @@ test("slow path offers a seed, asks for refinement, and confirms adequate when b
   ]);
   assert.deepEqual(ctx.composerCta, {
     label: "Add a starting link",
-    text: "Add one starting link after the preview.",
+    text:
+      "A safe preview gives the body a pattern to notice.\n\n" +
+      "Add one starting link after the preview.",
   });
   assert.equal(result.llm_calls.length, 2);
 });

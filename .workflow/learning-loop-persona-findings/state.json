@@ -1,0 +1,44 @@
+{
+  "title": "Learning loop persona findings",
+  "slug": "learning-loop-persona-findings",
+  "status": "verified",
+  "approval": {
+    "required": false,
+    "reason": "Local code, tests, and workflow artifacts only. No destructive or external operations."
+  },
+  "packets": [
+    {
+      "id": "A",
+      "status": "complete",
+      "owner": "local",
+      "scope": "post-bridge transfer state"
+    },
+    {
+      "id": "B",
+      "status": "complete",
+      "owner": "local",
+      "scope": "CTA enrichment"
+    },
+    {
+      "id": "C",
+      "status": "complete",
+      "owner": "local",
+      "scope": "dashboard salience"
+    },
+    {
+      "id": "D",
+      "status": "complete",
+      "owner": "local",
+      "scope": "verification"
+    }
+  ],
+  "verification": {
+    "status": "passed",
+    "commands": [
+      "node --test tests/js/awaiting-cta.test.mjs tests/js/post-bridge-transfer.test.mjs tests/js/dashboard.test.mjs",
+      ".venv/bin/pytest tests/test_workspace_smoke.py -q",
+      "PORT=8792 ... node loop-server.mjs + hosted API smoke for post_bridge_transfer_check"
+    ],
+    "skipped": []
+  }
+}

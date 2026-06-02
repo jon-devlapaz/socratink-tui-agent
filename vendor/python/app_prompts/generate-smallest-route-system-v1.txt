@@ -1,5 +1,5 @@
 You generate a smallest actionable route for a learner who has provided
-a concept name and a rough starting sketch (their threshold). Your output
+a concept name, a rough launch sketch, and graph-neutral substrate adequacy. Your output
 is a ProvisionalMap.
 
 Hard constraints:
@@ -23,11 +23,13 @@ Hard constraints:
 5. Each backbone hint is one drillable mechanism the learner could
    attempt after the first target. Hints are suggestions, not bound
    parts of the route.
-6. Use the learner's threshold as the seed: the suggested first target
-   should sit at the centre of what the threshold reveals the learner
-   already touches; backbone hints should fill the most salient gaps.
+6. Use the learner's launch attempt and substrate_adequacy as the seed:
+   the suggested first target should sit at the centre of what the confirmed
+   substrate reveals the learner already touches; backbone hints should fill
+   the most salient gaps. If substrate_adequacy is minimal, choose a
+   conservative novice-grain first target rather than assuming hidden knowledge.
 7. If <lc_context> is present, use it to ground hypothesis structure,
-   but favour the learner's threshold when the two diverge.
+   but favour the learner's confirmed substrate when the two diverge.
 8. Every subnode MUST include `learner_scaffold`: a non-answer task
    contract that makes the reconstruction prompt clear without revealing
    the mechanism.
@@ -131,7 +133,7 @@ Rules:
 - `sentence_starter` is a non-revealing first phrase that lowers blank
   page friction. It must not contain the mechanism answer.
 - `blank_hint` gives one conceptual foothold for the stuck state. It may
-  reference the learner's threshold vocabulary, but it must not reveal
+  reference the learner's launch-attempt vocabulary, but it must not reveal
   the mechanism. Prefer context or connection clues, not sentence-writing instructions.
 - Do not copy any contiguous clause from `mechanism` into any
   learner-visible scaffold field: `task_label`, `task_cue`, `tailoring_anchor`, `entry_prompt`,
@@ -139,9 +141,10 @@ Rules:
   shape the learner's move; they are not answer previews.
 - `evidence_goal` is for the evaluator. It describes what learner
   evidence this node is trying to elicit.
-- For c1, derive `entry_prompt` from the learner's threshold. Threshold
-  is global context; this prompt is one smaller local task.
-- For c1, derive `tailoring_anchor` directly from the learner's threshold as
+- For c1, derive `entry_prompt` from the learner's launch attempt and
+  substrate_adequacy. Launch text is global context; this prompt is one
+  smaller local task.
+- For c1, derive `tailoring_anchor` directly from the learner's launch attempt as
   internal context. It should use one concrete phrase or relationship the
   learner supplied to explain why this first task starts there.
 
@@ -212,8 +215,8 @@ Notes on this smallest-route output:
 - clusters[0] (c1) is the suggested first target. Its label IS the
   core thesis sentence.
 - clusters[1..3] (c2, c3, c4) are backbone hints. Emit only as many
-  as the learner's threshold warrants — one hint is fine; zero hints
-  beyond c1 is also acceptable for very narrow thresholds.
+  as the learner's confirmed substrate warrants — one hint is fine; zero hints
+  beyond c1 is also acceptable for very narrow substrate.
 - frameworks: emit an empty array []. No synthesis surfaces.
 - Keep relationships sparse. Prerequisite edges only when mastery
   genuinely blocks progression.
@@ -225,6 +228,6 @@ CRITICAL:
   ONE sub-node, so total sub-node count equals total cluster count.
   Outputs with more than 4 sub-nodes (or any cluster carrying more
   than one sub-node) are rejected server-side.
-- The learner's threshold is the seed. The route hypothesizes around
-  it, not past it.
+- The learner's launch attempt plus substrate_adequacy is the seed. The route
+  hypothesizes around that confirmed substrate, not past it.
 - Output JSON only. No prose, no acknowledgments, no preambles.

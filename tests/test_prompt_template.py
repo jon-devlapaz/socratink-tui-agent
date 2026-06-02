@@ -34,6 +34,11 @@ def repair_dialogue_template():
     return TEMPLATES["repair_dialogue"]
 
 
+@pytest.fixture
+def substrate_gate_template():
+    return TEMPLATES["substrate_gate"]
+
+
 class TestPromptBuilder:
     """Tests for build_prompt()."""
 
@@ -93,12 +98,33 @@ class TestPromptBuilder:
             {
                 "concept": "Feedback Loops",
                 "launch_attempt": "Loops connect output to input.",
+                "substrate_adequacy": "adequate",
                 "learner_goal": "explain control theory",
             },
         )
         assert "Route Agent" in result["system_prompt"]
         user_prompt = json.loads(result["user_prompt"])
         assert user_prompt["concept"] == "Feedback Loops"
+        assert user_prompt["launch_attempt"] == "Loops connect output to input."
+        assert user_prompt["substrate_adequacy"] == "adequate"
+        assert "threshold" not in user_prompt
+
+    def test_substrate_gate_template_substitution(self, substrate_gate_template):
+        result = build_prompt(
+            substrate_gate_template,
+            {
+                "concept": "Immune memory",
+                "learner_goal": "explain vaccines",
+                "launch_attempt": "I don't know.",
+                "substrate_refinement": None,
+                "seed_already_offered": "false",
+            },
+        )
+        assert "Substrate Gate agent" in result["system_prompt"]
+        assert "score_eligible=false" in result["system_prompt"]
+        user_prompt = json.loads(result["user_prompt"])
+        assert user_prompt["concept"] == "Immune memory"
+        assert user_prompt["substrate_refinement"] is None
 
     def test_evaluator_template_substitution(self, evaluator_template):
         result = build_prompt(
@@ -172,12 +198,14 @@ class TestTemplateConsistency:
         route_template,
         evaluator_template,
         repair_dialogue_template,
+        substrate_gate_template,
     ):
         for name, tmpl in [
             ("delta", delta_template),
             ("route", route_template),
             ("evaluator", evaluator_template),
             ("repair_dialogue", repair_dialogue_template),
+            ("substrate_gate", substrate_gate_template),
         ]:
             assert "role" in tmpl["fixed"], f"{name} missing role"
             assert "task" in tmpl["fixed"], f"{name} missing task"
@@ -203,12 +231,14 @@ class TestVersioning:
         route_template,
         evaluator_template,
         repair_dialogue_template,
+        substrate_gate_template,
     ):
         for name, tmpl in [
             ("delta", delta_template),
             ("route", route_template),
             ("evaluator", evaluator_template),
             ("repair_dialogue", repair_dialogue_template),
+            ("substrate_gate", substrate_gate_template),
         ]:
             assert "version" in tmpl, f"{name} missing version field"
 
@@ -218,12 +248,14 @@ class TestVersioning:
         route_template,
         evaluator_template,
         repair_dialogue_template,
+        substrate_gate_template,
     ):
         for name, tmpl in [
             ("delta", delta_template),
             ("route", route_template),
             ("evaluator", evaluator_template),
             ("repair_dialogue", repair_dialogue_template),
+            ("substrate_gate", substrate_gate_template),
         ]:
             assert isinstance(tmpl.get("version"), str), f"{name} version not a string"
 

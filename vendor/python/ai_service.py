@@ -536,8 +536,9 @@ GENERATE_SMALLEST_ROUTE_TEMPERATURE = 0.4
 
 def generate_smallest_provisional_map(
     concept: str,
-    threshold: str,
+    launch_attempt: str,
     *,
+    substrate_adequacy: str = "adequate",
     learner_goal: str | None = None,
     retry_guidance: str | None = None,
     llm: LLMClient | None = None,
@@ -547,22 +548,28 @@ def generate_smallest_provisional_map(
 ) -> ProvisionalMap:
     """Generate a smallest actionable route from source-less launch context.
 
-    ``concept`` and ``threshold`` are required. ``learner_goal`` may frame
-    relevance, but it is not evidence of learner understanding. Returns a
-    ProvisionalMap with no more than 4 drillable nodes total (one suggested
-    first target plus up to 3 hints). Raises SmallestRouteCapExceeded for
-    generation-side shape failures: over-cap routes, missing routes,
-    multi-subnode clusters, generated subnodes without learner_scaffold,
-    or scaffold fields that copy a substantial hidden mechanism phrase.
+    ``concept`` and ``launch_attempt`` are required. ``substrate_adequacy`` is
+    a graph-neutral routing hint from the Substrate Gate: "adequate" or
+    "minimal". ``learner_goal`` may frame relevance, but it is not evidence of
+    learner understanding. Returns a ProvisionalMap with no more than 4
+    drillable nodes total (one suggested first target plus up to 3 hints).
+    Raises SmallestRouteCapExceeded for generation-side shape failures:
+    over-cap routes, missing routes, multi-subnode clusters, generated subnodes
+    without learner_scaffold, or scaffold fields that copy a substantial hidden
+    mechanism phrase.
 
     Optional ``lc_context`` is grounding-only, never authoritative.
     """
 
     client: LLMClient = llm if llm is not None else build_llm_client(api_key=api_key)
+    clean_substrate_adequacy = substrate_adequacy.strip() or "adequate"
+    if clean_substrate_adequacy not in {"adequate", "minimal"}:
+        raise ValueError("substrate-adequacy-invalid")
 
     user_prompt_parts: list[str] = [
         f"<concept>{concept}</concept>",
-        f"<threshold>{threshold}</threshold>",
+        f"<launch_attempt>{launch_attempt}</launch_attempt>",
+        f"<substrate_adequacy>{clean_substrate_adequacy}</substrate_adequacy>",
     ]
     clean_learner_goal = (learner_goal or "").strip()
     if clean_learner_goal:
@@ -592,7 +599,7 @@ def generate_smallest_provisional_map(
         user_prompt=user_prompt,
         response_schema=ProvisionalMap,
         temperature=GENERATE_SMALLEST_ROUTE_TEMPERATURE,
-        task_name="smallest_route_from_threshold",
+        task_name="smallest_route_from_substrate",
         prompt_version=GENERATE_SMALLEST_ROUTE_PROMPT_VERSION,
     )
     result = client.generate_structured(request)
@@ -819,7 +826,7 @@ def drill_chat(
             "If metadata.starting_map_context is present, reference it as global context in one short clause, then ask one smaller target-node question. "
             "If metadata.learner_goal is present, use `metadata.learner_goal` only to frame relevance and why this node matters for the learner's goal. "
             "Do not grade against the broad learner goal; grade only against the Target Node mechanism and the Learner Scaffold evidence_goal when present. "
-            "Do not treat the threshold as evidence, confidence, or diagnosis. Emphasize it is ok to guess. "
+            "Do not treat the launch attempt as evidence, confidence, or diagnosis. Emphasize it is ok to guess. "
             "If the user produces zero schema or asks for help, provide a tiny hint or nudge to guess with classification/tier null."
         )
     else:

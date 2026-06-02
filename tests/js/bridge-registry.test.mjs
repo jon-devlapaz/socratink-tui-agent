@@ -50,7 +50,7 @@ function bridgeCliActions() {
   return [...new Set(matches)].sort();
 }
 
-test("registry lists all five bridge.py CLI actions", () => {
+test("registry lists all bridge.py CLI actions", () => {
   assert.deepEqual(bridgeActionIds().sort(), bridgeCliActions());
 });
 

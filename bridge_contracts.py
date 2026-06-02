@@ -81,6 +81,44 @@ class SocraticRepairDrill(BaseModel):
     )
 
 
+class SubstrateGateDecision(BaseModel):
+    contract_version: str = Field(
+        default="substrate-gate-v1",
+        description="Substrate gate contract version for routing/replay compatibility.",
+    )
+    classification: Literal["fast", "slow", "minimal"] = Field(
+        description=(
+            "fast means the launch/refinement is adequate now; slow means offer the "
+            "seed/refinement prompt; minimal means continue with conservative novice grain."
+        )
+    )
+    substrate_adequate: bool = Field(
+        description="True only when learner text is adequate to route without conservative fallback."
+    )
+    seed_text: str | None = Field(
+        default=None,
+        description=(
+            "One tiny in-domain substrate seed when launch substrate is inadequate. "
+            "Context only; never an answer key or full mechanism."
+        ),
+    )
+    refinement_prompt: str | None = Field(
+        default=None,
+        description="One short prompt asking for a post-seed generative line.",
+    )
+    judge_reason: str = Field(
+        description="One plain sentence explaining why the gate chose this path."
+    )
+    graph_neutral: bool = Field(
+        default=True,
+        description="Always true; substrate gate context cannot mutate graph truth.",
+    )
+    score_eligible: bool = Field(
+        default=False,
+        description="Always false; launch/refinement text is routing context, not evidence.",
+    )
+
+
 class RepairDialogueJudge(BaseModel):
     contract_version: str = Field(
         default="repair-dialogue-v2",

@@ -21,7 +21,8 @@ and response shape; the SEDA loop and `nextPhase` stay unchanged.
 
 | Action | Template | Version | Response schema | Handler phase | Emitted event(s) | `nextPhase` reads |
 | --- | --- | --- | --- | --- | --- | --- |
-| `generate-route` | `route`¹ | `socratink-route-v2` | `ProvisionalMap` + `first_node` | route | route_generated, route_retry | `route_generated` → `cold_attempt` (coarse) |
+| `generate-route` | `route`¹ | `socratink-route-v3` | `ProvisionalMap` + `first_node` | route | route_generated, route_retry | `route_generated` → `cold_attempt` (coarse) |
+| `substrate-gate` | `substrate_gate` | `socratink-substrate-gate-v1` | bridge.SubstrateGateDecision | substrate_gate | substrate_seed_offered, substrate_refinement, substrate_support_exhausted, substrate_confirmed | `substrate_confirmed` → `route` (coarse) |
 | `evaluate-attempt` | `evaluator` | `socratink-evaluator-v6` | ai_service.DrillEvaluation | cold_attempt, post_bridge_transfer, spaced_redrill | cold_attempt, cold_help_turn, cold_support_exhausted, post_bridge_transfer_check, spaced_redrill | See [evaluator routing](#evaluate-attempt) |
 | `repair-scaffold` | `delta` | `socratink-delta-v5` | bridge.RepairScaffold | delta | gap_identified | `gap_identified` → `repair_dialogue` (coarse) |
 | `socratic-repair-drill` | `socratic_repair_drill` | `socratink-socratic-drill-v3` | bridge.SocraticRepairDrill | delta | gap_identified | — |
@@ -30,7 +31,7 @@ and response shape; the SEDA loop and `nextPhase` stay unchanged.
 ¹ **Route template pin:** `prompt_templates.TEMPLATES["route"]` is the versioned
 contract (validated by `tests/test_prompt_template.py`). The live prompt is
 `ai_service.generate_smallest_provisional_map` in `vendor/python/` — not
-`build_prompt()` in `bridge.py`. Bump `socratink-route-v2` when the route *contract*
+`build_prompt()` in `bridge.py`. Bump the route template version when the route *contract*
 changes; bump `route_runtime.prompt_sha256` when the runtime prompt file changes.
 
 Regenerate this block: `node scripts/refresh-bridge-registry-doc.mjs`

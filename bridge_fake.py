@@ -23,7 +23,20 @@ from models.provisional_map import (
 )
 
 import prompt_templates
-from bridge_contracts import RepairDialogueJudge, RepairScaffold, SocraticRepairDrill
+from bridge_contracts import (
+    RepairDialogueJudge,
+    RepairScaffold,
+    SocraticRepairDrill,
+    SubstrateGateDecision,
+)
+
+
+SUBSTRATE_SEED_TEXT = (
+    "A safe preview lets the body notice a pattern without the full illness."
+)
+SUBSTRATE_REFINEMENT_PROMPT = (
+    "Add one starting link in your own words: what changes after that preview?"
+)
 
 
 def fake_map_uses_cache_route(concept_token: str) -> bool:
@@ -196,6 +209,131 @@ def has_fake_causal_chain(learner_text: str) -> bool:
     has_read = any(marker in normalized for marker in read_markers)
     has_causal = any(marker in normalized for marker in causal_markers)
     return has_first and has_later and has_store and has_read and has_causal
+
+
+def has_fake_substrate(text: str) -> bool:
+    normalized = " ".join(text.lower().split())
+    if not normalized:
+        return False
+    unknown_markers = (
+        "i don't know",
+        "i dont know",
+        "do not know",
+        "don't know",
+        "dont know",
+        "not sure",
+        "no idea",
+        "unsure",
+    )
+    if any(marker == normalized or marker in normalized for marker in unknown_markers):
+        return False
+    if len(normalized.split()) <= 3:
+        return False
+    domain_terms = (
+        "vaccine",
+        "vaccines",
+        "immune",
+        "antigen",
+        "preview",
+        "memory",
+        "cache",
+        "caching",
+        "store",
+        "stored",
+        "reuse",
+    )
+    link_terms = (
+        "because",
+        "so",
+        "after",
+        "before",
+        "then",
+        "leads",
+        "lets",
+        "give",
+        "gives",
+        "helps",
+        "changes",
+        "faster",
+    )
+    return any(term in normalized for term in domain_terms) and any(
+        term in normalized for term in link_terms
+    )
+
+
+def fake_substrate_gate(request: dict[str, Any]) -> dict[str, Any]:
+    tmpl = prompt_templates.TEMPLATES["substrate_gate"]
+    substrate_refinement = str(request.get("substrate_refinement") or "").strip()
+    seed_already_offered = bool(request.get("seed_already_offered"))
+    prompt_templates.build_prompt(
+        tmpl,
+        {
+            "concept": str(request.get("concept") or ""),
+            "learner_goal": request.get("learner_goal") or None,
+            "launch_attempt": str(request.get("launch_attempt") or ""),
+            "substrate_refinement": substrate_refinement or None,
+            "seed_already_offered": str(seed_already_offered).lower(),
+        },
+    )
+
+    override = os.environ.get("SOCRATINK_TUI_FAKE_SUBSTRATE_CLASSIFICATION")
+    if override in {"fast", "slow", "minimal"}:
+        classification = override
+    elif substrate_refinement:
+        classification = "fast" if has_fake_substrate(substrate_refinement) else "minimal"
+    else:
+        classification = (
+            "fast"
+            if has_fake_substrate(str(request.get("launch_attempt") or ""))
+            else "slow"
+        )
+
+    if classification == "fast":
+        decision = SubstrateGateDecision(
+            classification="fast",
+            substrate_adequate=True,
+            seed_text=None,
+            refinement_prompt=None,
+            judge_reason="Learner supplied an in-domain starting link.",
+            graph_neutral=True,
+            score_eligible=False,
+        )
+    elif classification == "minimal":
+        decision = SubstrateGateDecision(
+            classification="minimal",
+            substrate_adequate=False,
+            seed_text=None,
+            refinement_prompt=None,
+            judge_reason="The post-seed refinement still has too little causal substrate.",
+            graph_neutral=True,
+            score_eligible=False,
+        )
+    else:
+        decision = SubstrateGateDecision(
+            classification="slow",
+            substrate_adequate=False,
+            seed_text=SUBSTRATE_SEED_TEXT,
+            refinement_prompt=SUBSTRATE_REFINEMENT_PROMPT,
+            judge_reason="The launch attempt is blank, unknown, or too label-only to route from.",
+            graph_neutral=True,
+            score_eligible=False,
+        )
+
+    return {
+        "substrate_gate": decision.model_dump(),
+        "llm_call": {
+            "provider": "fake",
+            "model": "fake-substrate-gate",
+            "latency_ms": 0,
+            "usage": {"input_tokens": 0, "output_tokens": 0},
+            **(
+                {"raw_text": decision.model_dump_json()}
+                if request.get("log_raw_llm")
+                else {}
+            ),
+            **({"raw_prompt": request} if request.get("log_raw_llm") else {}),
+        },
+    }
 
 
 def is_fake_misconception_cache(learner_text: str) -> bool:

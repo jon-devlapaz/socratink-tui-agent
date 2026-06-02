@@ -9,13 +9,14 @@ test("renderRegistrySummary includes scope covers text", () => {
   assert.match(md, new RegExp(registry.scope.covers.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
-test("renderRegistrySummary table has five action rows", () => {
+test("renderRegistrySummary table has six action rows", () => {
   const md = renderRegistrySummary(registry);
   const rows = md
     .split("\n")
     .filter((line) => line.startsWith("| `") && !line.startsWith("| Action"));
-  assert.equal(rows.length, 5);
+  assert.equal(rows.length, 6);
   assert.match(md, /`generate-route`/);
+  assert.match(md, /`substrate-gate`/);
   assert.match(md, /`evaluate-attempt`/);
   assert.match(md, /`repair-scaffold`/);
   assert.match(md, /`socratic-repair-drill`/);

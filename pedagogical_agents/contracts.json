@@ -11,13 +11,38 @@
   },
   "agents": [
     {
+      "id": "substrate_gate",
+      "name": "Substrate Gate Agent",
+      "job": "Classify graph-neutral launch/refinement substrate before committing Provisional Map grain.",
+      "inputs_allowed": [
+        "concept",
+        "learner_goal",
+        "launch_attempt",
+        "substrate_refinement"
+      ],
+      "required_outputs": [
+        "substrate_adequate",
+        "seed_text",
+        "refinement_prompt"
+      ],
+      "may_propose_events": [
+        "substrate_seed_offered",
+        "substrate_support_exhausted",
+        "substrate_confirmed"
+      ],
+      "may_write_events": [],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Treating substrate support or refinement as learner evidence."
+    },
+    {
       "id": "route",
       "name": "Route Agent",
       "job": "Create a provisional map hypothesis and first reconstruction target.",
       "inputs_allowed": [
         "concept",
         "learner_goal",
-        "launch_attempt"
+        "launch_attempt",
+        "substrate_adequacy"
       ],
       "required_outputs": [
         "provisional_map",

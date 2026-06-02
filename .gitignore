@@ -3,10 +3,12 @@
 .venv/
 __pycache__/
 .pytest_cache/
+.ruff_cache/
 .qa-runs/
 .playwright-cli/
 .demo-map-vis/
 .cursor/
+.poolside/
 learning_cases/traces/.capture-tmp/
 learning_cases/traces/**/.capture-run/
 learning_cases/traces/*/*T*/

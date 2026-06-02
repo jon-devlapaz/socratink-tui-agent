@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -15,6 +14,7 @@ sys.path.insert(0, str(WORKSPACE_ROOT))
 sys.path.insert(0, str(VENDOR_PYTHON_ROOT))
 
 import ai_service
+
 import bridge
 
 

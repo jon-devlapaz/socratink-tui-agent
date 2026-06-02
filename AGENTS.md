@@ -7,6 +7,19 @@ append-only event log as the state machine.
 Harness substrate contract (layers, invariants, Moss mapping): `HARNESS.md`.
 V-model traceability map for agents (requirements ↔ verification tiers): `HARNESS-TRACEABILITY.md`.
 
+## Closed-loop agent operating model
+
+This repo is designed for closed-loop agentic engineering. Treat every task as a traceable loop:
+
+intent → requirements → design → implementation → verification → validation → feedback
+
+Before implementation, define the success criteria and the evidence path: test, typecheck, lint, eval, trace, browser run, manual review, or explicit rationale. During implementation, make the smallest coherent change that advances the target. After implementation, report the verification evidence and any remaining validation risk.
+
+Classify failures before fixing them. If a test fails, inspect implementation or design. If the system meets the spec but misses the user need, revisit requirements or intent. If a metric improves while quality worsens, treat the evaluator as suspect. Do not retry blindly.
+
+Use minimal durable context. Reference canonical files, ADRs, tests, and examples instead of copying large docs into instructions. Update `AGENTS.md` only when a repeated agent failure reveals a stable repo rule.
+
+
 ## Architecture
 
 ```
@@ -113,9 +126,29 @@ To add or modify a prompt:
 
 ## Testing
 
+### Canon drift
+```bash
+./scripts/check-canon-drift.sh
+```
+
 ### Python tests
 ```bash
 .venv/bin/pytest tests -q
+```
+
+### Self-contained JS tests
+```bash
+find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
+```
+
+### Loop chat UI tests (server-backed)
+```bash
+SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
+SOCRATINK_TUI_FAKE_LLM=1 \
+SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
+  node --no-warnings loop-server.mjs
+
+SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
 ```
 
 ### Prompt evals (L2, fake CI gate)

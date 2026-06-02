@@ -6,6 +6,22 @@ It is the substrate contract; product pedagogy lives in `AGENTS.md` and
 `pedagogical_agents/contracts.json`. For the V-model decomposition ↔ verification
 map (what to gate at each tier), see [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md).
 
+## Recursive V-model for agent work
+
+Use a recursive V-model for all non-trivial changes. Decompose from intent to requirements, design, and implementation; then climb back through verification, integration, validation, and operational feedback.
+
+Every artifact should have a proof counterpart:
+- requirement → test, eval, or acceptance criterion
+- design decision → architectural rationale or ADR
+- implementation → unit/integration/e2e evidence
+- user-facing behavior → validation against the original intent
+
+A task is not done when code is written. It is done when the change is verified against its specification, validated against its intended use, and traceable from goal to evidence.
+
+When evidence fails, route the correction to the right abstraction level. Implementation failure means repair code. Integration failure means inspect boundaries and interfaces. Validation failure means revisit assumptions, requirements, or user intent. Repeated failures should produce a durable rule, test, or doc update.
+
+
+
 ## Layers
 
 | Layer | Responsibility | Artifacts |

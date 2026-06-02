@@ -98,6 +98,7 @@ git push origin main
 | `SOCRATINK_FEEDBACK_SECRET` | If Apps Script uses it | Match script property |
 | `SOCRATINK_FEEDBACK_TO` | Optional | Mailto fallback only |
 | `SOCRATINK_TUI_FAKE_LLM` | Optional | `1` = no Gemini spend, templated maps |
+| `LOOP_APP_VERSION` | Optional | Learner-visible release label in `/loop` header (default `v0.01`) |
 | `SOCRATINK_LOOP_API_KEY` | **Skip for v1** | See Phase 6 — breaks browser unless wired |
 | `PORT` | Auto | Railway injects; do not hardcode in Dockerfile CMD |
 
@@ -113,7 +114,7 @@ Redeploy after changing variables (Railway usually auto-redeploys).
 export HOST=https://<your-service>.up.railway.app
 
 curl -s "$HOST/health" | jq .
-# Expect: fake_llm false, gemini_configured true, feedback_configured true
+# Expect: app_version "v0.01", fake_llm false, gemini_configured true, feedback_configured true
 
 SOCRATINK_LOOP_BASE_URL="$HOST" node scripts/verify-loop-gemini.mjs
 ```

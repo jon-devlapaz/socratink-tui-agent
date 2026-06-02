@@ -36,7 +36,8 @@ fi
 echo "[railway] Setting variables (live Gemini, no API key)…"
 railway variables set \
   "GEMINI_API_KEY=${GEMINI_API_KEY}" \
-  "LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash}"
+  "LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash}" \
+  "LOOP_APP_VERSION=${LOOP_APP_VERSION:-v0.01}"
 
 if [[ -n "${SOCRATINK_FEEDBACK_WEBHOOK_URL:-}" ]]; then
   railway variables set "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"

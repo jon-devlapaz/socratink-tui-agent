@@ -1,0 +1,11 @@
+{
+  "concept": "Immune memory",
+  "learner_goal": "I want to explain why vaccines work, but I am starting from scratch.",
+  "launch_attempt": "I don't know.",
+  "substrate_refinement": "Vaccines give the body a safe preview.",
+  "cold_attempt": "A vaccine presents antigen safely and the immune system keeps memory cells.",
+  "repair": "Memory cells preserve the faster response after the safe antigen preview.",
+  "run_gap_drill": true,
+  "gap_attempt": "The repaired link is that memory cells connect the first safe exposure to the faster later response.",
+  "spaced_attempt": "A vaccine safely presents antigen, immune cells that match it expand, memory cells remain, and those memory cells respond faster during a later infection."
+}

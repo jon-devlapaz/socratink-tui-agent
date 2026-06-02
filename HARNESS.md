@@ -76,9 +76,10 @@ Handler turn  →  append event(s)     (fact)
                     (typed feedback)
 ```
 
-**Phases** (handlers): `idle`, `ignition`, `route`, `cold_attempt`, `strong_cold_path`,
-`delta`, `repair_dialogue`, `repair_recovery`, `repair_abandoned`, `repair`,
-`model_bridge`, `post_bridge_transfer`, `spacing`, `spaced_redrill`.
+**Phases** (handlers): `idle`, `ignition`, `substrate_gate`, `route`, `cold_attempt`,
+`strong_cold_path`, `delta`, `repair_dialogue`, `repair_recovery`,
+`repair_abandoned`, `repair`, `model_bridge`, `post_bridge_transfer`, `spacing`,
+`spaced_redrill`.
 
 **Facts** (events): see `DIRECT_PHASE` and special branches in `nextPhase()` in `lib/seda/next-phase.mjs`.
 
@@ -205,7 +206,8 @@ fixtures; trace captured from live/fake run).
 ```text
 PHASE (lane)          FACT (event)                    FEEDBACK → ROUTE
 ─────────────────────────────────────────────────────────────────────────
-ignition              launch_attempt                  proceed → route
+ignition              launch_attempt                  proceed → substrate_gate
+substrate_gate        substrate_confirmed             proceed → route
 route                 route_generated                 proceed → cold_attempt
 cold_attempt          cold_attempt                    classification ≠ solid → delta
 delta                 gap_identified                  proceed → repair_dialogue

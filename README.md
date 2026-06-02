@@ -20,8 +20,22 @@ cp .env.example .env          # GEMINI_API_KEY for live sessions
 ## Verify (no API key)
 
 ```bash
+./scripts/check-canon-drift.sh
 .venv/bin/pytest tests/test_prompt_template.py tests/test_prompt_eval_evaluator.py tests/test_prompt_eval_repair_dialogue.py -q
+find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
 SOCRATINK_TUI_FAKE_LLM=1 ./socratink-tui --scripted fixtures/source_less_script.json --color=never
+```
+
+`tests/js/loop-chat-ui.test.mjs` is server-backed, not part of the
+self-contained Node test set. Run it with the loop server:
+
+```bash
+SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
+SOCRATINK_TUI_FAKE_LLM=1 \
+SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
+  node --no-warnings loop-server.mjs
+
+SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
 ```
 
 ## A/B vs full lab (live Gemini)

@@ -81,32 +81,39 @@ Vercel cannot run the loop process. Two pragmatic options:
 
 Use **`https://loop.app.socratink.ai`** (or Railway default URL). Link from the main app nav. No Vercel change.
 
-### B. Path proxy on `socratink-app` (same browser origin)
+### B. Path proxy on `socratink-app` (same browser origin) — canonical
 
-In `socratink-app/vercel.json`, add **before** the catch-all rewrite:
+Production uses **`app.socratink.ai/loop`**. Proxy in **`socratink-app`**, not in this repo.
 
-```json
-{
-  "source": "/loop",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/loop"
-},
-{
-  "source": "/loop/:path*",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/loop/:path*"
-},
-{
-  "source": "/api/session",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/api/session"
-},
-{
-  "source": "/api/session/:path*",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/api/session/:path*"
-}
+**Canonical mechanism:** FastAPI routes in `main.py` forward to Railway via `LOOP_BACKEND_URL` (`loop_backend_proxy.py`). Set on Vercel (and local `.env` when testing the drawer link):
+
+```bash
+LOOP_BACKEND_URL=https://loop-production-07a3.up.railway.app
 ```
 
-Redeploy `socratink-app`. The chat page at `app.socratink.ai/loop` then hits the faithful loop server without CORS.
+Proxied paths (same origin, no CORS):
 
-**Caveat:** Vercel rewrites proxy HTTP only; WebSockets are not required for this MVP.
+| Path | Purpose |
+|------|---------|
+| `/loop`, `/loop/*` | Chat UI (served from loop host) |
+| `/health` | Loop version + LLM pills (`loop.js` polls this — not `/api/health`) |
+| `/api/session`, `/api/session/*` | Session API |
+
+`vercel.json` should keep **only** the catch-all rewrite to `/api/index.py`. Do **not** add hardcoded Railway URLs to `vercel.json` — that duplicates the FastAPI proxy and drifts when the Railway host changes.
+
+**Deploy checklist (atomic):**
+
+1. Set `LOOP_BACKEND_URL` on Vercel production.
+2. Merge/deploy `socratink-app` with catch-all-only `vercel.json`.
+3. Verify:
+
+```bash
+curl -s https://app.socratink.ai/health | jq .          # loop server (app_version, llm_mode)
+curl -s https://app.socratink.ai/api/health | jq .    # main app (server_key_configured)
+curl -s -X POST https://app.socratink.ai/api/session | jq .sessionId
+```
+
+**Legacy note:** An earlier deploy used Vercel edge rewrites in `vercel.json` instead of `LOOP_BACKEND_URL`. If both exist, edge rewrites win and the FastAPI proxy is dead code — remove rewrites when consolidating.
 
 ## Auth / sandbox hardening
 

@@ -254,3 +254,21 @@ keeping a mid-repair session replayable.
 3. The `product_loop` block shows `strong_cold_path`, `repair_position`,
    and `graph_truth` metadata
 4. Replay with `./socratink-harness replay`
+
+## Learned User Preferences
+
+- Prefer pragmatic, minimum-impact implementations for user-facing features (e.g. `/feedback` via webhook rather than heavy email infra).
+- Loop chat UI must not expose `/redrill` in startup help; spaced re-drill is automatic, not a learner command.
+- For main-app loop integration, use path proxy at `app.socratink.ai/loop` (sibling `socratink-app`) over native SPA embed until graph integration is needed.
+
+## Learned Workspace Facts
+
+- GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs and passing Smoke CI.
+- Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; deploy via `./scripts/railway-deploy.sh` (`deploy/RAILWAY.md`). Production learner URL is `app.socratink.ai/loop` via `socratink-app` FastAPI proxy (`LOOP_BACKEND_URL` → Railway; see `deploy/LOOP-HOSTING.md`).
+- `socratink-app` proxies `/loop`, `/health`, and `/api/session/*` through `loop_backend_proxy.py`; `public/loop/loop.js` polls `/health` (not `/api/health`) for version/LLM pills. Avoid duplicate Vercel edge rewrites for the same paths.
+- Loop server `advanceSession` batches multiple SEDA phases per HTTP turn until `PROMPT_REQUIRED` (hosted pacing differs from terminal TUI one-phase-per-prompt).
+- Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
+- `LOOP_APP_VERSION` env (default `v0.01`, `lib/loop-server/version.mjs`) drives the loop chrome version label; bump on learner-visible releases.
+- Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).
+- `scripts/railway-deploy.sh` wraps `railway variables set --skip-deploys` to avoid Railway CLI backboard timeouts.
+- Separate from sibling `../socratink-tui`: own git history; do not copy remotes or history from the old lab checkout.

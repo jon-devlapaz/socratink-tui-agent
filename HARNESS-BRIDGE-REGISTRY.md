@@ -147,6 +147,9 @@ delta calls.
 **Response:** `repair_dialogue` (`RepairDialogueJudge`, normalized by
 `_normalize_repair_dialogue_judge`), `llm_call`
 
+Required judge fields include `score_eligible: false` and `graph_neutral: true`;
+repair-dialogue turns are routing practice, not graph mastery evidence.
+
 **Pre-bridge gates (no LLM call):** blank text → `repair_policy.decideBlankTurn`;
 explicit uncertainty → `repair_policy.decideUncertainTurn`. Both emit
 `repair_dialogue_turn` with `bridge_ready: false` and policy-driven

@@ -247,6 +247,8 @@
         "repair_dialogue_fields": [
           "contract_version",
           "classification",
+          "score_eligible",
+          "graph_neutral",
           "support_level",
           "causal_link_present",
           "missing_operation_addressed",

@@ -91,6 +91,17 @@ body {
   gap: 0.5rem;
 }
 
+.version-pill {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.15);
+  color: var(--muted);
+}
+
 .llm-pill {
   font-family: var(--font-mono);
   font-size: 0.62rem;

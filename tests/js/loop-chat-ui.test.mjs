@@ -14,8 +14,10 @@ test("loop static assets use terminal chrome and phase styling", () => {
   const css = readFileSync(path.join(ROOT, "public/loop/loop.css"), "utf8");
   assert.doesNotMatch(html, /id="status"/);
   assert.match(html, /id="phase-pill"/);
+  assert.match(html, /id="version-pill"/);
   assert.match(html, /id="llm-pill"/);
   assert.match(js, /refreshHealth/);
+  assert.match(js, /setVersionPillFromHealth/);
   assert.match(js, /appendLlmReceipt/);
   assert.match(html, /id="composer-busy"/);
   assert.match(html, /id="composer-cta"/);
@@ -39,6 +41,13 @@ test("dashboard static assets expose shared payload version tracker", () => {
   assert.match(js, /version_tracker/);
   assert.match(js, /tracker\.logic_owner/);
   assert.match(css, /\.version-tracker/);
+});
+
+test("loop API /health exposes app_version", async () => {
+  const res = await fetch(`${BASE}/health`);
+  assert.equal(res.status, 200);
+  const health = await res.json();
+  assert.equal(health.app_version, "v0.01");
 });
 
 test("loop API session returns awaiting label for chat prompt", async () => {

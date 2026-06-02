@@ -6,6 +6,7 @@ const composerBusy = document.getElementById("composer-busy");
 const composerBusyLabel = document.getElementById("composer-busy-label");
 const input = document.getElementById("input");
 const phasePill = document.getElementById("phase-pill");
+const versionPill = document.getElementById("version-pill");
 const llmPill = document.getElementById("llm-pill");
 const sessionTag = document.getElementById("session-tag");
 const srStatus = document.getElementById("sr-status");
@@ -297,10 +298,18 @@ function setLlmPillFromHealth(health) {
   llmPill.title = `Gemini via bridge (${health.llm_provider || "gemini"})`;
 }
 
+function setVersionPillFromHealth(health) {
+  if (!versionPill) return;
+  const label = health?.app_version || "v0.01";
+  versionPill.textContent = label;
+  versionPill.title = `Loop release ${label}`;
+}
+
 async function refreshHealth() {
   try {
     const res = await fetch("/health");
     const health = await res.json();
+    setVersionPillFromHealth(health);
     setLlmPillFromHealth(health);
     return health;
   } catch {

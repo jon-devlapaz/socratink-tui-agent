@@ -13,21 +13,17 @@ const composerCtaEl = document.getElementById("composer-cta");
 const composerCtaLabel = document.getElementById("composer-cta-label");
 const composerCtaText = document.getElementById("composer-cta-text");
 
-const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 let sessionId = null;
 let busy = false;
 let lastPromptMarker = null;
 let lastLlmStamp = null;
-let thinkingLineEl = null;
-let thinkingDotsTimer = null;
 
 const THINKING_COPY = {
   idle: "starting session",
   ignition: "sketching route",
   route: "building provisional map",
   map: "rendering route map",
-  cold_attempt: "evaluating cold attempt",
+  cold_attempt: "reading your answer",
   delta: "building repair scaffold",
   study: "unlocking study material",
   repair_dialogue: "judging repair dialogue",
@@ -56,6 +52,25 @@ const PHASE_SLUG = {
   study: "study",
   delta: "delta",
   pressure: "pressure",
+};
+
+const PHASE_LABELS = {
+  idle: "idle",
+  ignition: "starting point",
+  route: "route",
+  map: "map",
+  cold_attempt: "cold attempt",
+  delta: "delta",
+  study: "study",
+  repair_dialogue: "own-words repair",
+  repair_recovery: "recovery",
+  model_bridge: "model bridge",
+  post_bridge_transfer: "post-bridge transfer check",
+  spacing: "spacing",
+  spaced_redrill: "spaced re-drill",
+  strong_cold_path: "strong cold path",
+  pressure: "pressure",
+  evidence: "evidence",
 };
 
 function apiHeaders() {
@@ -177,7 +192,8 @@ function promptPlaceholder(label) {
 function setPhaseChrome(phase) {
   const slug = phase ? String(phase).toLowerCase() : "—";
   phasePill.dataset.phase = slug;
-  phasePill.textContent = slug === "—" ? "—" : slug.replace(/_/g, " ");
+  phasePill.textContent =
+    slug === "—" ? "—" : PHASE_LABELS[slug] ?? slug.replace(/_/g, " ");
 }
 
 function setSessionChrome(id) {
@@ -202,44 +218,6 @@ function scrollTranscript() {
   transcriptEl.scrollTop = transcriptEl.scrollHeight;
 }
 
-function clearThinkingDots() {
-  if (thinkingDotsTimer) {
-    clearInterval(thinkingDotsTimer);
-    thinkingDotsTimer = null;
-  }
-}
-
-function removeThinkingLine() {
-  clearThinkingDots();
-  thinkingLineEl?.remove();
-  thinkingLineEl = null;
-}
-
-function showThinkingLine(phase) {
-  removeThinkingLine();
-  const message = thinkingMessage(phase);
-  const el = document.createElement("div");
-  el.className = "line thinking";
-  el.dataset.raw = "__thinking__";
-
-  const braille = document.createElement("span");
-  braille.className = "braille-spinner";
-  braille.setAttribute("aria-hidden", "true");
-
-  const text = document.createElement("span");
-  text.className = "thinking-text";
-  text.textContent = message;
-
-  const dots = document.createElement("span");
-  dots.className = "thinking-dots";
-  if (!reducedMotion) dots.classList.add("is-animated");
-
-  el.append(braille, text, dots);
-  transcriptEl.appendChild(el);
-  thinkingLineEl = el;
-  scrollTranscript();
-}
-
 function setComposerLoading(isLoading, phase) {
   const message = thinkingMessage(phase);
   composerBusyLabel.textContent = message;
@@ -255,12 +233,10 @@ function setBusy(isBusy, phase) {
   if (isBusy) {
     const message = thinkingMessage(phase);
     srStatus.textContent = `Loop is running: ${message}`;
-    showThinkingLine(phase);
     setComposerLoading(true, phase);
     return;
   }
   srStatus.textContent = "";
-  removeThinkingLine();
   setComposerLoading(false, phase);
 }
 
@@ -351,7 +327,6 @@ function appendLlmReceipt(llm) {
 }
 
 function applyTurnResponse(data) {
-  removeThinkingLine();
   setPhaseChrome(data.phase);
   appendTranscript(data.transcript);
   appendLlmReceipt(data.llm);

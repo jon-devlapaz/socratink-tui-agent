@@ -90,9 +90,15 @@ def phase_pill(page) -> str:
 def send_answer(page, text: str, timeout_ms: int = 180_000) -> None:
     inp = page.locator("#input")
     expect(inp).to_be_enabled(timeout=timeout_ms)
+    before_len = len(transcript_text(page))
     inp.fill(text)
     page.locator("button.send").click()
-    expect(page.locator("#terminal")).to_have_attribute("aria-busy", "true", timeout=5_000)
+    page.wait_for_function(
+        "before => document.querySelector('#transcript')?.innerText.length > before",
+        arg=before_len,
+        timeout=timeout_ms,
+    )
+    expect(inp).to_be_enabled(timeout=timeout_ms)
     expect(page.locator("#terminal")).to_have_attribute("aria-busy", "false", timeout=timeout_ms)
 
 

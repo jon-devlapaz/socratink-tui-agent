@@ -259,54 +259,6 @@ body {
   }
 }
 
-.line.thinking {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-  padding: 0.35rem 0 0.15rem 0.5rem;
-  border-left: 2px solid var(--violet-dim);
-  color: var(--muted);
-  font-style: italic;
-  animation: none;
-}
-
-.line.thinking .thinking-text {
-  color: var(--cream);
-  font-style: normal;
-  opacity: 0.85;
-}
-
-.line.thinking .thinking-dots {
-  display: inline-block;
-  min-width: 1.25em;
-  color: var(--violet);
-}
-
-.line.thinking .thinking-dots.is-animated::after {
-  content: "…";
-  animation: thinking-dots 1.2s steps(1) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .line.thinking .thinking-dots.is-animated::after {
-    animation: none;
-    content: "…";
-  }
-}
-
-@keyframes thinking-dots {
-  0% {
-    content: "…";
-  }
-  33% {
-    content: "..";
-  }
-  66% {
-    content: ".";
-  }
-}
-
 .transcript {
   flex: 1;
   overflow-y: auto;

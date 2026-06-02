@@ -21,12 +21,24 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
   assert.match(html, /class="terminal"/);
-  assert.match(js, /showThinkingLine/);
   assert.match(js, /THINKING_COPY/);
   assert.match(js, /isRecentDuplicate/);
+  assert.doesNotMatch(js, /showThinkingLine/);
   assert.match(css, /braille-spin/);
-  assert.match(css, /\.line\.thinking/);
+  assert.doesNotMatch(css, /\.line\.thinking/);
   assert.match(css, /\.send-key/);
+});
+
+test("dashboard static assets expose shared payload version tracker", () => {
+  const html = readFileSync(path.join(ROOT, "public/dashboard/index.html"), "utf8");
+  const js = readFileSync(path.join(ROOT, "public/dashboard/dashboard.js"), "utf8");
+  const css = readFileSync(path.join(ROOT, "public/dashboard/dashboard.css"), "utf8");
+  assert.match(html, /id="version-dashboard"/);
+  assert.match(html, /id="version-payload"/);
+  assert.match(html, /id="version-logic"/);
+  assert.match(js, /version_tracker/);
+  assert.match(js, /tracker\.logic_owner/);
+  assert.match(css, /\.version-tracker/);
 });
 
 test("loop API session returns awaiting label for chat prompt", async () => {
@@ -36,6 +48,25 @@ test("loop API session returns awaiting label for chat prompt", async () => {
   assert.ok(body.sessionId);
   assert.equal(body.status, "awaiting_input");
   assert.match(body.awaiting?.label || "", /concept|>|Concept/i);
+});
+
+test("loop API GET session returns enriched awaiting like POST turn", async () => {
+  const create = await fetch(`${BASE}/api/session`, { method: "POST" });
+  const created = await create.json();
+  const turn = await fetch(`${BASE}/api/session/${created.sessionId}/turn`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: "Immune memory" }),
+  });
+  const turnBody = await turn.json();
+  const get = await fetch(`${BASE}/api/session/${created.sessionId}`);
+  const saved = await get.json();
+  assert.equal(saved.status, turnBody.status);
+  assert.equal(saved.awaiting?.key, turnBody.awaiting?.key);
+  assert.equal(saved.awaiting?.ctaLabel, turnBody.awaiting?.ctaLabel);
+  assert.equal(saved.awaiting?.ctaText, turnBody.awaiting?.ctaText);
+  assert.ok(Array.isArray(saved.transcript));
+  assert.ok(saved.transcript.length >= turnBody.transcript.length);
 });
 
 test("loop API /exit ends session from idle", async () => {
@@ -145,4 +176,37 @@ test("loop API turn advances with prompt metadata", async () => {
   assert.ok(Array.isArray(body.transcript));
   assert.ok(body.transcript.length > 0);
   assert.match(body.awaiting?.label || "", /goal|launch|attempt/i);
+});
+
+test("loop API marks single concept case complete after spaced redrill", async () => {
+  const create = await fetch(`${BASE}/api/session`, { method: "POST" });
+  const created = await create.json();
+  assert.equal(created.caseComplete, false);
+  const { sessionId } = created;
+  const post = (text) =>
+    fetch(`${BASE}/api/session/${sessionId}/turn`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    }).then((r) => r.json());
+
+  await post("Caching");
+  await post("Explain why caching makes repeat requests faster");
+  await post("Caching stores earlier work so the next matching request can reuse it.");
+  await post(
+    "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
+  );
+  const body = await post(
+    "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
+  );
+
+  assert.equal(body.events.at(-1)?.type, "spaced_redrill");
+  assert.equal(body.phase, "idle");
+  assert.equal(body.status, "awaiting_input");
+  assert.equal(body.complete, false);
+  assert.equal(body.caseComplete, true);
+
+  const get = await fetch(`${BASE}/api/session/${sessionId}`);
+  const saved = await get.json();
+  assert.equal(saved.caseComplete, true);
 });

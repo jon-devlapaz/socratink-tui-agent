@@ -33,6 +33,7 @@ function parseArgs(argv) {
       "AI predicts the next token from patterns in text, so it can sound right even when it does not truly understand.",
     maxTurns: 24,
     out: null,
+    allowFake: false,
   };
   const args = [...argv.slice(2)];
   while (args.length) {
@@ -43,8 +44,9 @@ function parseArgs(argv) {
     else if (arg === "--launch") options.launchAttempt = args.shift();
     else if (arg === "--max-turns") options.maxTurns = Number(args.shift());
     else if (arg === "--out") options.out = path.resolve(args.shift());
+    else if (arg === "--allow-fake") options.allowFake = true;
     else if (arg === "--help" || arg === "-h") {
-      console.log(`Usage: node scripts/loop-persona-live.mjs [--concept AI] [--goal "..."]`);
+      console.log(`Usage: node scripts/loop-persona-live.mjs [--concept AI] [--goal "..."] [--allow-fake]`);
       process.exit(0);
     } else throw new Error(`unknown argument: ${arg}`);
   }
@@ -66,9 +68,20 @@ function transcriptText(lines) {
 
 function ignitionScriptedInput(session, options) {
   const key = session.awaiting?.key;
-  if (key === "concept") return options.concept;
+  if (key === "concept" || (key === "cmd" && session.phase === "idle")) {
+    return options.concept;
+  }
   if (key === "learner_goal") return options.learnerGoal;
   if (key === "launch_attempt") return options.launchAttempt;
+  return null;
+}
+
+function fakePersonaInput(session, options) {
+  if (!options.allowFake) return null;
+  const key = session.awaiting?.key;
+  if (key === "cold_attempt" || key === "spaced_attempt" || key === "gap_attempt") {
+    return "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.";
+  }
   return null;
 }
 
@@ -93,9 +106,9 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
 
   const health = await fetchJson(`${options.baseUrl}/health`);
-  if (health.fake_llm) {
+  if (health.fake_llm && !options.allowFake) {
     console.error(
-      "Loop server is in FAKE_LLM mode. Restart with: unset SOCRATINK_TUI_FAKE_LLM && ./socratink-loop-server",
+      "Loop server is in FAKE_LLM mode. Restart with: unset SOCRATINK_TUI_FAKE_LLM && ./socratink-loop-server, or pass --allow-fake for deterministic regression proof.",
     );
     process.exit(1);
   }
@@ -110,13 +123,17 @@ async function main() {
     persona: "curious-sophomore-loop (Jordan)",
     concept: options.concept,
     learner_goal: options.learnerGoal,
+    llm_mode: health.llm_mode,
     turns: [],
   };
 
   let turns = 0;
-  while (!session.complete && turns < options.maxTurns) {
+  while (!session.complete && !session.caseComplete && turns < options.maxTurns) {
     const label = session.awaiting?.label || session.awaiting?.key || ">";
     let text = ignitionScriptedInput(session, options);
+    if (!text && health.fake_llm) {
+      text = fakePersonaInput(session, options);
+    }
     if (!text) {
       text = personaTurn({
         concept: options.concept,
@@ -152,6 +169,7 @@ async function main() {
     status: session.status,
     phase: session.phase,
     complete: session.complete,
+    case_complete: session.caseComplete,
     event_types: (session.events || []).map((e) => e.type),
   };
 
@@ -162,12 +180,13 @@ async function main() {
   fs.writeFileSync(
     mdPath,
     [
-      "# Loop persona run (live Gemini)",
+      `# Loop persona run (${health.fake_llm ? "fake bridge" : "live Gemini"})`,
       "",
       `- Concept: ${options.concept}`,
       `- Goal: ${options.learnerGoal}`,
       `- Turns: ${log.turns.length}`,
       `- Complete: ${log.final.complete}`,
+      `- Case complete: ${log.final.case_complete}`,
       `- Final phase: ${log.final.phase}`,
       "",
       "## Event types",
@@ -184,7 +203,9 @@ async function main() {
     ].join("\n"),
   );
 
-  console.log(`\n[loop-persona] done complete=${log.final.complete} events=${log.final.event_types.length}`);
+  console.log(
+    `\n[loop-persona] done complete=${log.final.complete} case_complete=${log.final.case_complete} events=${log.final.event_types.length}`,
+  );
   console.log(`[loop-persona] wrote ${reportPath}`);
   console.log(`[loop-persona] wrote ${mdPath}`);
 }

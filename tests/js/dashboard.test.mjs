@@ -10,6 +10,13 @@ import {
   computeRecoveryTelemetry,
 } from "../../lib/seda/dashboard-metrics.mjs";
 
+function minimalSession(eventTypes) {
+  return {
+    events: eventTypes.map((type) => ({ type })),
+    concept: "Test concept",
+  };
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tracesRoot = path.join(__dirname, "../../learning_cases/traces");
 
@@ -66,6 +73,42 @@ test("computeRecoveryTelemetry exposes all founder rates", () => {
   assert.equal(telemetry.recovery_success_rate, 0.333);
 });
 
+test("buildDashboardPayload pairs sessions by session_log, not array index", () => {
+  const cases = [
+    {
+      case_id: "with-log",
+      case_type: "golden",
+      case_source: "test",
+      session_log: "learning_cases/traces/a/session.json",
+      concept: "A",
+    },
+    {
+      case_id: "no-log",
+      case_type: "research",
+      case_source: "test",
+      concept: "B",
+    },
+    {
+      case_id: "second-log",
+      case_type: "golden",
+      case_source: "test",
+      session_log: "learning_cases/traces/c/session.json",
+      concept: "C",
+    },
+  ];
+  const sessions = [
+    minimalSession(["model_bridge", "idle_exit"]),
+    minimalSession(["repair_abandoned", "idle_exit"]),
+  ];
+  const payload = buildDashboardPayload({ cases, sessions });
+  const byId = Object.fromEntries(payload.runs.map((run) => [run.id, run]));
+
+  assert.equal(byId["with-log"].concept, "A");
+  assert.equal(byId["with-log"].outcome_key, "bridge_reached");
+  assert.equal(byId["no-log"].event_count, 0);
+  assert.equal(byId["second-log"].outcome_key, "stopped_before_bridge");
+});
+
 test("buildDashboardPayload matches promoted case count", () => {
   const cases = fs
     .readFileSync(
@@ -81,6 +124,19 @@ test("buildDashboardPayload matches promoted case count", () => {
     return loadTraceSession(nested);
   });
   const payload = buildDashboardPayload({ cases, sessions });
-  assert.equal(payload.title, "Socratink Founder Dashboard");
+  assert.equal(payload.title, "Socratink Learning Loop Dashboard");
+  assert.deepEqual(payload.version_tracker, {
+    dashboard_version: "learning-loop-dashboard-v1",
+    payload_version: "dashboard-payload-v1",
+    logic_owner: "lib/seda/dashboard-metrics.mjs",
+    source_artifacts: [
+      "learning_cases/cases.jsonl",
+      "learning_cases/traces/**/session.json",
+    ],
+  });
   assert.equal(payload.case_summary.total, 8);
+  assert.equal(payload.runs.length, 8);
+  assert.ok(payload.runs.every((run) => typeof run.outcome_key === "string"));
+  assert.ok(payload.learning_loop.outcomes.stopped_before_bridge >= 1);
+  assert.ok(payload.improvement_queue.length >= 1);
 });

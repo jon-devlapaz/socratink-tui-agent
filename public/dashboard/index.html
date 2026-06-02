@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#141210">
+  <title>socratink dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/loop/loop.css">
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+</head>
+<body>
+  <a class="skip-link" href="#run-log">Skip to run log</a>
+  <main class="shell dashboard-shell">
+    <header class="chrome">
+      <div class="brand">
+        <span class="brand-name">socratink</span>
+        <span class="brand-loop">dashboard</span>
+      </div>
+      <div class="chrome-meta">
+        <a href="/loop/" class="chrome-link">loop</a>
+        <span id="status-pill" class="llm-pill" data-state="loading">loading…</span>
+      </div>
+    </header>
+
+    <section class="terminal dashboard-surface" aria-label="Learning loop observability">
+      <div class="dashboard-scroll">
+        <section class="dashboard-intro" aria-labelledby="page-title">
+          <p class="eyebrow">pedagogical loop observability</p>
+          <h1 id="page-title">Learning loop health</h1>
+          <p class="lede">
+            Promoted runs as learner journeys: orientation, reconstruction stalls,
+            bridge unlocks, and what to improve next.
+          </p>
+          <aside class="focus-card" aria-label="Top recommended improvement">
+            <span class="focus-card-label">next improvement</span>
+            <strong id="hero-next-focus">Loading…</strong>
+            <span id="hero-next-why">Reading promoted traces.</span>
+          </aside>
+          <dl class="version-tracker" aria-label="Dashboard version tracker">
+            <div>
+              <dt>dashboard</dt>
+              <dd id="version-dashboard">—</dd>
+            </div>
+            <div>
+              <dt>payload</dt>
+              <dd id="version-payload">—</dd>
+            </div>
+            <div>
+              <dt>logic</dt>
+              <dd id="version-logic">—</dd>
+            </div>
+          </dl>
+        </section>
+
+        <p id="status" class="status" role="status" aria-live="polite" hidden>
+          Loading dashboard evidence…
+        </p>
+
+        <section class="metric-grid" aria-label="Learning loop health">
+          <article class="metric-card">
+            <span class="metric-label">Promoted runs</span>
+            <strong id="metric-cases">—</strong>
+            <span id="metric-case-mix" class="metric-note">—</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Reached bridge</span>
+            <strong id="metric-bridge-reached">—</strong>
+            <span id="metric-runs-analyzed" class="metric-note">—</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Stopped before bridge</span>
+            <strong id="metric-stopped">—</strong>
+            <span class="metric-note">repair or uncertainty failure</span>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Evidence holds</span>
+            <strong id="metric-holds">—</strong>
+            <span class="metric-note">solid answer not yet durable truth</span>
+          </article>
+        </section>
+
+        <section class="panel pipeline-panel" aria-labelledby="pipeline-title">
+          <div class="panel-heading">
+            <p class="eyebrow">learning loop pipeline</p>
+            <h2 id="pipeline-title">Where runs travel</h2>
+          </div>
+          <ol id="pipeline-list" class="pipeline-list"></ol>
+        </section>
+
+        <section class="panel-grid">
+          <article class="panel" aria-labelledby="friction-title">
+            <div class="panel-heading">
+              <p class="eyebrow">pedagogical friction</p>
+              <h2 id="friction-title">What blocks reconstruction</h2>
+            </div>
+            <div id="friction-list" class="friction-list"></div>
+          </article>
+
+          <article class="panel" aria-labelledby="graph-title">
+            <div class="panel-heading">
+              <p class="eyebrow">graph truth</p>
+              <h2 id="graph-title">Evidence boundary health</h2>
+            </div>
+            <dl class="trace-list">
+              <div><dt>Graph-neutral events</dt><dd id="graph-neutral">—</dd></div>
+              <div><dt>Evidence candidates</dt><dd id="evidence-candidates">—</dd></div>
+              <div><dt>Solidified derivations</dt><dd id="solidified-derivations">—</dd></div>
+            </dl>
+            <p id="trace-risk" class="risk-copy"></p>
+          </article>
+        </section>
+
+        <section class="panel recommendation-panel" aria-labelledby="recommendations-title">
+          <div class="panel-heading">
+            <p class="eyebrow">what to improve next</p>
+            <h2 id="recommendations-title">Pedagogical UX queue</h2>
+          </div>
+          <div id="recommendation-list" class="recommendation-list"></div>
+        </section>
+
+        <section id="run-log" class="panel run-log-panel" aria-labelledby="run-log-title">
+          <div class="panel-heading">
+            <p class="eyebrow">all promoted runs</p>
+            <h2 id="run-log-title">Run log</h2>
+          </div>
+          <div id="run-list" class="run-list"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/dashboard/dashboard.js"></script>
+</body>
+</html>

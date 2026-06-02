@@ -325,8 +325,11 @@ def test_harness_and_dashboard_run_from_standalone_workspace() -> None:
     dashboard = run_command([str(WORKSPACE_ROOT / "socratink-dashboard"), "--json"])
     assert dashboard.returncode == 0, dashboard.stderr
     payload = json.loads(dashboard.stdout)
-    assert payload["title"] == "Socratink Founder Dashboard"
+    assert payload["title"] == "Socratink Learning Loop Dashboard"
     assert payload["case_summary"]["total"] == 8
+    assert len(payload["runs"]) == 8
+    assert payload["learning_loop"]["outcomes"]["stopped_before_bridge"] >= 1
+    assert payload["improvement_queue"]
     telemetry = payload["recovery_telemetry"]
     assert set(telemetry) == {
         "repair_abandoned_rate",

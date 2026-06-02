@@ -34,19 +34,23 @@ if ! railway status >/dev/null 2>&1; then
 fi
 
 echo "[railway] Setting variables (live Gemini, no API key)…"
-railway variables set \
+# --skip-deploys avoids CLI timeouts on backboard.railway.com (see Railway Station threads).
+railway_var() {
+  railway variables set --skip-deploys "$@"
+}
+railway_var \
   "GEMINI_API_KEY=${GEMINI_API_KEY}" \
   "LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash}" \
   "LOOP_APP_VERSION=${LOOP_APP_VERSION:-v0.01}"
 
 if [[ -n "${SOCRATINK_FEEDBACK_WEBHOOK_URL:-}" ]]; then
-  railway variables set "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"
+  railway_var "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"
 fi
 if [[ -n "${SOCRATINK_FEEDBACK_SECRET:-}" ]]; then
-  railway variables set "SOCRATINK_FEEDBACK_SECRET=${SOCRATINK_FEEDBACK_SECRET}"
+  railway_var "SOCRATINK_FEEDBACK_SECRET=${SOCRATINK_FEEDBACK_SECRET}"
 fi
 if [[ -n "${SOCRATINK_FEEDBACK_TO:-}" ]]; then
-  railway variables set "SOCRATINK_FEEDBACK_TO=${SOCRATINK_FEEDBACK_TO}"
+  railway_var "SOCRATINK_FEEDBACK_TO=${SOCRATINK_FEEDBACK_TO}"
 fi
 
 echo "[railway] Deploying from repo (Dockerfile)…"

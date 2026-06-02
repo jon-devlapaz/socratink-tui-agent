@@ -88,23 +88,36 @@ In `socratink-app/vercel.json`, add **before** the catch-all rewrite:
 ```json
 {
   "source": "/loop",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/loop"
+  "destination": "https://loop-production-07a3.up.railway.app/loop"
 },
 {
   "source": "/loop/:path*",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/loop/:path*"
+  "destination": "https://loop-production-07a3.up.railway.app/loop/:path*"
+},
+{
+  "source": "/health",
+  "destination": "https://loop-production-07a3.up.railway.app/health"
 },
 {
   "source": "/api/session",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/api/session"
+  "destination": "https://loop-production-07a3.up.railway.app/api/session"
 },
 {
   "source": "/api/session/:path*",
-  "destination": "https://YOUR-LOOP-HOST.up.railway.app/api/session/:path*"
+  "destination": "https://loop-production-07a3.up.railway.app/api/session/:path*"
 }
 ```
 
+`public/loop/loop.js` calls `GET /health` for the version and LLM pills — proxy it or the UI shows "health unreachable".
+
 Redeploy `socratink-app`. The chat page at `app.socratink.ai/loop` then hits the faithful loop server without CORS.
+
+Verify proxied origin (replace host):
+
+```bash
+curl -s https://app.socratink.ai/health | jq .
+curl -s -X POST https://app.socratink.ai/api/session | jq .sessionId
+```
 
 **Caveat:** Vercel rewrites proxy HTTP only; WebSockets are not required for this MVP.
 

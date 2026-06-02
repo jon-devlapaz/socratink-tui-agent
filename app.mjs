@@ -224,6 +224,7 @@ async function run(options) {
     zeroSchemaCold: false,
     isMisconception: false,
     repairScaffold: null,
+    postBridgeTransfer: null,
     gapId: "",
     repairState: null,
     evidenceHolds,

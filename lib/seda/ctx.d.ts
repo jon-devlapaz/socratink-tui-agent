@@ -82,6 +82,12 @@ export interface SedaCtx {
   isMisconception: boolean;
   /** writer: delta. readers: repair-dialogue, repair-recovery, post-bridge-transfer, repair-abandoned. */
   repairScaffold: Record<string, unknown> | null;
+  /**
+   * writer: post-bridge-transfer. reader: post-bridge-transfer.
+   * HTTP-only continuation when prompt.ask splits across handler invocations;
+   * not mirrored to events[] and not reconstructable after process restart.
+   */
+  postBridgeTransfer: { runGap: boolean } | null;
   /** writer: delta. readers: repair-dialogue, repair-recovery (gap_id on events). */
   gapId: string;
   /** writer: delta (init), repair-dialogue (mutate / null on exit). reader: repair-dialogue. See RepairState. */

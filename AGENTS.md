@@ -260,9 +260,12 @@ keeping a mid-repair session replayable.
 - Prefer pragmatic, minimum-impact implementations for user-facing features (e.g. `/feedback` via webhook rather than heavy email infra).
 - Loop chat UI must not expose `/redrill` in startup help; spaced re-drill is automatic, not a learner command.
 - For main-app loop integration, use path proxy at `app.socratink.ai/loop` (sibling `socratink-app`) over native SPA embed until graph integration is needed.
+- For substantial feature implementation, prefer **Codex (gpt-5.5, high reasoning)** in an isolated worktree; Cursor owns spec (`CONTEXT.md`, ADRs), review, verification, and merge.
+- Use **Confirmed Substrate**, **Substrate Gate**, and related terms from `CONTEXT.md`; avoid informal **floor** in code, docs, and prompts.
 
 ## Learned Workspace Facts
 
+- Product vocabulary and substrate-gate decisions live in `CONTEXT.md` and `docs/adr/`; pre-map substrate is graph-neutral routing only — evidence still begins at **Cold Attempt**.
 - GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs and passing Smoke CI.
 - Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; deploy via `./scripts/railway-deploy.sh` (`deploy/RAILWAY.md`). Production learner URL is `app.socratink.ai/loop` via `socratink-app` FastAPI proxy (`LOOP_BACKEND_URL` → Railway; see `deploy/LOOP-HOSTING.md`).
 - `socratink-app` proxies `/loop`, `/health`, and `/api/session/*` through `loop_backend_proxy.py`; `public/loop/loop.js` polls `/health` (not `/api/health`) for version/LLM pills. Avoid duplicate Vercel edge rewrites for the same paths.

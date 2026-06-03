@@ -10,6 +10,6 @@ Model: `gpt-5.5` (`model_reasoning_effort = high`)
 | 1 | Routing skeleton | Codex 5.5 | done |
 | 2 | Bridge + handler | Codex 5.5 | done |
 | 3 | Loop UI | Codex 5.5 | done |
-| R | Review + verify + merge prep | Cursor | in progress |
+| R | Review + verify + merge prep | Cursor | done |
 
 PR2 (advanceSession pacing) is **out of scope** for this branch.

@@ -132,6 +132,10 @@ function transcriptText(lines) {
   return (lines || []).map((line) => line.text || "").join("\n");
 }
 
+function isContinueAwaiting(session) {
+  return session.awaiting?.key === "continue";
+}
+
 function scriptedInput(session, profile) {
   const key = session.awaiting?.key;
   if (key === "concept" || (key === "cmd" && session.phase === "idle")) {
@@ -142,6 +146,7 @@ function scriptedInput(session, profile) {
   if (key === "substrate_refinement" && profile.substrate_refinement) {
     return profile.substrate_refinement;
   }
+  if (key === "run_gap_drill") return "y";
   return null;
 }
 
@@ -215,16 +220,19 @@ async function runProfile(profile, options, health) {
 
   while (!session.complete && !session.caseComplete && turns < options.maxTurns) {
     const beforeKey = session.awaiting?.key;
-    let text = scriptedInput(session, profile);
-    if (!text && options.allowFake && health.fake_llm) {
+    const transportContinue = isContinueAwaiting(session);
+    let text = transportContinue ? "" : scriptedInput(session, profile);
+    if (!transportContinue && !text && options.allowFake && health.fake_llm) {
       text = fakeFallback(session);
     }
-    if (!text) {
+    if (!transportContinue && !text) {
       text = personaTurn(profile, session);
     }
+    const body = transportContinue ? {} : { text };
+    const displayText = transportContinue ? "[continue]" : text;
 
     console.log(
-      `  [${profile.id} turn ${turns + 1}] phase=${session.phase} key=${beforeKey || "?"} » ${text.slice(0, 90)}${text.length > 90 ? "…" : ""}`,
+      `  [${profile.id} turn ${turns + 1}] phase=${session.phase} key=${beforeKey || "?"} » ${displayText.slice(0, 90)}${displayText.length > 90 ? "…" : ""}`,
     );
 
     session = await fetchJson(
@@ -232,7 +240,7 @@ async function runProfile(profile, options, health) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(body),
       },
     );
 
@@ -245,7 +253,8 @@ async function runProfile(profile, options, health) {
     }
 
     log.turns.push({
-      input: text,
+      input: transportContinue ? null : text,
+      transport_continue: transportContinue,
       phase: session.phase,
       status: session.status,
       awaiting: session.awaiting,

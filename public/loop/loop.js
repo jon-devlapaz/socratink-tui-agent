@@ -13,11 +13,14 @@ const srStatus = document.getElementById("sr-status");
 const composerCtaEl = document.getElementById("composer-cta");
 const composerCtaLabel = document.getElementById("composer-cta-label");
 const composerCtaText = document.getElementById("composer-cta-text");
+const sendButton = form.querySelector("button");
+const sendButtonLabel = sendButton?.querySelector(".send-label");
 
 let sessionId = null;
 let busy = false;
 let lastPromptMarker = null;
 let lastLlmStamp = null;
+let currentAwaiting = null;
 
 const THINKING_COPY = {
   idle: "starting session",
@@ -187,6 +190,21 @@ function setComposerCta(awaiting) {
   if (composerCtaText) composerCtaText.textContent = "";
 }
 
+function isContinueAwaiting(awaiting = currentAwaiting) {
+  return awaiting?.key === "continue";
+}
+
+function setSendButtonMode(awaiting) {
+  if (!sendButtonLabel || !sendButton) return;
+  if (isContinueAwaiting(awaiting)) {
+    sendButtonLabel.textContent = "continue";
+    sendButton.setAttribute("aria-label", "Continue (Return)");
+    return;
+  }
+  sendButtonLabel.textContent = "return";
+  sendButton.setAttribute("aria-label", "Send (Return)");
+}
+
 function promptPlaceholder(label) {
   const base = "Type your answer… · /help · /hint · /feedback · /exit";
   if (!label) return base;
@@ -229,7 +247,7 @@ function setComposerLoading(isLoading, phase) {
   composerIdle.hidden = isLoading;
   composerBusy.hidden = !isLoading;
   input.disabled = isLoading;
-  form.querySelector("button").disabled = isLoading;
+  sendButton.disabled = isLoading;
 }
 
 function setBusy(isBusy, phase) {
@@ -246,6 +264,8 @@ function setBusy(isBusy, phase) {
 }
 
 function showAwaitingPrompt(awaiting) {
+  currentAwaiting = awaiting || null;
+  setSendButtonMode(awaiting);
   if (!awaiting) {
     lastPromptMarker = null;
     setComposerCta(null);
@@ -257,6 +277,11 @@ function showAwaitingPrompt(awaiting) {
     lastPromptMarker = marker;
   }
   setComposerCta(awaiting);
+  if (isContinueAwaiting(awaiting)) {
+    input.value = "";
+    input.placeholder = "Press Return to continue…";
+    return;
+  }
   const hasCtaBody = Boolean(String(awaiting.ctaText ?? "").trim());
   if (hasCtaBody) {
     input.placeholder = "Type your answer… · /help · /hint · /feedback · /exit";
@@ -268,7 +293,7 @@ function showAwaitingPrompt(awaiting) {
 function setComposerEnabled(enabled) {
   if (busy) return;
   input.disabled = !enabled;
-  form.querySelector("button").disabled = !enabled;
+  sendButton.disabled = !enabled;
 }
 
 async function post(path, body) {
@@ -304,7 +329,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.02";
+  const label = health?.app_version || "v0.03";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -379,15 +404,18 @@ async function ensureSession() {
   }
 }
 
-async function sendTurn(text) {
+async function sendTurn(text, options = {}) {
   await ensureSession();
   const phaseBeforeTurn = activePhaseSlug();
   busy = true;
-  appendChatLine("user", text, { force: true });
+  if (options.appendUser !== false) {
+    appendChatLine("user", text, { force: true });
+  }
   lastPromptMarker = null;
   setBusy(true, phaseBeforeTurn);
   try {
-    const data = await post(`/api/session/${sessionId}/turn`, { text });
+    const payload = options.emptyPayload ? {} : { text };
+    const data = await post(`/api/session/${sessionId}/turn`, payload);
     busy = false;
     setBusy(false, data.phase ?? phasePill.dataset.phase);
     applyTurnResponse(data);
@@ -398,18 +426,28 @@ async function sendTurn(text) {
   }
 }
 
+function sendContinueTurn() {
+  return sendTurn("", { appendUser: false, emptyPayload: true });
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (busy) return;
   const text = input.value.trim();
-  if (!text) return;
+  const continueTurn = isContinueAwaiting();
+  if (!text && !continueTurn) return;
+  const awaitingBeforeSubmit = currentAwaiting;
   input.value = "";
   try {
-    await sendTurn(text);
+    if (continueTurn) {
+      await sendContinueTurn();
+    } else {
+      await sendTurn(text);
+    }
   } catch (error) {
     busy = false;
     appendChatLine("error", error.message || "Request failed.", { force: true });
-    showAwaitingPrompt(null);
+    showAwaitingPrompt(awaitingBeforeSubmit);
     setBusy(false);
     setComposerEnabled(true);
     input.focus();

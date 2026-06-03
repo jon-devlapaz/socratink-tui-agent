@@ -34,6 +34,8 @@ if ! railway status >/dev/null 2>&1; then
 fi
 
 echo "[railway] Setting variables (live Gemini, no API key)…"
+# Canonical version lives in lib/loop-server/version.mjs (bump on every PR).
+DEPLOY_LOOP_VERSION="${LOOP_APP_VERSION:-$(node --input-type=module -e "import { LOOP_APP_VERSION_DEFAULT } from './lib/loop-server/version.mjs'; console.log(LOOP_APP_VERSION_DEFAULT);")}"
 # --skip-deploys avoids CLI timeouts on backboard.railway.com (see Railway Station threads).
 railway_var() {
   railway variables set --skip-deploys "$@"
@@ -41,7 +43,7 @@ railway_var() {
 railway_var \
   "GEMINI_API_KEY=${GEMINI_API_KEY}" \
   "LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash}" \
-  "LOOP_APP_VERSION=${LOOP_APP_VERSION:-v0.01}"
+  "LOOP_APP_VERSION=${DEPLOY_LOOP_VERSION}"
 
 if [[ -n "${SOCRATINK_FEEDBACK_WEBHOOK_URL:-}" ]]; then
   railway_var "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"

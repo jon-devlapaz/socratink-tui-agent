@@ -66,6 +66,10 @@ function transcriptText(lines) {
   return (lines || []).map((line) => line.text || "").join("\n");
 }
 
+function isContinueAwaiting(session) {
+  return session.awaiting?.key === "continue";
+}
+
 function ignitionScriptedInput(session, options) {
   const key = session.awaiting?.key;
   if (key === "concept" || (key === "cmd" && session.phase === "idle")) {
@@ -73,6 +77,7 @@ function ignitionScriptedInput(session, options) {
   }
   if (key === "learner_goal") return options.learnerGoal;
   if (key === "launch_attempt") return options.launchAttempt;
+  if (key === "run_gap_drill") return "y";
   return null;
 }
 
@@ -130,11 +135,12 @@ async function main() {
   let turns = 0;
   while (!session.complete && !session.caseComplete && turns < options.maxTurns) {
     const label = session.awaiting?.label || session.awaiting?.key || ">";
-    let text = ignitionScriptedInput(session, options);
-    if (!text && health.fake_llm) {
+    const transportContinue = isContinueAwaiting(session);
+    let text = transportContinue ? "" : ignitionScriptedInput(session, options);
+    if (!transportContinue && !text && health.fake_llm) {
       text = fakePersonaInput(session, options);
     }
-    if (!text) {
+    if (!transportContinue && !text) {
       text = personaTurn({
         concept: options.concept,
         learner_goal: options.learnerGoal,
@@ -143,20 +149,23 @@ async function main() {
         transcript_text: transcriptText(session.transcript),
       });
     }
+    const body = transportContinue ? {} : { text };
+    const displayText = transportContinue ? "[continue]" : text;
 
-    console.log(`\n[turn ${turns + 1}] phase=${session.phase} » ${text.slice(0, 120)}${text.length > 120 ? "…" : ""}`);
+    console.log(`\n[turn ${turns + 1}] phase=${session.phase} » ${displayText.slice(0, 120)}${displayText.length > 120 ? "…" : ""}`);
 
     session = await fetchJson(
       `${options.baseUrl}/api/session/${session.sessionId}/turn`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(body),
       },
     );
 
     log.turns.push({
-      input: text,
+      input: transportContinue ? null : text,
+      transport_continue: transportContinue,
       phase: session.phase,
       status: session.status,
       awaiting: session.awaiting,

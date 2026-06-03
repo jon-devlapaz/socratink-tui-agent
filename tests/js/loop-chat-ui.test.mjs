@@ -11,6 +11,12 @@ import { LOOP_APP_VERSION_DEFAULT } from "../../lib/loop-server/version.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const BASE = process.env.SOCRATINK_LOOP_BASE_URL || "http://127.0.0.1:8787";
+const FAST_LAUNCH =
+  "Caching stores a result so later matching requests can reuse it faster.";
+const SHALLOW_COLD =
+  "Caching improves performance by storing earlier work for faster retrieval.";
+const READY_REPAIR =
+  "Memory cells form and stay ready, so the next exposure gets a faster response.";
 
 function makeAgent(id, name = id) {
   return {
@@ -144,8 +150,60 @@ function makeLoopSessionForSubstrateTest() {
       },
     },
     handlers: HANDLERS,
-    options: { color: "never", logRawLlm: false, loopUi: true },
+    options: {
+      color: "never",
+      logRawLlm: false,
+      loopUi: true,
+      loopUiPacing: "one_beat",
+    },
   };
+}
+
+async function createApiSession() {
+  const create = await fetch(`${BASE}/api/session`, { method: "POST" });
+  assert.equal(create.status, 201);
+  const created = await create.json();
+  const post = async (text) => {
+    const body = text === undefined ? {} : { text };
+    const turn = await fetch(`${BASE}/api/session/${created.sessionId}/turn`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    assert.equal(turn.status, 200);
+    return turn.json();
+  };
+  return { ...created, post };
+}
+
+function transcriptText(body) {
+  return (body.transcript || []).map((line) => line.text || "").join("\n");
+}
+
+async function advanceToColdAttempt() {
+  const session = await createApiSession();
+  await session.post("Caching");
+  await session.post("Explain why caching makes repeat requests faster");
+  const routeTurn = await session.post(FAST_LAUNCH);
+  assert.equal(routeTurn.status, "awaiting_input");
+  assert.equal(routeTurn.awaiting?.key, "cold_attempt");
+  return { session, routeTurn };
+}
+
+async function advanceToColdPacingStop() {
+  const { session } = await advanceToColdAttempt();
+  const coldTurn = await session.post(SHALLOW_COLD);
+  assert.equal(coldTurn.status, "awaiting_input");
+  assert.equal(coldTurn.awaiting?.key, "continue");
+  return { session, coldTurn };
+}
+
+async function advanceToDeltaPacingStop() {
+  const { session } = await advanceToColdPacingStop();
+  const deltaTurn = await session.post();
+  assert.equal(deltaTurn.status, "awaiting_input");
+  assert.equal(deltaTurn.awaiting?.key, "repair");
+  return { session, deltaTurn };
 }
 
 test("loop static assets use terminal chrome and phase styling", () => {
@@ -160,6 +218,11 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /setVersionPillFromHealth/);
   assert.match(js, /appendLlmReceipt/);
   assert.match(js, /substrate_gate/);
+  assert.match(js, /isContinueAwaiting/);
+  assert.match(js, /sendContinueTurn/);
+  assert.match(js, /appendUser:\s*false/);
+  assert.match(js, /awaitingBeforeSubmit/);
+  assert.match(js, /showAwaitingPrompt\(awaitingBeforeSubmit\)/);
   assert.match(html, /id="composer-busy"/);
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
@@ -312,6 +375,63 @@ test("loop API /help at launch_attempt matches launch step not learner goal", as
   assert.match(body.awaiting?.label || "", /Launch attempt/i);
 });
 
+test("loop cold eval returns before delta on separate turn", async () => {
+  const { coldTurn } = await advanceToColdPacingStop();
+  const text = transcriptText(coldTurn);
+
+  assert.equal(coldTurn.awaiting?.ctaLabel, "Continue");
+  assert.equal(coldTurn.awaiting?.ctaText, null);
+  assert.match(text, /Cold Attempt/i);
+  assert.match(text, /Evidence/i);
+  assert.doesNotMatch(text, /Delta/i);
+  assert.doesNotMatch(text, /Socratic Repair Drill/i);
+  assert.ok(coldTurn.events.some((event) => event.type === "cold_attempt"));
+  assert.equal(
+    coldTurn.events.some((event) => event.type === "gap_identified"),
+    false,
+  );
+});
+
+test("loop delta scaffold returns before repair ask on separate turn", async () => {
+  const { session } = await advanceToColdPacingStop();
+  const deltaTurn = await session.post();
+  const text = transcriptText(deltaTurn);
+
+  assert.match(text, /Delta/i);
+  assert.match(text, /Socratic Repair Drill/i);
+  assert.doesNotMatch(text, /Own-Words Repair/i);
+  assert.equal(deltaTurn.awaiting?.key, "repair");
+  assert.ok(deltaTurn.events.some((event) => event.type === "gap_identified"));
+  assert.equal(
+    deltaTurn.events.some((event) => event.type === "repair_dialogue_turn"),
+    false,
+  );
+});
+
+test("loop repair ready returns before model_bridge on separate turn", async () => {
+  const { session } = await advanceToDeltaPacingStop();
+  const repairTurn = await session.post(READY_REPAIR);
+  const repairText = transcriptText(repairTurn);
+
+  assert.match(repairText, /Repair Dialogue/i);
+  assert.match(repairText, /Bridge readiness: ready/i);
+  assert.doesNotMatch(repairText, /Model Bridge/i);
+  assert.equal(repairTurn.awaiting?.key, "continue");
+  assert.equal(repairTurn.awaiting?.ctaLabel, "Continue");
+  assert.equal(repairTurn.awaiting?.ctaText, null);
+  assert.ok(repairTurn.events.some((event) => event.type === "repair"));
+  assert.equal(
+    repairTurn.events.some((event) => event.type === "model_bridge"),
+    false,
+  );
+
+  const bridgeTurn = await session.post();
+  const bridgeText = transcriptText(bridgeTurn);
+  assert.match(bridgeText, /Model Bridge/i);
+  assert.equal(bridgeTurn.awaiting?.key, "run_gap_drill");
+  assert.ok(bridgeTurn.events.some((event) => event.type === "model_bridge"));
+});
+
 test("loop substrate seed waits for a separate refinement turn before route generation", async () => {
   const session = makeLoopSessionForSubstrateTest();
   const post = (text) => advanceSession(session, text);
@@ -346,6 +466,37 @@ test("loop substrate seed waits for a separate refinement turn before route gene
   assert.ok(seedIndex >= 0, "expected substrate_seed_offered event");
   assert.ok(routeIndex >= 0, "expected route_generated event after refinement");
   assert.ok(seedIndex < routeIndex);
+  assert.equal(routeTurn.awaiting?.key, "cold_attempt");
+});
+
+test("loop cold help exhaustion waits before zero-schema delta", async () => {
+  const { session } = await advanceToColdAttempt();
+  const firstHelp = await session.post("I don't know.");
+
+  assert.equal(firstHelp.awaiting?.key, "cold_attempt");
+  assert.ok(firstHelp.events.some((event) => event.type === "cold_help_turn"));
+  assert.equal(
+    firstHelp.events.some((event) => event.type === "cold_support_exhausted"),
+    false,
+  );
+
+  const exhausted = await session.post("I still don't know.");
+  const exhaustedText = transcriptText(exhausted);
+
+  assert.equal(exhausted.awaiting?.key, "continue");
+  assert.equal(exhausted.awaiting?.ctaText, null);
+  assert.ok(
+    exhausted.events.some((event) => event.type === "cold_support_exhausted"),
+  );
+  assert.equal(
+    exhausted.events.some((event) => event.type === "gap_identified"),
+    false,
+  );
+  assert.doesNotMatch(exhaustedText, /Delta/i);
+
+  const deltaTurn = await session.post();
+  assert.equal(deltaTurn.awaiting?.key, "repair");
+  assert.ok(deltaTurn.events.some((event) => event.type === "gap_identified"));
 });
 
 test("loop API turn advances with prompt metadata", async () => {
@@ -382,14 +533,16 @@ test("loop API marks single concept case complete after spaced redrill", async (
     "Caching stores earlier work so the next matching request can reuse it.",
   );
   await post(
+    "Caching improves performance by storing earlier work for faster retrieval.",
+  );
+  await post();
+  await post(
     "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
   );
-  await post(
-    "The stored result lets the cache serve the next matching request without recomputing.",
-  );
+  await post();
   await post("y");
   await post(
-    "Caching stores the first result so identical later requests skip recomputation.",
+    "The stored result lets the cache serve the next matching request without recomputing.",
   );
   const body = await post(
     "The first request computes and stores; that stored result makes the next identical request faster.",

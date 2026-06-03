@@ -43,7 +43,7 @@ test("enrichAwaiting exposes substrate refinement seed in composer", () => {
 });
 
 test("enrichAwaiting does not leak repair CTA into transfer or spaced prompts", () => {
-  for (const key of ["gap_attempt", "spaced_attempt", "cmd"]) {
+  for (const key of ["continue", "gap_attempt", "spaced_attempt", "cmd"]) {
     const awaiting = enrichAwaiting(
       { key, label: `${key}: ` },
       {

@@ -15,7 +15,11 @@ test("empty event log routes to ignition", () => {
 
 test("DIRECT_PHASE table is honored for direct event types", () => {
   const cases = {
-    launch_attempt: "route",
+    launch_attempt: "substrate_gate",
+    substrate_seed_offered: "substrate_gate",
+    substrate_refinement: "substrate_gate",
+    substrate_support_exhausted: "substrate_gate",
+    substrate_confirmed: "route",
     route_generated: "cold_attempt",
     strong_cold_path: "spacing",
     gap_identified: "repair_dialogue",

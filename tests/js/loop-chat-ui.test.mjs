@@ -4,9 +4,148 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { HANDLERS } from "../../lib/seda/handlers/index.mjs";
+import { advanceSession } from "../../lib/loop-server/session.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const BASE = process.env.SOCRATINK_LOOP_BASE_URL || "http://127.0.0.1:8787";
+
+function makeAgent(id, name = id) {
+  return {
+    id,
+    name,
+    job: `${name} job`,
+    required_outputs: [],
+    may_propose_events: [],
+    truth_permission: "none",
+    failure_mode_to_guard: "fixture guard",
+  };
+}
+
+function makeLoopSessionForSubstrateTest() {
+  const agentLookup = new Map([
+    ["substrate_gate", makeAgent("substrate_gate", "Substrate Gate Agent")],
+    ["route", makeAgent("route", "Route Agent")],
+    ["cold_attempt", makeAgent("cold_attempt", "Cold Attempt Agent")],
+  ]);
+  return {
+    id: "substrate-loop-test",
+    phase: "idle",
+    events: [],
+    derived: [],
+    evidenceHolds: [],
+    llmCalls: [],
+    transcript: [],
+    status: "active",
+    pendingInput: null,
+    ctx: {
+      concept: "",
+      conceptId: "",
+      learnerGoal: null,
+      launchAttempt: null,
+      firstNode: null,
+      nodeIds: [],
+      route: null,
+      coldEval: null,
+      coldAttemptText: "",
+      zeroSchemaCold: false,
+      isMisconception: false,
+      repairScaffold: null,
+      postBridgeTransfer: null,
+      gapId: "",
+      repairState: null,
+      evidenceHolds: [],
+      scripted: null,
+      agentLookup,
+      agentContracts: {},
+      section: (_kind, label) => `[${label}]`,
+      colorEnabled: false,
+      logDir: null,
+    },
+    store: {
+      setProvenance: async () => {},
+      setSketch: async () => {},
+      loadTraining: async () => null,
+    },
+    bridge: {
+      callBridge: (action, payload) => {
+        assert.equal(action, "substrate-gate");
+        const hasRefinement = Boolean(
+          String(payload.substrate_refinement || "").trim(),
+        );
+        return {
+          substrate_gate: {
+            contract_version: "substrate-gate-v1",
+            classification: hasRefinement ? "fast" : "slow",
+            substrate_adequate: hasRefinement,
+            seed_text:
+              "A safe preview lets the body notice a pattern without the full illness.",
+            refinement_prompt:
+              "Add one starting link in your own words: what changes after that preview?",
+            judge_reason: "fixture",
+            graph_neutral: true,
+            score_eligible: false,
+          },
+          llm_call: {
+            provider: "fake",
+            model: "fake-substrate-gate",
+            latency_ms: 0,
+            usage: { input_tokens: 0, output_tokens: 0 },
+          },
+        };
+      },
+      callBridgeResult: (action) => {
+        assert.equal(action, "generate-route");
+        return {
+          ok: true,
+          payload: {
+            provisional_map: {
+              metadata: {
+                core_thesis: "Immune memory uses a safe preview to prepare later response.",
+              },
+              backbone: [
+                {
+                  id: "b1",
+                  principle: "Safe preview creates durable response memory.",
+                  dependent_clusters: ["c1"],
+                },
+              ],
+              clusters: [
+                {
+                  id: "c1",
+                  label: "Immune bridge",
+                  subnodes: [
+                    {
+                      id: "c1_s1",
+                      label: "Immune memory",
+                      learner_scaffold: {
+                        task_label: "Explain the immune memory bridge",
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            first_node: {
+              id: "c1_s1",
+              learner_prompt:
+                "In your own words, why does a safe preview make the later response faster?",
+            },
+            llm_call: {
+              provider: "fake",
+              model: "fake-route",
+              latency_ms: 0,
+              usage: { input_tokens: 0, output_tokens: 0 },
+            },
+          },
+        };
+      },
+    },
+    handlers: HANDLERS,
+    options: { color: "never", logRawLlm: false, loopUi: true },
+  };
+}
 
 test("loop static assets use terminal chrome and phase styling", () => {
   const html = readFileSync(path.join(ROOT, "public/loop/index.html"), "utf8");
@@ -19,6 +158,7 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /refreshHealth/);
   assert.match(js, /setVersionPillFromHealth/);
   assert.match(js, /appendLlmReceipt/);
+  assert.match(js, /substrate_gate/);
   assert.match(html, /id="composer-busy"/);
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
@@ -171,6 +311,42 @@ test("loop API /help at launch_attempt matches launch step not learner goal", as
   assert.match(body.awaiting?.label || "", /Launch attempt/i);
 });
 
+test("loop substrate seed waits for a separate refinement turn before route generation", async () => {
+  const session = makeLoopSessionForSubstrateTest();
+  const post = (text) => advanceSession(session, text);
+
+  await advanceSession(session);
+  await post("Immune memory");
+  await post("Explain how vaccines work");
+  const seedTurn = await post("I don't know.");
+
+  assert.equal(seedTurn.status, "awaiting_input");
+  assert.equal(seedTurn.phase, "substrate_gate");
+  assert.equal(seedTurn.awaiting?.key, "substrate_refinement");
+  assert.match(seedTurn.awaiting?.ctaLabel || "", /starting link/i);
+  assert.match(seedTurn.awaiting?.ctaText || "", /safe preview/i);
+  assert.ok(
+    seedTurn.events.some((event) => event.type === "substrate_seed_offered"),
+    "expected seed to be offered before awaiting refinement",
+  );
+  assert.ok(
+    !seedTurn.events.some((event) => event.type === "route_generated"),
+    "route must not be generated in the seed turn",
+  );
+
+  const routeTurn = await post("Vaccines give the body a safe preview.");
+  const seedIndex = routeTurn.events.findIndex(
+    (event) => event.type === "substrate_seed_offered",
+  );
+  const routeIndex = routeTurn.events.findIndex(
+    (event) => event.type === "route_generated",
+  );
+
+  assert.ok(seedIndex >= 0, "expected substrate_seed_offered event");
+  assert.ok(routeIndex >= 0, "expected route_generated event after refinement");
+  assert.ok(seedIndex < routeIndex);
+});
+
 test("loop API turn advances with prompt metadata", async () => {
   const create = await fetch(`${BASE}/api/session`, { method: "POST" });
   const { sessionId } = await create.json();
@@ -201,12 +377,21 @@ test("loop API marks single concept case complete after spaced redrill", async (
 
   await post("Caching");
   await post("Explain why caching makes repeat requests faster");
-  await post("Caching stores earlier work so the next matching request can reuse it.");
+  await post(
+    "Caching stores earlier work so the next matching request can reuse it.",
+  );
   await post(
     "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
   );
+  await post(
+    "The stored result lets the cache serve the next matching request without recomputing.",
+  );
+  await post("y");
+  await post(
+    "Caching stores the first result so identical later requests skip recomputation.",
+  );
   const body = await post(
-    "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
+    "The first request computes and stores; that stored result makes the next identical request faster.",
   );
 
   assert.equal(body.events.at(-1)?.type, "spaced_redrill");

@@ -66,6 +66,41 @@ def test_fake_route_and_evaluator_helpers_are_importable_directly() -> None:
     assert has_fake_causal_chain(shallow) is False
 
 
+def test_fake_substrate_gate_helper_covers_fast_slow_and_minimal() -> None:
+    from bridge_fake import fake_substrate_gate
+
+    fast = fake_substrate_gate(
+        {
+            "concept": "Immune memory",
+            "launch_attempt": "Vaccines give a safe preview so later response is faster.",
+        }
+    )["substrate_gate"]
+    slow = fake_substrate_gate(
+        {
+            "concept": "Immune memory",
+            "launch_attempt": "I don't know.",
+        }
+    )["substrate_gate"]
+    minimal = fake_substrate_gate(
+        {
+            "concept": "Immune memory",
+            "launch_attempt": "I don't know.",
+            "substrate_refinement": "unsure",
+            "seed_already_offered": True,
+        }
+    )["substrate_gate"]
+
+    assert fast["classification"] == "fast"
+    assert fast["substrate_adequate"] is True
+    assert slow["classification"] == "slow"
+    assert slow["seed_text"]
+    assert slow["refinement_prompt"]
+    assert minimal["classification"] == "minimal"
+    assert minimal["substrate_adequate"] is False
+    assert minimal["graph_neutral"] is True
+    assert minimal["score_eligible"] is False
+
+
 def test_fake_evaluation_direct_helper_keeps_template_slot_validation() -> None:
     from bridge_fake import fake_evaluation
 

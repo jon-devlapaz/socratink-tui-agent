@@ -25,6 +25,23 @@ test("enrichAwaiting prefers ctx.composerCta when set", () => {
   assert.equal(awaiting.ctaText, "What happens in the middle?");
 });
 
+test("enrichAwaiting exposes substrate refinement seed in composer", () => {
+  const awaiting = enrichAwaiting(
+    { key: "substrate_refinement", label: "Substrate refinement: " },
+    {
+      composerCta: {
+        label: "Add a starting link",
+        text:
+          "A safe preview lets the body notice a pattern.\n\n" +
+          "Add one starting link in your own words.",
+      },
+    },
+  );
+  assert.equal(awaiting.ctaLabel, "Add a starting link");
+  assert.match(awaiting.ctaText, /safe preview/i);
+  assert.match(awaiting.ctaText, /starting link/i);
+});
+
 test("enrichAwaiting does not leak repair CTA into transfer or spaced prompts", () => {
   for (const key of ["gap_attempt", "spaced_attempt", "cmd"]) {
     const awaiting = enrichAwaiting(

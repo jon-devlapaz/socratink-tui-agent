@@ -34,6 +34,7 @@ from bridge_contracts import (
     RepairDialogueJudge,
     RepairScaffold,
     SocraticRepairDrill,
+    SubstrateGateDecision,
     normalize_repair_dialogue_judge as _normalize_repair_dialogue_judge,
 )
 import prompt_templates
@@ -56,6 +57,7 @@ _is_fake_fluent_shallow = bridge_fake.is_fake_fluent_shallow
 _fake_repair_scaffold = bridge_fake.fake_repair_scaffold
 _fake_repair_dialogue = bridge_fake.fake_repair_dialogue
 _fake_socratic_repair_drill = bridge_fake.fake_socratic_repair_drill
+_fake_substrate_gate = bridge_fake.fake_substrate_gate
 
 
 def _read_request() -> dict[str, Any]:
@@ -86,11 +88,13 @@ def _route_user_prompt(
     *,
     concept: str,
     launch_attempt: str,
+    substrate_adequacy: str,
     learner_goal: str | None,
 ) -> str:
     parts = [
         f"<concept>{concept}</concept>",
-        f"<threshold>{launch_attempt}</threshold>",
+        f"<launch_attempt>{launch_attempt}</launch_attempt>",
+        f"<substrate_adequacy>{substrate_adequacy}</substrate_adequacy>",
     ]
     if learner_goal:
         parts.append(f"<learner_goal>{learner_goal}</learner_goal>")
@@ -125,6 +129,9 @@ def generate_route(request: dict[str, Any]) -> dict[str, Any]:
 
     include_raw = bool(request.get("log_raw_llm"))
     learner_goal = str(request.get("learner_goal") or "").strip() or None
+    substrate_adequacy = str(request.get("substrate_adequacy") or "adequate").strip()
+    if substrate_adequacy not in {"adequate", "minimal"}:
+        raise ValueError("substrate-adequacy-invalid")
     route_attempt = int(request.get("route_attempt") or 1)
     retry_guidance = str(request.get("route_retry_reason") or "").strip() or None
     if os.environ.get("SOCRATINK_TUI_FAKE_ROUTE_FAIL_ALWAYS") == "1":
@@ -153,6 +160,7 @@ def generate_route(request: dict[str, Any]) -> dict[str, Any]:
                 "user_prompt": _route_user_prompt(
                     concept=concept,
                     launch_attempt=launch_attempt,
+                    substrate_adequacy=substrate_adequacy,
                     learner_goal=learner_goal,
                 ),
             }
@@ -164,7 +172,8 @@ def generate_route(request: dict[str, Any]) -> dict[str, Any]:
 
         pm = ai_service.generate_smallest_provisional_map(
             concept=concept,
-            threshold=launch_attempt,
+            launch_attempt=launch_attempt,
+            substrate_adequacy=substrate_adequacy,
             learner_goal=learner_goal,
             retry_guidance=retry_guidance,
             on_call_complete=on_call_complete,
@@ -176,6 +185,7 @@ def generate_route(request: dict[str, Any]) -> dict[str, Any]:
                 "user_prompt": _route_user_prompt(
                     concept=concept,
                     launch_attempt=launch_attempt,
+                    substrate_adequacy=substrate_adequacy,
                     learner_goal=learner_goal,
                 ),
             }
@@ -184,6 +194,74 @@ def generate_route(request: dict[str, Any]) -> dict[str, Any]:
         "provisional_map": pm.model_dump(by_alias=True),
         "first_node": _first_node(pm),
         "llm_call": llm_call,
+    }
+
+
+def substrate_gate(request: dict[str, Any]) -> dict[str, Any]:
+    if os.environ.get("SOCRATINK_TUI_FAKE_LLM") == "1":
+        return _fake_substrate_gate(request)
+
+    concept = str(request.get("concept") or "").strip()
+    launch_attempt = str(request.get("launch_attempt") or "").strip()
+    substrate_refinement = str(request.get("substrate_refinement") or "").strip()
+    learner_goal = str(request.get("learner_goal") or "").strip() or None
+    seed_already_offered = bool(request.get("seed_already_offered"))
+    include_raw = bool(request.get("log_raw_llm"))
+    if not concept:
+        raise ValueError("concept-required")
+    if not launch_attempt and not substrate_refinement:
+        raise ValueError("launch-attempt-or-refinement-required")
+
+    tmpl = prompt_templates.TEMPLATES["substrate_gate"]
+    prompts = prompt_templates.build_prompt(
+        tmpl,
+        {
+            "concept": concept,
+            "learner_goal": learner_goal,
+            "launch_attempt": launch_attempt,
+            "substrate_refinement": substrate_refinement or None,
+            "seed_already_offered": str(seed_already_offered).lower(),
+        },
+    )
+    llm_request = StructuredLLMRequest(
+        system_prompt=prompts["system_prompt"],
+        user_prompt=prompts["user_prompt"],
+        response_schema=SubstrateGateDecision,
+        temperature=0.2,
+        task_name="socratink_tui_substrate_gate",
+        prompt_version=tmpl["version"],
+    )
+    result = build_llm_client().generate_structured(llm_request)
+    decision = result.parsed
+    if not isinstance(decision, SubstrateGateDecision):
+        raise ValueError("invalid-substrate-gate")
+    decision.graph_neutral = True
+    decision.score_eligible = False
+    if decision.substrate_adequate:
+        decision.classification = "fast"
+        decision.seed_text = None
+        decision.refinement_prompt = None
+    elif substrate_refinement:
+        decision.classification = "minimal"
+        decision.seed_text = None
+        decision.refinement_prompt = None
+    elif decision.classification != "slow":
+        decision.classification = "slow"
+    return {
+        "substrate_gate": decision.model_dump(),
+        "llm_call": {
+            **_call_metadata(result, include_raw=include_raw),
+            **(
+                {
+                    "raw_prompt": {
+                        "system_prompt": prompts["system_prompt"],
+                        "user_prompt": prompts["user_prompt"],
+                    }
+                }
+                if include_raw
+                else {}
+            ),
+        },
     }
 
 
@@ -463,13 +541,16 @@ def main() -> int:
         sys.stderr.write(
             "usage: bridge.py "
             "<generate-route|evaluate-attempt|repair-scaffold|"
-            "socratic-repair-drill|repair-dialogue>\n"
+            "socratic-repair-drill|repair-dialogue|substrate-gate>\n"
         )
         return 2
     try:
         request = _read_request()
         if sys.argv[1] == "generate-route":
             _write_response(generate_route(request))
+            return 0
+        if sys.argv[1] == "substrate-gate":
+            _write_response(substrate_gate(request))
             return 0
         if sys.argv[1] == "repair-scaffold":
             _write_response(build_repair_scaffold(request))

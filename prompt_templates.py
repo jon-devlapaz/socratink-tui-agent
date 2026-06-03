@@ -146,7 +146,7 @@ TEMPLATES = {
     # tests/test_prompt_template.py (no answer-key leakage, versioning). It is
     # intentionally not passed to build_prompt() in bridge.py.
     "route": {
-        "version": "socratink-route-v2",
+        "version": "socratink-route-v3",
         "fixed": {
             "role": "You are Socratink's Route Agent.",
             "task": (
@@ -160,12 +160,49 @@ TEMPLATES = {
                 "answer preview.",
                 "entry_prompt and task_label name a concrete situation or mechanism phrase, "
                 "not school verbs (Define, List, Describe).",
+                "Use substrate_adequacy to size route grain: adequate may route from the "
+                "confirmed launch/refinement material; minimal must choose a conservative "
+                "novice-grain first target.",
             ],
         },
         "dynamic": {
             "concept": "{concept}",
-            "threshold": "{launch_attempt}",
+            "launch_attempt": "{launch_attempt}",
+            "substrate_adequacy": "{substrate_adequacy}",
             "learner_goal": "{learner_goal}",
+        },
+    },
+    "substrate_gate": {
+        "version": "socratink-substrate-gate-v1",
+        "fixed": {
+            "role": "You are Socratink's Substrate Gate agent.",
+            "task": (
+                "Decide whether the learner has enough in-domain generative substrate "
+                "to route a Provisional Map before evidence begins. This is routing "
+                "context only, not an evidence score."
+            ),
+            "output_rules": _VOICE
+            + [
+                "Always return contract_version='substrate-gate-v1'.",
+                "Always set graph_neutral=true and score_eligible=false.",
+                "substrate_adequate=true only when the learner supplies a concrete "
+                "vocabulary anchor, situation, or partial causal/process link in their own words.",
+                "Blank, explicit unknown, label-only, and generic confidence text are not adequate.",
+                "If launch substrate is inadequate and no refinement is present, return "
+                "classification='slow' with one seed_text and one refinement_prompt.",
+                "The seed_text must be a tiny in-domain orientation fragment, not a model "
+                "bridge, answer key, explanation, or full causal chain.",
+                "If a post-seed refinement is still inadequate, return classification='minimal' "
+                "and substrate_adequate=false; the orchestrator will route conservatively.",
+                "Never call this a threshold, grade, mastery, diagnosis, or cold attempt.",
+            ],
+        },
+        "dynamic": {
+            "concept": "{concept}",
+            "learner_goal": "{learner_goal}",
+            "launch_attempt": "{launch_attempt}",
+            "substrate_refinement": "{substrate_refinement}",
+            "seed_already_offered": "{seed_already_offered}",
         },
     },
     "evaluator": {

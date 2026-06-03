@@ -28,12 +28,12 @@
     "generate-route": {
       "bridge_function": "generate_route",
       "template_key": "route",
-      "template_version": "socratink-route-v2",
+      "template_version": "socratink-route-v3",
       "template_runtime_note": "Contract-only in prompt_templates.py; live prompt is ai_service.generate_smallest_provisional_map (vendor/python/ai_service.py). Version pin is validated by tests/test_prompt_template.py.",
       "response_schema": null,
       "response_schema_note": "ProvisionalMap (Pydantic) serialized as provisional_map; first drillable subnode as first_node.",
       "request": {
-        "required": ["concept", "launch_attempt"],
+        "required": ["concept", "launch_attempt", "substrate_adequacy"],
         "optional": [
           "learner_goal",
           "log_raw_llm",
@@ -69,8 +69,56 @@
         "implementation": "ai_service.generate_smallest_provisional_map",
         "prompt_path": "vendor/python/app_prompts/generate-smallest-route-system-v1.txt",
         "prompt_version": "v1",
-        "prompt_sha256": "8c05a934a108a8b5781852c1f1fca219a534cb7aafceaf4e04280e8cfa11eb23"
+        "prompt_sha256": "f611bd6016115ac7579b362b055c50580ae6f71b067a8e8809731cca65bd7537"
       }
+    },
+    "substrate-gate": {
+      "bridge_function": "substrate_gate",
+      "template_key": "substrate_gate",
+      "template_version": "socratink-substrate-gate-v1",
+      "response_schema": "bridge.SubstrateGateDecision",
+      "request": {
+        "required": ["concept", "launch_attempt"],
+        "optional": [
+          "learner_goal",
+          "substrate_refinement",
+          "seed_already_offered",
+          "log_raw_llm"
+        ]
+      },
+      "response": {
+        "required": ["substrate_gate", "llm_call"],
+        "substrate_gate_fields": [
+          "contract_version",
+          "classification",
+          "substrate_adequate",
+          "seed_text",
+          "refinement_prompt",
+          "judge_reason",
+          "graph_neutral",
+          "score_eligible"
+        ]
+      },
+      "callers": [
+        {
+          "module": "lib/seda/handlers/substrate-gate.mjs",
+          "handler_phase": "substrate_gate",
+          "policy": "one seed plus one refinement max; inadequate refinement routes with minimal adequacy"
+        }
+      ],
+      "emitted_events": [
+        "substrate_seed_offered",
+        "substrate_refinement",
+        "substrate_support_exhausted",
+        "substrate_confirmed"
+      ],
+      "next_phase_routing": {
+        "event_type": "substrate_confirmed",
+        "consumes_bridge_fields": ["substrate_gate.substrate_adequate"],
+        "via": "DIRECT_PHASE",
+        "next_phase": "route"
+      },
+      "graph_role": "graph_neutral"
     },
     "evaluate-attempt": {
       "bridge_function": "evaluate_attempt",

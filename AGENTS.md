@@ -240,6 +240,12 @@ keeping a mid-repair session replayable.
 5. Add a fixture exercising the new path
 6. Verify the harness still passes
 
+### Bumping the loop release version (every PR)
+
+1. Increment `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` (e.g. `v0.02` → `v0.03`)
+2. Update the static placeholder in `public/loop/index.html` and fallback in `public/loop/loop.js` to match
+3. `./scripts/railway-deploy.sh` picks up the new default automatically after merge
+
 ### Modifying an evaluator prompt
 1. Edit `TEMPLATES["evaluator"]` in `prompt_templates.py`
 2. Bump the version
@@ -271,7 +277,7 @@ keeping a mid-repair session replayable.
 - `socratink-app` proxies `/loop`, `/health`, and `/api/session/*` through `loop_backend_proxy.py`; `public/loop/loop.js` polls `/health` (not `/api/health`) for version/LLM pills. Avoid duplicate Vercel edge rewrites for the same paths.
 - Loop server `advanceSession` batches multiple SEDA phases per HTTP turn until `PROMPT_REQUIRED` (hosted pacing differs from terminal TUI one-phase-per-prompt).
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
-- `LOOP_APP_VERSION` env (default `v0.01`, `lib/loop-server/version.mjs`) drives the loop chrome version label; bump on learner-visible releases.
+- `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). **Bump it on every PR** (patch step: `v0.02` → `v0.03`). `railway-deploy.sh` reads it automatically; optional `LOOP_APP_VERSION` in `.env` overrides locally.
 - Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).
 - `scripts/railway-deploy.sh` wraps `railway variables set --skip-deploys` to avoid Railway CLI backboard timeouts.
 - Separate from sibling `../socratink-tui`: own git history; do not copy remotes or history from the old lab checkout.

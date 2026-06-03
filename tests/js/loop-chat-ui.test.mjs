@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { HANDLERS } from "../../lib/seda/handlers/index.mjs";
 import { advanceSession } from "../../lib/loop-server/session.mjs";
+import { LOOP_APP_VERSION_DEFAULT } from "../../lib/loop-server/version.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
@@ -187,7 +188,7 @@ test("loop API /health exposes app_version", async () => {
   const res = await fetch(`${BASE}/health`);
   assert.equal(res.status, 200);
   const health = await res.json();
-  assert.equal(health.app_version, "v0.01");
+  assert.equal(health.app_version, LOOP_APP_VERSION_DEFAULT);
 });
 
 test("loop API session returns awaiting label for chat prompt", async () => {

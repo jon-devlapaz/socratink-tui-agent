@@ -304,7 +304,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.01";
+  const label = health?.app_version || "v0.02";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }

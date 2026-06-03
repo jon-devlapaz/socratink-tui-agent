@@ -377,12 +377,21 @@ test("loop API marks single concept case complete after spaced redrill", async (
 
   await post("Caching");
   await post("Explain why caching makes repeat requests faster");
-  await post("Caching stores earlier work so the next matching request can reuse it.");
+  await post(
+    "Caching stores earlier work so the next matching request can reuse it.",
+  );
   await post(
     "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
   );
+  await post(
+    "The stored result lets the cache serve the next matching request without recomputing.",
+  );
+  await post("y");
+  await post(
+    "Caching stores the first result so identical later requests skip recomputation.",
+  );
   const body = await post(
-    "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
+    "The first request computes and stores; that stored result makes the next identical request faster.",
   );
 
   assert.equal(body.events.at(-1)?.type, "spaced_redrill");

@@ -139,4 +139,27 @@ test("buildDashboardPayload matches promoted case count", () => {
   assert.ok(payload.runs.every((run) => typeof run.outcome_key === "string"));
   assert.ok(payload.learning_loop.outcomes.stopped_before_bridge >= 1);
   assert.ok(payload.improvement_queue.length >= 1);
+  assert.equal(payload.product_strategy_v2.payload_version, "dashboard-product-v2");
+  assert.equal(
+    payload.product_strategy_v2.north_star.label,
+    "Verified reconstruction",
+  );
+  assert.deepEqual(
+    Object.keys(payload.product_strategy_v2.activation_funnel.product_metrics).sort(),
+    [
+      "bridge_reach_rate",
+      "case_complete_rate",
+      "evidence_hold_rate",
+      "meaningful_cold_attempt_rate",
+      "meta_use_rate",
+      "repair_load_rate",
+      "substrate_seed_use_rate",
+    ],
+  );
+  assert.ok(payload.product_strategy_v2.friction_segments.length >= 1);
+  assert.ok(payload.product_strategy_v2.experiment_queue.length >= 1);
+  assert.match(
+    payload.product_strategy_v2.dogfood_evidence.evidence_boundary,
+    /learning_cases/,
+  );
 });

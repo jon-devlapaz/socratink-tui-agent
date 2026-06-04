@@ -57,6 +57,7 @@ test("post-bridge transfer persists opted-in HTTP turn and records check", async
           evaluation: {
             classification: "solid",
             agent_response: "That transfers the mechanism.",
+            score_eligible: true,
           },
           llm_call: {
             provider: "fake",

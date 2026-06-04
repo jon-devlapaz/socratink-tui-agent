@@ -151,7 +151,7 @@ async function makePrompt(scripted, ctx) {
             continue;
           }
           if (isMetaCommand(value)) {
-            appendMetaTurn(ctx.events || [], key);
+            appendMetaTurn(ctx.events, key);
             continue;
           }
           return String(value);
@@ -171,7 +171,7 @@ async function makePrompt(scripted, ctx) {
           continue;
         }
         if (isMetaCommand(trimmed)) {
-          appendMetaTurn(ctx.events || [], key);
+          appendMetaTurn(ctx.events, key);
           continue;
         }
         if (isFeedbackCommand(trimmed)) {

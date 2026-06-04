@@ -73,6 +73,22 @@ test("computeRecoveryTelemetry exposes all founder rates", () => {
   assert.equal(telemetry.recovery_success_rate, 0.333);
 });
 
+test("buildDashboardPayload counts bridge_error in graph-neutral telemetry", () => {
+  const payload = buildDashboardPayload({
+    cases: [],
+    sessions: [
+      {
+        events: [
+          { type: "bridge_error", graph_neutral: true },
+          { type: "meta_turn", graph_neutral: true },
+          { type: "cold_attempt" },
+        ],
+      },
+    ],
+  });
+  assert.equal(payload.systems_view.graph_honesty.graph_neutral_events, 2);
+});
+
 test("buildDashboardPayload pairs sessions by session_log, not array index", () => {
   const cases = [
     {

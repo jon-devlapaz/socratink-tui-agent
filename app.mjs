@@ -14,10 +14,12 @@ import {
   handleFeedbackCommand,
 } from "./lib/feedback/handle.mjs";
 import { printPromptHelp } from "./lib/loop-server/prompt-help.mjs";
+import { appendMetaTurn } from "./lib/seda/meta-command.mjs";
 import {
   isExitCommand,
   isFeedbackCommand,
   isHelpCommand,
+  isMetaCommand,
 } from "./lib/seda/prompt-commands.mjs";
 import { runSedaLoop } from "./lib/seda/run-loop.mjs";
 import { buildSessionRecord } from "./lib/seda/session-record.mjs";
@@ -148,6 +150,10 @@ async function makePrompt(scripted, ctx) {
             printPromptHelp(key);
             continue;
           }
+          if (isMetaCommand(value)) {
+            appendMetaTurn(ctx.events || [], key);
+            continue;
+          }
           return String(value);
         }
       },
@@ -162,6 +168,10 @@ async function makePrompt(scripted, ctx) {
         const trimmed = answer.trim();
         if (isHelpCommand(trimmed)) {
           printPromptHelp(key);
+          continue;
+        }
+        if (isMetaCommand(trimmed)) {
+          appendMetaTurn(ctx.events || [], key);
           continue;
         }
         if (isFeedbackCommand(trimmed)) {
@@ -228,6 +238,7 @@ async function run(options) {
     gapId: "",
     repairState: null,
     evidenceHolds,
+    events,
     scripted,
     agentLookup,
     agentContracts,

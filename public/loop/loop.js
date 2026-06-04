@@ -24,7 +24,7 @@ let currentAwaiting = null;
 
 const THINKING_COPY = {
   idle: "starting session",
-  ignition: "sketching route",
+  ignition: "reading your starting model",
   substrate_gate: "checking starting point",
   route: "building provisional map",
   map: "rendering route map",
@@ -65,8 +65,8 @@ const PHASE_LABELS = {
   idle: "idle",
   ignition: "starting point",
   substrate_gate: "starting point",
-  route: "route",
-  map: "map",
+  route: "draft map",
+  map: "draft map",
   cold_attempt: "cold attempt",
   delta: "delta",
   study: "study",
@@ -206,9 +206,10 @@ function setSendButtonMode(awaiting) {
 }
 
 function promptPlaceholder(label) {
-  const base = "Type your answer… · /help · /hint · /feedback · /exit";
+  const base = "Type your answer… · /help · /meta · /hint · /feedback · /exit";
   if (!label) return base;
   const clean = label.replace(/:\s*$/, "").trim();
+  if (clean === ">") return base;
   return clean ? `${clean}…` : base;
 }
 
@@ -284,7 +285,7 @@ function showAwaitingPrompt(awaiting) {
   }
   const hasCtaBody = Boolean(String(awaiting.ctaText ?? "").trim());
   if (hasCtaBody) {
-    input.placeholder = "Type your answer… · /help · /hint · /feedback · /exit";
+    input.placeholder = "Type your answer… · /help · /meta · /hint · /feedback · /exit";
   } else {
     input.placeholder = promptPlaceholder(awaiting.ctaLabel || awaiting.label);
   }
@@ -329,7 +330,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.03";
+  const label = health?.app_version || "v0.04";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -374,7 +375,7 @@ function applyTurnResponse(data) {
     lastLlmStamp = null;
     showAwaitingPrompt({ label: "Concept: ", key: "concept" });
     setComposerEnabled(true);
-    input.placeholder = "Type a concept to explore… · /help · /feedback · /exit";
+    input.placeholder = "Type a concept to explore… · /help · /meta · /feedback · /exit";
     setPhaseChrome("idle");
     input.focus();
     return;

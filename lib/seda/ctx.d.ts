@@ -96,6 +96,8 @@ export interface SedaCtx {
   // --- Accumulators / telemetry ---
   /** writer: app.mjs init + spaced-redrill (push). reader: app.mjs final write (evidence_holds). */
   evidenceHolds: unknown[];
+  /** writer: app.mjs init. readers: prompt command helpers for graph-neutral meta turns. */
+  events?: unknown[];
 
   // --- Infra: I/O, config, agent wiring (not loop state) ---
   /** writer: app.mjs. readers: repair-dialogue, post-bridge-transfer, idle. Fake-LLM / fixture driver. */

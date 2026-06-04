@@ -223,6 +223,9 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /appendUser:\s*false/);
   assert.match(js, /awaitingBeforeSubmit/);
   assert.match(js, /showAwaitingPrompt\(awaitingBeforeSubmit\)/);
+  assert.match(js, /clean === ">/);
+  assert.match(html, /\/meta/);
+  assert.match(js, /\/meta/);
   assert.match(html, /id="composer-busy"/);
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
@@ -242,9 +245,13 @@ test("dashboard static assets expose shared payload version tracker", () => {
   assert.match(html, /id="version-dashboard"/);
   assert.match(html, /id="version-payload"/);
   assert.match(html, /id="version-logic"/);
+  assert.match(html, /id="product-metrics"/);
+  assert.match(html, /id="dogfood-evidence"/);
   assert.match(js, /version_tracker/);
+  assert.match(js, /product_strategy_v2/);
   assert.match(js, /tracker\.logic_owner/);
   assert.match(css, /\.version-tracker/);
+  assert.match(css, /\.product-metrics/);
 });
 
 test("loop API /health exposes app_version", async () => {
@@ -370,7 +377,8 @@ test("loop API /help at launch_attempt matches launch step not learner goal", as
   );
   assert.ok(helpLine);
   assert.match(helpLine.text, /Launch attempt/i);
-  assert.match(helpLine.text, /have not seen the map/i);
+  assert.match(helpLine.text, /before the map appears/i);
+  assert.match(helpLine.text, /not counted as the scored answer/i);
   assert.doesNotMatch(helpLine.text, /Learner goal:/i);
   assert.match(body.awaiting?.label || "", /Launch attempt/i);
 });
@@ -390,6 +398,69 @@ test("loop cold eval returns before delta on separate turn", async () => {
     coldTurn.events.some((event) => event.type === "gap_identified"),
     false,
   );
+});
+
+test("hosted loop malformed cold bridge output fails closed at idle", async () => {
+  const session = makeLoopSessionForSubstrateTest();
+  session.bridge.callBridge = (action) => {
+    if (action === "substrate-gate") {
+      return {
+        substrate_gate: {
+          contract_version: "substrate-gate-v1",
+          classification: "fast",
+          substrate_adequate: true,
+          seed_text: null,
+          refinement_prompt: null,
+          judge_reason: "fixture",
+          graph_neutral: true,
+          score_eligible: false,
+        },
+        llm_call: {
+          provider: "fake",
+          model: "fake-substrate-gate",
+          latency_ms: 0,
+          usage: { input_tokens: 0, output_tokens: 0 },
+        },
+      };
+    }
+    if (action === "evaluate-attempt") {
+      return {
+        evaluation: { classification: "solid" },
+        llm_call: { provider: "fake", model: "malformed-evaluator" },
+      };
+    }
+    throw new Error(`unexpected bridge action: ${action}`);
+  };
+  const post = (text) => advanceSession(session, text);
+
+  await advanceSession(session);
+  await post("Immune memory");
+  await post("Explain how vaccines work");
+  const routeTurn = await post(FAST_LAUNCH);
+  assert.equal(routeTurn.awaiting?.key, "cold_attempt");
+
+  const failedCold = await post(SHALLOW_COLD);
+  const text = transcriptText(failedCold);
+  const bridgeError = failedCold.events.findLast(
+    (event) => event.type === "bridge_error",
+  );
+
+  assert.equal(failedCold.status, "awaiting_input");
+  assert.equal(failedCold.phase, "idle");
+  assert.equal(failedCold.awaiting?.key, "cmd");
+  assert.ok(bridgeError);
+  assert.equal(bridgeError.action, "evaluate-attempt");
+  assert.equal(bridgeError.phase, "cold_attempt");
+  assert.equal(bridgeError.score_eligible, false);
+  assert.equal(
+    failedCold.events.some((event) => event.type === "cold_attempt"),
+    false,
+  );
+  assert.equal(
+    failedCold.events.some((event) => event.type === "model_bridge"),
+    false,
+  );
+  assert.doesNotMatch(text, /Model Bridge/i);
 });
 
 test("loop delta scaffold returns before repair ask on separate turn", async () => {
@@ -513,6 +584,23 @@ test("loop API turn advances with prompt metadata", async () => {
   assert.ok(Array.isArray(body.transcript));
   assert.ok(body.transcript.length > 0);
   assert.match(body.awaiting?.label || "", /goal|launch|attempt/i);
+});
+
+test("loop API /meta explains current prompt without consuming learner input", async () => {
+  const created = await createApiSession();
+  assert.equal(created.awaiting?.key, "cmd");
+
+  const metaTurn = await created.post("/meta");
+  assert.equal(metaTurn.status, "awaiting_input");
+  assert.equal(metaTurn.awaiting?.key, "cmd");
+  assert.equal(metaTurn.phase, "idle");
+  assert.equal(metaTurn.events.at(-1)?.type, "meta_turn");
+  assert.equal(metaTurn.events.at(-1)?.graph_neutral, true);
+  assert.equal(metaTurn.events.at(-1)?.score_eligible, false);
+  assert.doesNotMatch(transcriptText(metaTurn), /graph-neutral|solidified|kc_id/);
+
+  const conceptTurn = await created.post("Caching");
+  assert.equal(conceptTurn.awaiting?.key, "learner_goal");
 });
 
 test("loop API marks single concept case complete after spaced redrill", async () => {

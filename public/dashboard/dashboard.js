@@ -103,6 +103,52 @@ function renderRecommendations(items) {
   }
 }
 
+function renderProductMetrics(metrics) {
+  const list = byId("product-metrics");
+  if (!list) return;
+  list.textContent = "";
+  const entries = [
+    ["meaningful cold", metrics.meaningful_cold_attempt_rate],
+    ["bridge reach", metrics.bridge_reach_rate],
+    ["case complete", metrics.case_complete_rate],
+    ["repair load", metrics.repair_load_rate],
+    ["evidence hold", metrics.evidence_hold_rate],
+    ["substrate seed", metrics.substrate_seed_use_rate],
+    ["meta use", metrics.meta_use_rate],
+  ];
+  for (const [label, value] of entries) {
+    const group = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.textContent = pct(value);
+    group.append(dt, dd);
+    list.appendChild(group);
+  }
+}
+
+function renderDogfoodEvidence(evidence) {
+  const list = byId("dogfood-evidence");
+  if (!list) return;
+  list.textContent = "";
+  const entries = [
+    ["Promoted traces", evidence.promoted_trace_count ?? 0],
+    ["Human dogfood", evidence.human_dogfood_count ?? 0],
+    ["Simulated learners", evidence.simulated_learner_count ?? 0],
+    ["Regression traces", evidence.regression_trace_count ?? 0],
+  ];
+  for (const [label, value] of entries) {
+    const group = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    group.append(dt, dd);
+    list.appendChild(group);
+  }
+  setText("dogfood-boundary", evidence.evidence_boundary || "");
+}
+
 function renderRuns(runs) {
   const list = byId("run-list");
   list.textContent = "";
@@ -174,6 +220,10 @@ function renderDashboard(payload) {
   const loop = payload.learning_loop || {};
   const outcomes = loop.outcomes || {};
   const recommendations = payload.improvement_queue || [];
+  const strategy = payload.product_strategy_v2 || {};
+  const northStar = strategy.north_star || {};
+  const productMetrics = strategy.activation_funnel?.product_metrics || {};
+  const dogfoodEvidence = strategy.dogfood_evidence || {};
   const topRecommendation = recommendations[0] || {};
 
   setText("hero-next-focus", topRecommendation.focus || "Add learner evidence");
@@ -192,6 +242,10 @@ function renderDashboard(payload) {
   setText("metric-stopped", outcomes.stopped_before_bridge ?? "-");
   setText("metric-holds", graph.evidence_hold_sessions ?? "-");
 
+  setText("north-star-label", northStar.label || "-");
+  setText("north-star-definition", northStar.definition || "-");
+  setText("north-star-rate", pct(northStar.primary_rate));
+
   setText("graph-neutral", graph.graph_neutral_events ?? "-");
   setText("evidence-candidates", graph.evidence_candidate_events ?? "-");
   setText("solidified-derivations", graph.solidified_derivations ?? "-");
@@ -199,7 +253,9 @@ function renderDashboard(payload) {
 
   renderPipeline(loop.pipeline || []);
   renderFriction(loop.friction_counts || []);
+  renderProductMetrics(productMetrics);
   renderRecommendations(recommendations);
+  renderDogfoodEvidence(dogfoodEvidence);
   renderRuns(payload.runs || []);
 }
 

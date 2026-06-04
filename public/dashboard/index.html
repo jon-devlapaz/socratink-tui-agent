@@ -90,6 +90,26 @@
           <ol id="pipeline-list" class="pipeline-list"></ol>
         </section>
 
+        <section class="panel strategy-panel" aria-labelledby="strategy-title">
+          <div class="panel-heading">
+            <p class="eyebrow">decision surface</p>
+            <h2 id="strategy-title">Proof-based learning strategy</h2>
+          </div>
+          <div class="strategy-grid">
+            <article>
+              <span class="metric-label">North star</span>
+              <strong id="north-star-label">—</strong>
+              <p id="north-star-definition">—</p>
+            </article>
+            <article>
+              <span class="metric-label">Durability rate</span>
+              <strong id="north-star-rate">—</strong>
+              <p>Counted reconstruction that reaches the durability check.</p>
+            </article>
+          </div>
+          <dl id="product-metrics" class="product-metrics"></dl>
+        </section>
+
         <section class="panel-grid">
           <article class="panel" aria-labelledby="friction-title">
             <div class="panel-heading">
@@ -101,13 +121,13 @@
 
           <article class="panel" aria-labelledby="graph-title">
             <div class="panel-heading">
-              <p class="eyebrow">graph truth</p>
-              <h2 id="graph-title">Evidence boundary health</h2>
+            <p class="eyebrow">evidence boundary</p>
+            <h2 id="graph-title">What counts as proof</h2>
             </div>
             <dl class="trace-list">
-              <div><dt>Graph-neutral events</dt><dd id="graph-neutral">—</dd></div>
+              <div><dt>Context/support events</dt><dd id="graph-neutral">—</dd></div>
               <div><dt>Evidence candidates</dt><dd id="evidence-candidates">—</dd></div>
-              <div><dt>Solidified derivations</dt><dd id="solidified-derivations">—</dd></div>
+              <div><dt>Durable proof derivations</dt><dd id="solidified-derivations">—</dd></div>
             </dl>
             <p id="trace-risk" class="risk-copy"></p>
           </article>
@@ -119,6 +139,15 @@
             <h2 id="recommendations-title">Pedagogical UX queue</h2>
           </div>
           <div id="recommendation-list" class="recommendation-list"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="dogfood-title">
+          <div class="panel-heading">
+            <p class="eyebrow">dogfood evidence</p>
+            <h2 id="dogfood-title">What this dashboard trusts</h2>
+          </div>
+          <dl id="dogfood-evidence" class="trace-list"></dl>
+          <p id="dogfood-boundary" class="risk-copy"></p>
         </section>
 
         <section id="run-log" class="panel run-log-panel" aria-labelledby="run-log-title">

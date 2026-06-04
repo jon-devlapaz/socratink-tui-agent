@@ -73,6 +73,22 @@ test("computeRecoveryTelemetry exposes all founder rates", () => {
   assert.equal(telemetry.recovery_success_rate, 0.333);
 });
 
+test("buildDashboardPayload counts bridge_error in graph-neutral telemetry", () => {
+  const payload = buildDashboardPayload({
+    cases: [],
+    sessions: [
+      {
+        events: [
+          { type: "bridge_error", graph_neutral: true },
+          { type: "meta_turn", graph_neutral: true },
+          { type: "cold_attempt" },
+        ],
+      },
+    ],
+  });
+  assert.equal(payload.systems_view.graph_honesty.graph_neutral_events, 2);
+});
+
 test("buildDashboardPayload pairs sessions by session_log, not array index", () => {
   const cases = [
     {
@@ -139,4 +155,27 @@ test("buildDashboardPayload matches promoted case count", () => {
   assert.ok(payload.runs.every((run) => typeof run.outcome_key === "string"));
   assert.ok(payload.learning_loop.outcomes.stopped_before_bridge >= 1);
   assert.ok(payload.improvement_queue.length >= 1);
+  assert.equal(payload.product_strategy_v2.payload_version, "dashboard-product-v2");
+  assert.equal(
+    payload.product_strategy_v2.north_star.label,
+    "Verified reconstruction",
+  );
+  assert.deepEqual(
+    Object.keys(payload.product_strategy_v2.activation_funnel.product_metrics).sort(),
+    [
+      "bridge_reach_rate",
+      "case_complete_rate",
+      "evidence_hold_rate",
+      "meaningful_cold_attempt_rate",
+      "meta_use_rate",
+      "repair_load_rate",
+      "substrate_seed_use_rate",
+    ],
+  );
+  assert.ok(payload.product_strategy_v2.friction_segments.length >= 1);
+  assert.ok(payload.product_strategy_v2.experiment_queue.length >= 1);
+  assert.match(
+    payload.product_strategy_v2.dogfood_evidence.evidence_boundary,
+    /learning_cases/,
+  );
 });

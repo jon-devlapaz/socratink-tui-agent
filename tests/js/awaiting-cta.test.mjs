@@ -43,7 +43,7 @@ test("enrichAwaiting exposes substrate refinement seed in composer", () => {
 });
 
 test("enrichAwaiting does not leak repair CTA into transfer or spaced prompts", () => {
-  for (const key of ["continue", "gap_attempt", "spaced_attempt", "cmd"]) {
+  for (const key of ["continue", "gap_attempt", "spaced_attempt"]) {
     const awaiting = enrichAwaiting(
       { key, label: `${key}: ` },
       {
@@ -52,6 +52,17 @@ test("enrichAwaiting does not leak repair CTA into transfer or spaced prompts", 
       },
     );
     assert.equal(awaiting.ctaLabel, key);
-    assert.equal(awaiting.ctaText, null);
+    assert.doesNotMatch(String(awaiting.ctaText || ""), /Old repair prompt/);
+    if (key === "continue" || key === "cmd") {
+      assert.equal(awaiting.ctaText, null);
+    } else {
+      assert.match(awaiting.ctaText, /own words|Durability/i);
+    }
   }
+});
+
+test("enrichAwaiting keeps idle command chrome out of composer CTA", () => {
+  const awaiting = enrichAwaiting({ key: "cmd", label: "> " }, {});
+  assert.equal(awaiting.ctaLabel, null);
+  assert.equal(awaiting.ctaText, null);
 });

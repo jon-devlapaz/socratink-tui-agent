@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   isFeedbackCommand,
+  isMetaCommand,
   parseFeedbackMessage,
 } from "../../lib/seda/prompt-commands.mjs";
 import { formatFeedbackBody } from "../../lib/feedback/send.mjs";
@@ -17,6 +18,13 @@ test("feedback command detection and parsing", () => {
     parseFeedbackMessage("/feedback map was confusing"),
     "map was confusing",
   );
+});
+
+test("meta command is distinct from feedback", () => {
+  assert.equal(isMetaCommand("/meta"), true);
+  assert.equal(isMetaCommand("/meta/"), true);
+  assert.equal(isMetaCommand("/meta weak"), false);
+  assert.equal(isFeedbackCommand("/meta"), false);
 });
 
 test("feedback body includes session meta", () => {

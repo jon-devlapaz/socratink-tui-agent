@@ -155,3 +155,17 @@
   - `rtk ./socratink-harness routing-proof` - pass, 8 cases
   - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
   - `rtk env PORT=8796 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8796 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
+
+## Checkpoint 8 - Merge-Gate Refresh, 2026-06-05
+
+- Branch/status before refresh:
+  - `rtk git status --short --branch` - branch `codex/metric-contract-meta-gating...origin/codex/metric-contract-meta-gating` with this progress note unstaged
+- Revalidated the Checkpoint 8 merge gate after the review-fix implementation was already present:
+  - `rtk ./scripts/check-canon-drift.sh` - pass
+  - `rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
+  - `rtk ./socratink-harness replay` - pass, 8 cases
+  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
+  - `rtk proxy bash -lc "find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test"` - pass, 147 tests
+  - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass; saved log under `.qa-runs/socratink-tui/2026-06-05T06-33-14.804Z/session.json`
+  - `rtk env PORT=8798 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8798 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
+  - `rtk git diff --check` - pass

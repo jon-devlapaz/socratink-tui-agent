@@ -30,6 +30,7 @@ test("DIRECT_PHASE table is honored for direct event types", () => {
     gap_drill: "spacing",
     spacing_advanced: "spaced_redrill",
     spaced_redrill: "idle",
+    evidence_hold_recorded: "idle",
     idle_new_concept: "ignition",
     idle_redrill: "spaced_redrill",
   };

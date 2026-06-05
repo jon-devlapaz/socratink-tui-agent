@@ -183,7 +183,7 @@
           "prompt_mode": "re_drill",
           "handler": "lib/seda/handlers/spaced-redrill.mjs",
           "handler_phase": "spaced_redrill",
-          "emitted_events": ["spaced_redrill"],
+          "emitted_events": ["spaced_redrill", "evidence_hold_recorded"],
           "next_phase_routing_fields": [],
           "routing_rule": "→ idle via DIRECT_PHASE (derivation owns graph truth)",
           "graph_role": "evidence_candidate"

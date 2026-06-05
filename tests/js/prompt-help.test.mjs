@@ -1,25 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  IDLE_STARTUP_LINE,
+  idleStartupLine,
   printIdleHelp,
   printPromptHelp,
 } from "../../lib/loop-server/prompt-help.mjs";
 
-test("idle startup line lists core commands", () => {
-  assert.match(IDLE_STARTUP_LINE, /concept/i);
-  assert.match(IDLE_STARTUP_LINE, /\/help/);
-  assert.match(IDLE_STARTUP_LINE, /\/meta/);
-  assert.match(IDLE_STARTUP_LINE, /\/feedback/);
-  assert.match(IDLE_STARTUP_LINE, /\/exit/);
+test("idle startup line hides default-off meta command", () => {
+  const line = idleStartupLine({ env: {} });
+  assert.match(line, /concept/i);
+  assert.match(line, /\/help/);
+  assert.doesNotMatch(line, /\/meta/);
+  assert.match(line, /\/feedback/);
+  assert.match(line, /\/exit/);
 });
 
-test("printIdleHelp emits path and commands without insider jargon", () => {
+test("idle startup line can expose meta when feature flag is enabled", () => {
+  const line = idleStartupLine({ env: { SOCRATINK_TUI_META_COMMAND: "1" } });
+  assert.match(line, /\/meta/);
+});
+
+test("printIdleHelp emits path and default commands without insider jargon", () => {
   const lines = [];
   const log = console.log;
   console.log = (...args) => lines.push(args.join(" "));
   try {
-    printIdleHelp();
+    printIdleHelp({ env: {} });
   } finally {
     console.log = log;
   }
@@ -27,7 +33,7 @@ test("printIdleHelp emits path and commands without insider jargon", () => {
   assert.match(lines[0], /draft map/i);
   assert.doesNotMatch(lines.join(" "), /graph evidence|graph-neutral|solidified/i);
   assert.match(lines[1], /\/hint.*repair/i);
-  assert.match(lines[1], /\/meta.*why this step/i);
+  assert.doesNotMatch(lines[1], /\/meta/);
 });
 
 test("step help uses plain language", () => {

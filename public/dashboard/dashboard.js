@@ -114,14 +114,16 @@ function renderProductMetrics(metrics) {
     ["repair load", metrics.repair_load_rate],
     ["evidence hold", metrics.evidence_hold_rate],
     ["substrate seed", metrics.substrate_seed_use_rate],
-    ["meta use", metrics.meta_use_rate],
-  ];
+  ].filter(([, value]) => value != null);
   for (const [label, value] of entries) {
     const group = document.createElement("div");
     const dt = document.createElement("dt");
     dt.textContent = label;
     const dd = document.createElement("dd");
-    dd.textContent = pct(value);
+    dd.textContent = pct(typeof value === "object" ? value.rate : value);
+    if (value && typeof value === "object") {
+      dd.title = value.formula_label || "";
+    }
     group.append(dt, dd);
     list.appendChild(group);
   }

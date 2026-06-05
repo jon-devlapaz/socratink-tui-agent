@@ -224,8 +224,8 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /awaitingBeforeSubmit/);
   assert.match(js, /showAwaitingPrompt\(awaitingBeforeSubmit\)/);
   assert.match(js, /clean === ">/);
-  assert.match(html, /\/meta/);
-  assert.match(js, /\/meta/);
+  assert.doesNotMatch(html, /\/meta/);
+  assert.doesNotMatch(js, /\/meta ·/);
   assert.match(html, /id="composer-busy"/);
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
@@ -586,7 +586,7 @@ test("loop API turn advances with prompt metadata", async () => {
   assert.match(body.awaiting?.label || "", /goal|launch|attempt/i);
 });
 
-test("loop API /meta explains current prompt without consuming learner input", async () => {
+test("loop API keeps default-off /meta out of the evidence path", async () => {
   const created = await createApiSession();
   assert.equal(created.awaiting?.key, "cmd");
 
@@ -594,9 +594,10 @@ test("loop API /meta explains current prompt without consuming learner input", a
   assert.equal(metaTurn.status, "awaiting_input");
   assert.equal(metaTurn.awaiting?.key, "cmd");
   assert.equal(metaTurn.phase, "idle");
-  assert.equal(metaTurn.events.at(-1)?.type, "meta_turn");
-  assert.equal(metaTurn.events.at(-1)?.graph_neutral, true);
-  assert.equal(metaTurn.events.at(-1)?.score_eligible, false);
+  assert.equal(
+    metaTurn.events.some((event) => event.type === "meta_turn"),
+    false,
+  );
   assert.doesNotMatch(transcriptText(metaTurn), /graph-neutral|solidified|kc_id/);
 
   const conceptTurn = await created.post("Caching");

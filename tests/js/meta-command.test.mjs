@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   appendMetaTurn,
+  isMetaLearnerFeatureEnabled,
   metaResponseForPrompt,
 } from "../../lib/seda/meta-command.mjs";
 
@@ -41,7 +42,9 @@ test("appendMetaTurn records graph-neutral non-evidence event", () => {
   const log = console.log;
   console.log = (...args) => lines.push(args.join(" "));
   try {
-    const event = appendMetaTurn(events, "cold_attempt");
+    const event = appendMetaTurn(events, "cold_attempt", {
+      env: { SOCRATINK_TUI_META_COMMAND: "1" },
+    });
     assert.equal(event.type, "meta_turn");
     assert.equal(event.phase, "cold_attempt");
     assert.equal(event.graph_neutral, true);
@@ -52,4 +55,24 @@ test("appendMetaTurn records graph-neutral non-evidence event", () => {
   }
   assert.equal(events.length, 1);
   assert.match(lines.join("\n"), /^\[Meta\]/);
+});
+
+test("meta feature flag is deterministic and default-off", () => {
+  assert.equal(isMetaLearnerFeatureEnabled({}), false);
+  assert.equal(
+    isMetaLearnerFeatureEnabled({ SOCRATINK_TUI_META_COMMAND: "1" }),
+    true,
+  );
+  assert.equal(
+    isMetaLearnerFeatureEnabled({ SOCRATINK_TUI_META_COMMAND: "true" }),
+    true,
+  );
+});
+
+test("appendMetaTurn is unavailable and does not append when flag is disabled", () => {
+  const events = [];
+  const event = appendMetaTurn(events, "cold_attempt", { env: {} });
+
+  assert.equal(event, null);
+  assert.deepEqual(events, []);
 });

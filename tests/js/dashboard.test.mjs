@@ -167,7 +167,6 @@ test("buildDashboardPayload matches promoted case count", () => {
       "case_complete_rate",
       "evidence_hold_rate",
       "meaningful_cold_attempt_rate",
-      "meta_use_rate",
       "repair_load_rate",
       "substrate_seed_use_rate",
     ],
@@ -178,4 +177,224 @@ test("buildDashboardPayload matches promoted case count", () => {
     payload.product_strategy_v2.dogfood_evidence.evidence_boundary,
     /learning_cases/,
   );
+});
+
+test("product metrics expose source metadata and denominators from canonical events", () => {
+  const sessions = [
+    {
+      events: [
+        { type: "launch_attempt" },
+        { type: "substrate_seed_offered", graph_neutral: true, score_eligible: false },
+        { type: "route_generated" },
+        {
+          type: "cold_attempt",
+          kc_id: "kc-1",
+          evaluation: { classification: "shallow", score_eligible: true },
+        },
+        { type: "gap_identified", graph_neutral: true, score_eligible: false },
+        { type: "repair_dialogue_turn", graph_neutral: true, score_eligible: false },
+        { type: "model_bridge", graph_neutral: true },
+        {
+          type: "spaced_redrill",
+          kc_id: "kc-1",
+          evaluation: { classification: "solid", score_eligible: true },
+        },
+        {
+          type: "evidence_hold_recorded",
+          kc_id: "kc-1",
+          graph_neutral: true,
+          score_eligible: false,
+        },
+        { type: "meta_turn", graph_neutral: true, score_eligible: false },
+      ],
+    },
+    {
+      events: [
+        { type: "launch_attempt" },
+        { type: "route_generated" },
+        {
+          type: "cold_attempt",
+          kc_id: "kc-2",
+          evaluation: { classification: "solid", score_eligible: true },
+        },
+      ],
+      evidence_holds: [{ should_not_define_product_metric: true }],
+    },
+  ];
+
+  const payload = buildDashboardPayload({
+    cases: [
+      { case_id: "a", case_type: "golden", case_source: "test", session_log: "a" },
+      { case_id: "b", case_type: "golden", case_source: "test", session_log: "b" },
+    ],
+    sessions,
+  });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  assert.deepEqual(metrics.meaningful_cold_attempt_rate, {
+    rate: 1,
+    numerator_count: 2,
+    denominator_count: 2,
+    source_event_types: [
+      "cold_attempt_submitted",
+      "cold_attempt_prompted",
+    ],
+    formula_label: "cold_attempt_submitted / cold_attempt_prompted",
+    empty_state_reason: null,
+    critical_path: true,
+  });
+  assert.deepEqual(metrics.substrate_seed_use_rate, {
+    rate: 0.5,
+    numerator_count: 1,
+    denominator_count: 2,
+    source_event_types: ["substrate_seed_requested", "loop_started"],
+    formula_label: "substrate_seed_requested / loop_started",
+    empty_state_reason: null,
+    critical_path: true,
+  });
+  assert.equal(metrics.bridge_reach_rate.numerator_count, 1);
+  assert.equal(metrics.bridge_reach_rate.denominator_count, 2);
+  assert.deepEqual(metrics.bridge_reach_rate.source_event_types, [
+    "bridge_prompted",
+    "cold_attempt_evaluated",
+  ]);
+  assert.equal(metrics.repair_load_rate.numerator_count, 1);
+  assert.equal(metrics.repair_load_rate.denominator_count, 2);
+  assert.deepEqual(metrics.repair_load_rate.source_event_types, [
+    "repair_prompted",
+    "cold_attempt_evaluated",
+  ]);
+  assert.equal(metrics.case_complete_rate.numerator_count, 1);
+  assert.equal(metrics.case_complete_rate.denominator_count, 2);
+  assert.deepEqual(metrics.case_complete_rate.source_event_types, [
+    "case_completed",
+    "loop_started",
+  ]);
+  assert.equal(metrics.evidence_hold_rate.numerator_count, 1);
+  assert.equal(metrics.evidence_hold_rate.denominator_count, 2);
+  assert.deepEqual(metrics.evidence_hold_rate.source_event_types, [
+    "evidence_hold_recorded",
+    "cold_attempt_evaluated",
+  ]);
+  assert.equal(metrics.meta_use_rate, undefined);
+});
+
+test("product metrics report empty-state reason when canonical denominator is zero", () => {
+  const payload = buildDashboardPayload({ cases: [], sessions: [] });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  for (const metric of Object.values(metrics)) {
+    assert.equal(metric.rate, 0);
+    assert.equal(metric.numerator_count, 0);
+    assert.equal(metric.denominator_count, 0);
+    assert.match(metric.empty_state_reason, /No canonical/);
+    assert.equal(metric.critical_path, true);
+  }
+});
+
+test("metric-specific denominators do not use loop_started as a blanket denominator", () => {
+  const payload = buildDashboardPayload({
+    cases: [
+      { case_id: "prompted", case_type: "golden", case_source: "test", session_log: "prompted" },
+      { case_id: "evaluated", case_type: "golden", case_source: "test", session_log: "evaluated" },
+      { case_id: "complete", case_type: "golden", case_source: "test", session_log: "complete" },
+    ],
+    sessions: [
+      {
+        events: [
+          { type: "launch_attempt" },
+          { type: "route_generated" },
+        ],
+      },
+      {
+        events: [
+          { type: "launch_attempt" },
+          { type: "route_generated" },
+          {
+            type: "cold_attempt",
+            score_eligible: true,
+            evaluation: { classification: "thin" },
+          },
+          { type: "gap_identified", graph_neutral: true, score_eligible: false },
+          { type: "model_bridge", graph_neutral: true, score_eligible: false },
+        ],
+      },
+      {
+        events: [
+          { type: "launch_attempt" },
+          { type: "route_generated" },
+          {
+            type: "cold_attempt",
+            score_eligible: true,
+            evaluation: { classification: "shallow" },
+          },
+          {
+            type: "spaced_redrill",
+            score_eligible: true,
+            evaluation: { classification: "solid" },
+          },
+          {
+            type: "evidence_hold_recorded",
+            graph_neutral: true,
+            score_eligible: false,
+          },
+        ],
+      },
+    ],
+  });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  assert.equal(metrics.meaningful_cold_attempt_rate.denominator_count, 3);
+  assert.equal(metrics.meaningful_cold_attempt_rate.numerator_count, 2);
+  assert.equal(metrics.meaningful_cold_attempt_rate.rate, 0.667);
+
+  assert.equal(metrics.bridge_reach_rate.denominator_count, 2);
+  assert.equal(metrics.bridge_reach_rate.numerator_count, 1);
+  assert.equal(metrics.bridge_reach_rate.rate, 0.5);
+
+  assert.equal(metrics.repair_load_rate.denominator_count, 2);
+  assert.equal(metrics.repair_load_rate.numerator_count, 1);
+  assert.equal(metrics.repair_load_rate.rate, 0.5);
+
+  assert.equal(metrics.evidence_hold_rate.denominator_count, 2);
+  assert.equal(metrics.evidence_hold_rate.numerator_count, 1);
+  assert.equal(metrics.evidence_hold_rate.rate, 0.5);
+
+  assert.equal(metrics.case_complete_rate.denominator_count, 3);
+  assert.equal(metrics.case_complete_rate.numerator_count, 1);
+  assert.equal(metrics.case_complete_rate.rate, 0.333);
+});
+
+test("substrate seed use counts actual slow-path seed events, not launch attempts", () => {
+  const payload = buildDashboardPayload({
+    cases: [
+      { case_id: "fast", case_type: "golden", case_source: "test", session_log: "fast" },
+      { case_id: "slow", case_type: "golden", case_source: "test", session_log: "slow" },
+    ],
+    sessions: [
+      {
+        events: [
+          { type: "launch_attempt", text: "I can explain the mechanism." },
+          { type: "substrate_confirmed", graph_neutral: true, score_eligible: false },
+        ],
+      },
+      {
+        events: [
+          { type: "launch_attempt", text: "I don't know." },
+          { type: "substrate_seed_offered", graph_neutral: true, score_eligible: false },
+        ],
+      },
+    ],
+  });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  assert.deepEqual(metrics.substrate_seed_use_rate, {
+    rate: 0.5,
+    numerator_count: 1,
+    denominator_count: 2,
+    source_event_types: ["substrate_seed_requested", "loop_started"],
+    formula_label: "substrate_seed_requested / loop_started",
+    empty_state_reason: null,
+    critical_path: true,
+  });
 });

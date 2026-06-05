@@ -88,3 +88,35 @@
   - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 132 tests
   - `rtk .venv/bin/pytest tests/test_workspace_smoke.py -q` - pass, 10 tests
   - `rtk ./scripts/check-canon-drift.sh` - pass
+
+## Checkpoint 6 - Metric Contract Tightening Baseline
+
+- Branch/status before edits:
+  - `rtk git status --short --branch` - `## codex/event-taxonomy-dashboard-v2`, clean worktree
+  - `rtk git log --oneline --decorate --max-count=1` - `0c759e8 feat(dashboard): add event tax...`
+- Focused pre-change baseline:
+  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs` - pass, 24 tests
+
+## Checkpoint 7 - Explicit Denominators, Meta Gate, Vocabulary Guard
+
+- RED validation after writing focused tests first:
+  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - expected fail, 13 pass / 10 fail. Failures covered missing `assertPublicVocabularySafe`, missing meta feature flag helpers, `meta_use_rate` still published, missing `critical_path`, blanket metric denominators, and disabled `/meta` still appending `meta_turn`.
+- Implementation:
+  - `lib/seda/dashboard-metrics.mjs` now derives six critical-path product metrics with metric-specific numerator and denominator counts:
+    `meaningful_cold_attempt_rate`, `bridge_reach_rate`, `case_complete_rate`,
+    `repair_load_rate`, `evidence_hold_rate`, and `substrate_seed_use_rate`.
+  - `evidence_hold_rate` now means insufficient score-eligible cold evaluation over score-eligible cold evaluations; it ignores `product_loop`, `evidence_holds`, friction tags, and UI state.
+  - `meta_use_rate` is omitted because `eligible_loop_turns` telemetry is not available.
+  - `/meta` is default-off behind `SOCRATINK_TUI_META_COMMAND`; when disabled it is hidden from learner help/chrome and reserved so it is not appended or scored as learner text.
+  - Public dashboard rendering accepts metric objects and omits unavailable `meta_use_rate`.
+  - Public vocabulary guard rejects the deprecated repair-rep phrase unless it is intentionally re-canonized.
+- Focused green validation:
+  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - pass, 35 tests
+- Broader validation:
+  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 140 tests
+  - `rtk ./scripts/check-canon-drift.sh` - pass
+  - `rtk .venv/bin/pytest tests/test_workspace_smoke.py -q` - pass, 10 tests
+  - `rtk ./socratink-harness replay` - pass, 8 cases
+  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
+  - `rtk env PORT=8793 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8793 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
+  - `rtk git diff --check` - pass

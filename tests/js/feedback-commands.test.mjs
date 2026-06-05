@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   isFeedbackCommand,
   isMetaCommand,
+  isMetaCommandToken,
   parseFeedbackMessage,
 } from "../../lib/seda/prompt-commands.mjs";
 import { formatFeedbackBody } from "../../lib/feedback/send.mjs";
@@ -21,8 +22,16 @@ test("feedback command detection and parsing", () => {
 });
 
 test("meta command is distinct from feedback", () => {
-  assert.equal(isMetaCommand("/meta"), true);
-  assert.equal(isMetaCommand("/meta/"), true);
+  assert.equal(isMetaCommand("/meta", { env: {} }), false);
+  assert.equal(
+    isMetaCommand("/meta", { env: { SOCRATINK_TUI_META_COMMAND: "1" } }),
+    true,
+  );
+  assert.equal(
+    isMetaCommand("/meta/", { env: { SOCRATINK_TUI_META_COMMAND: "1" } }),
+    true,
+  );
+  assert.equal(isMetaCommandToken("/meta"), true);
   assert.equal(isMetaCommand("/meta weak"), false);
   assert.equal(isFeedbackCommand("/meta"), false);
 });

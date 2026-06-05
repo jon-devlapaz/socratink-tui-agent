@@ -206,7 +206,7 @@ function setSendButtonMode(awaiting) {
 }
 
 function promptPlaceholder(label) {
-  const base = "Type your answer… · /help · /meta · /hint · /feedback · /exit";
+  const base = "Type your answer… · /help · /hint · /feedback · /exit";
   if (!label) return base;
   const clean = label.replace(/:\s*$/, "").trim();
   if (clean === ">") return base;
@@ -285,7 +285,7 @@ function showAwaitingPrompt(awaiting) {
   }
   const hasCtaBody = Boolean(String(awaiting.ctaText ?? "").trim());
   if (hasCtaBody) {
-    input.placeholder = "Type your answer… · /help · /meta · /hint · /feedback · /exit";
+    input.placeholder = "Type your answer… · /help · /hint · /feedback · /exit";
   } else {
     input.placeholder = promptPlaceholder(awaiting.ctaLabel || awaiting.label);
   }
@@ -330,7 +330,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.04";
+  const label = health?.app_version || "v0.05";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -375,7 +375,7 @@ function applyTurnResponse(data) {
     lastLlmStamp = null;
     showAwaitingPrompt({ label: "Concept: ", key: "concept" });
     setComposerEnabled(true);
-    input.placeholder = "Type a concept to explore… · /help · /meta · /feedback · /exit";
+    input.placeholder = "Type a concept to explore… · /help · /feedback · /exit";
     setPhaseChrome("idle");
     input.focus();
     return;

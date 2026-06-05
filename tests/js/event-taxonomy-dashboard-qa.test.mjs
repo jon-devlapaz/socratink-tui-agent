@@ -158,6 +158,7 @@ test("QA: product metrics do not count score-ineligible canonical evidence", () 
     {
       events: [
         { type: "launch_attempt" },
+        { type: "route_generated" },
         {
           type: "cold_attempt",
           kc_id: "kc-not-counted",
@@ -213,5 +214,23 @@ test("QA: dashboard metric objects expose decision-grade provenance fields", () 
         typeof metric.empty_state_reason === "string",
       `${name} empty_state_reason`,
     );
+    assert.equal(typeof metric.critical_path, "boolean", `${name} critical_path`);
+  }
+});
+
+test("QA: public taxonomy and dashboard surfaces do not revive Repair Reps vocabulary", () => {
+  const publicSurfaceFiles = [
+    "lib/seda/event-taxonomy.mjs",
+    "lib/seda/dashboard-metrics.mjs",
+    "lib/seda/meta-command.mjs",
+    "lib/loop-server/prompt-help.mjs",
+    "public/dashboard/dashboard.js",
+    "public/loop/loop.js",
+    "public/loop/index.html",
+  ];
+
+  for (const relativeFile of publicSurfaceFiles) {
+    const source = fs.readFileSync(path.join(ROOT, relativeFile), "utf8");
+    assert.doesNotMatch(source, /\bRepair Reps\b/i, relativeFile);
   }
 });

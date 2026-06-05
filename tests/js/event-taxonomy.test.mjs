@@ -5,6 +5,7 @@ import { nextPhase } from "../../lib/seda/next-phase.mjs";
 import {
   CANONICAL_EVENT_TAXONOMY_VERSION,
   CANONICAL_LEARNER_LOOP_EVENTS,
+  assertPublicVocabularySafe,
   canonicalEventsForSession,
   canonicalizeEvent,
 } from "../../lib/seda/event-taxonomy.mjs";
@@ -138,3 +139,12 @@ test("canonical prompt-only projection does not enter authoritative events or al
   assert.equal(nextPhase(events), "cold_attempt");
 });
 
+test("public taxonomy vocabulary guard rejects Repair Reps unless recanonized", () => {
+  assert.throws(
+    () => assertPublicVocabularySafe("Show Repair Reps in the dashboard"),
+    /public-vocabulary-forbidden:Repair Reps/,
+  );
+  assert.doesNotThrow(() =>
+    assertPublicVocabularySafe("Repair remains a learning move."),
+  );
+});

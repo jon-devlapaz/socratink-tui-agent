@@ -28,6 +28,7 @@ const REQUIRED_EVENTS = [
   "case_completed",
   "spaced_redrill_scheduled",
   "spaced_redrill_submitted",
+  "evidence_hold_recorded",
   "meta_requested",
   "meta_returned",
 ];
@@ -115,6 +116,13 @@ test("canonical projection marks substrate/meta graph-neutral and cold as first 
         kc_id: "kc-1",
         evaluation: { classification: "shallow", score_eligible: true },
       },
+      {
+        type: "evidence_hold_recorded",
+        phase: "spaced_redrill",
+        kc_id: "kc-1",
+        graph_neutral: true,
+        score_eligible: false,
+      },
     ],
   });
 
@@ -126,6 +134,8 @@ test("canonical projection marks substrate/meta graph-neutral and cold as first 
   assert.equal(byType.get("substrate_confirmed").graph_neutral, true);
   assert.equal(byType.get("meta_requested").graph_neutral, true);
   assert.equal(byType.get("meta_returned").score_eligible, false);
+  assert.equal(byType.get("evidence_hold_recorded").graph_neutral, true);
+  assert.equal(byType.get("evidence_hold_recorded").score_eligible, false);
 
   const scoreEligible = canonical.filter((event) => event.score_eligible);
   assert.deepEqual(

@@ -199,6 +199,12 @@ test("product metrics expose source metadata and denominators from canonical eve
           kc_id: "kc-1",
           evaluation: { classification: "solid", score_eligible: true },
         },
+        {
+          type: "evidence_hold_recorded",
+          kc_id: "kc-1",
+          graph_neutral: true,
+          score_eligible: false,
+        },
         { type: "meta_turn", graph_neutral: true, score_eligible: false },
       ],
     },
@@ -230,11 +236,10 @@ test("product metrics expose source metadata and denominators from canonical eve
     numerator_count: 2,
     denominator_count: 2,
     source_event_types: [
-      "cold_attempt_submitted_with_minimum_reconstruction_signal",
+      "cold_attempt_submitted",
       "cold_attempt_prompted",
     ],
-    formula_label:
-      "cold_attempt_submitted_with_minimum_reconstruction_signal / cold_attempt_prompted",
+    formula_label: "cold_attempt_submitted / cold_attempt_prompted",
     empty_state_reason: null,
     critical_path: true,
   });
@@ -268,7 +273,7 @@ test("product metrics expose source metadata and denominators from canonical eve
   assert.equal(metrics.evidence_hold_rate.numerator_count, 1);
   assert.equal(metrics.evidence_hold_rate.denominator_count, 2);
   assert.deepEqual(metrics.evidence_hold_rate.source_event_types, [
-    "graph_update_blocked_due_to_insufficient_reconstruction",
+    "evidence_hold_recorded",
     "cold_attempt_evaluated",
   ]);
   assert.equal(metrics.meta_use_rate, undefined);
@@ -321,12 +326,17 @@ test("metric-specific denominators do not use loop_started as a blanket denomina
           {
             type: "cold_attempt",
             score_eligible: true,
-            evaluation: { classification: "solid" },
+            evaluation: { classification: "shallow" },
           },
           {
             type: "spaced_redrill",
             score_eligible: true,
             evaluation: { classification: "solid" },
+          },
+          {
+            type: "evidence_hold_recorded",
+            graph_neutral: true,
+            score_eligible: false,
           },
         ],
       },

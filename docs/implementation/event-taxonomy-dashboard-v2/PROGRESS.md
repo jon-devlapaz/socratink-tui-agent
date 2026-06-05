@@ -120,3 +120,38 @@
   - `rtk ./socratink-harness routing-proof` - pass, 8 cases
   - `rtk env PORT=8793 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8793 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
   - `rtk git diff --check` - pass
+
+## Checkpoint 8 - Review Fix: Event-Backed Evidence Hold Metric
+
+- Cursor review found that `evidence_hold_rate` was still labeled as an
+  evidence-hold metric while counting non-solid cold evaluations. That was a
+  semantic proxy, not an event-backed evidence hold.
+- Fixed by appending a graph-neutral, score-ineligible
+  `evidence_hold_recorded` event from `spaced-redrill` only when
+  `buildEvidenceHold()` fires.
+- Added the event to canonical taxonomy projection, `nextPhase(events)` routing
+  (`evidence_hold_recorded -> idle`), graph-neutral dashboard telemetry, hosted
+  case-complete compatibility, and bridge registry documentation.
+- Updated `evidence_hold_rate` to:
+  `evidence_hold_recorded / cold_attempt_evaluated`.
+- Removed staged pseudo-event names from product metric provenance:
+  `meaningful_cold_attempt_rate` now reports
+  `cold_attempt_submitted / cold_attempt_prompted`.
+- Tightened TUI idle `/meta` gating to use the same injectable env option as
+  HTTP prompt helpers; added focused coverage for disabled and enabled idle
+  command behavior.
+- Added QA coverage proving shallow/non-solid cold attempts do not count as
+  evidence holds unless the explicit hold event exists.
+- Added handler-level coverage proving `spaced-redrill` appends
+  `evidence_hold_recorded` when derivation holds a solid spaced reconstruction
+  below `solidified`.
+- Validation:
+  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/next-phase.test.mjs tests/js/bridge-registry.test.mjs` - pass, 50 tests
+  - `rtk node --test tests/js/spaced-redrill-evidence-hold.test.mjs` - pass, 1 test
+  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 146 tests
+  - `rtk ./scripts/check-canon-drift.sh` - pass
+  - `rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
+  - `rtk ./socratink-harness replay` - pass, 8 cases
+  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
+  - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
+  - `rtk env PORT=8796 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8796 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests

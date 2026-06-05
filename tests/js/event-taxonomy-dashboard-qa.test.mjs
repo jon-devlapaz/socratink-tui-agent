@@ -118,6 +118,12 @@ test("QA: first score-eligible canonical event is the Cold Attempt reconstructio
         score_eligible: true,
         evaluation: { classification: "solid" },
       },
+      {
+        type: "evidence_hold_recorded",
+        kc_id: "kc-qa",
+        graph_neutral: true,
+        score_eligible: false,
+      },
     ],
   });
 
@@ -183,6 +189,58 @@ test("QA: product metrics do not count score-ineligible canonical evidence", () 
   assert.equal(metrics.case_complete_rate.numerator_count, 0);
   assert.equal(metrics.evidence_hold_rate.numerator_count, 0);
   assert.equal(metrics.bridge_reach_rate.numerator_count, 1);
+});
+
+test("QA: evidence_hold_rate counts explicit hold facts, not non-solid cold attempts", () => {
+  const payload = payloadForSessions([
+    {
+      events: [
+        { type: "launch_attempt" },
+        { type: "route_generated" },
+        {
+          type: "cold_attempt",
+          kc_id: "kc-shallow",
+          score_eligible: true,
+          evaluation: { classification: "shallow" },
+        },
+      ],
+    },
+    {
+      events: [
+        { type: "launch_attempt" },
+        { type: "route_generated" },
+        {
+          type: "cold_attempt",
+          kc_id: "kc-held",
+          score_eligible: true,
+          evaluation: { classification: "shallow" },
+        },
+        {
+          type: "spaced_redrill",
+          kc_id: "kc-held",
+          score_eligible: true,
+          evaluation: { classification: "solid" },
+        },
+        {
+          type: "evidence_hold_recorded",
+          kc_id: "kc-held",
+          graph_neutral: true,
+          score_eligible: false,
+        },
+      ],
+    },
+  ]);
+  const metric = productMetrics(payload).evidence_hold_rate;
+
+  assert.deepEqual(metric, {
+    rate: 0.5,
+    numerator_count: 1,
+    denominator_count: 2,
+    source_event_types: ["evidence_hold_recorded", "cold_attempt_evaluated"],
+    formula_label: "evidence_hold_recorded / cold_attempt_evaluated",
+    empty_state_reason: null,
+    critical_path: true,
+  });
 });
 
 test("QA: dashboard metric objects expose decision-grade provenance fields", () => {

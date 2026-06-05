@@ -88,6 +88,21 @@ This milestone is promoted only when these remain true:
 - No promotion of ignored `.qa-runs/` traces into product truth without a
   deliberate learning-case promotion step.
 
+## Cross-Session Loose Ends
+
+Reviewed adjacent Codex sessions after the baseline merge:
+
+- Hosted-loop pacing work is merged as PR #4; no new PR2 action remains in this
+  repo.
+- Event taxonomy tightening, evidence-hold semantics, and review-response fixes
+  are merged as PR #6.
+- Main-app `/loop` discoverability work happened in the sibling `socratink-app`
+  repo. The remaining local loose end there was branch hygiene: local `dev` had
+  the already-merged loop proxy commit while `origin/dev` lagged. That was
+  fast-forwarded on 2026-06-05.
+- The only remaining action in this repo is to merge this strategy artifact
+  after CI/review passes.
+
 ## Next Strategic Slice
 
 The next product bet should be novice viability, not dashboard polish:

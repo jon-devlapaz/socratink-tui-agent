@@ -184,6 +184,7 @@ test("product metrics expose source metadata and denominators from canonical eve
     {
       events: [
         { type: "launch_attempt" },
+        { type: "substrate_seed_offered", graph_neutral: true, score_eligible: false },
         { type: "route_generated" },
         {
           type: "cold_attempt",
@@ -238,8 +239,8 @@ test("product metrics expose source metadata and denominators from canonical eve
     critical_path: true,
   });
   assert.deepEqual(metrics.substrate_seed_use_rate, {
-    rate: 1,
-    numerator_count: 2,
+    rate: 0.5,
+    numerator_count: 1,
     denominator_count: 2,
     source_event_types: ["substrate_seed_requested", "loop_started"],
     formula_label: "substrate_seed_requested / loop_started",
@@ -352,4 +353,38 @@ test("metric-specific denominators do not use loop_started as a blanket denomina
   assert.equal(metrics.case_complete_rate.denominator_count, 3);
   assert.equal(metrics.case_complete_rate.numerator_count, 1);
   assert.equal(metrics.case_complete_rate.rate, 0.333);
+});
+
+test("substrate seed use counts actual slow-path seed events, not launch attempts", () => {
+  const payload = buildDashboardPayload({
+    cases: [
+      { case_id: "fast", case_type: "golden", case_source: "test", session_log: "fast" },
+      { case_id: "slow", case_type: "golden", case_source: "test", session_log: "slow" },
+    ],
+    sessions: [
+      {
+        events: [
+          { type: "launch_attempt", text: "I can explain the mechanism." },
+          { type: "substrate_confirmed", graph_neutral: true, score_eligible: false },
+        ],
+      },
+      {
+        events: [
+          { type: "launch_attempt", text: "I don't know." },
+          { type: "substrate_seed_offered", graph_neutral: true, score_eligible: false },
+        ],
+      },
+    ],
+  });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  assert.deepEqual(metrics.substrate_seed_use_rate, {
+    rate: 0.5,
+    numerator_count: 1,
+    denominator_count: 2,
+    source_event_types: ["substrate_seed_requested", "loop_started"],
+    formula_label: "substrate_seed_requested / loop_started",
+    empty_state_reason: null,
+    critical_path: true,
+  });
 });

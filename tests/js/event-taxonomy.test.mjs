@@ -63,9 +63,11 @@ test("canonicalizeEvent returns an envelope without mutating legacy event.type",
   });
 
   assert.equal(legacy.type, "substrate_seed_offered");
-  assert.equal(envelopes.length, 1);
-  assert.deepEqual(envelopes[0], {
-    event_type: "substrate_seed_shown",
+  assert.deepEqual(
+    envelopes.map((event) => event.event_type),
+    ["substrate_seed_requested", "substrate_seed_shown"],
+  );
+  const expectedCommonEnvelope = {
     event_version: "v1",
     session_id: "session-1",
     case_id: "case-1",
@@ -81,7 +83,13 @@ test("canonicalizeEvent returns an envelope without mutating legacy event.type",
       substrate_classification: null,
       judge_reason: null,
     },
-  });
+  };
+  for (const envelope of envelopes) {
+    assert.deepEqual(envelope, {
+      event_type: envelope.event_type,
+      ...expectedCommonEnvelope,
+    });
+  }
 });
 
 test("canonical projection marks substrate/meta graph-neutral and cold as first score-eligible surface", () => {
@@ -137,6 +145,21 @@ test("canonical prompt-only projection does not enter authoritative events or al
     ["cold_attempt_prompted"],
   );
   assert.equal(nextPhase(events), "cold_attempt");
+});
+
+test("substrate seed requested projects from actual seed offer, not launch alone", () => {
+  assert.deepEqual(
+    canonicalEventsForSession({ events: [{ type: "launch_attempt" }] }).map(
+      (event) => event.event_type,
+    ),
+    ["loop_started"],
+  );
+  assert.deepEqual(
+    canonicalEventsForSession({ events: [{ type: "substrate_seed_offered" }] }).map(
+      (event) => event.event_type,
+    ),
+    ["substrate_seed_requested", "substrate_seed_shown"],
+  );
 });
 
 test("public taxonomy vocabulary guard rejects Repair Reps unless recanonized", () => {

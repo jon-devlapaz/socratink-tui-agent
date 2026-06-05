@@ -179,3 +179,99 @@ test("buildDashboardPayload matches promoted case count", () => {
     /learning_cases/,
   );
 });
+
+test("product metrics expose source metadata and denominators from canonical events", () => {
+  const sessions = [
+    {
+      events: [
+        { type: "launch_attempt" },
+        { type: "substrate_seed_offered", graph_neutral: true, score_eligible: false },
+        {
+          type: "cold_attempt",
+          kc_id: "kc-1",
+          evaluation: { classification: "shallow", score_eligible: true },
+        },
+        { type: "repair_dialogue_turn", graph_neutral: true, score_eligible: false },
+        { type: "model_bridge", graph_neutral: true },
+        {
+          type: "spaced_redrill",
+          kc_id: "kc-1",
+          evaluation: { classification: "solid", score_eligible: true },
+        },
+        { type: "meta_turn", graph_neutral: true, score_eligible: false },
+      ],
+    },
+    {
+      events: [
+        { type: "launch_attempt" },
+        {
+          type: "cold_attempt",
+          kc_id: "kc-2",
+          evaluation: { classification: "solid", score_eligible: true },
+        },
+      ],
+      evidence_holds: [{ should_not_define_product_metric: true }],
+    },
+  ];
+
+  const payload = buildDashboardPayload({
+    cases: [
+      { case_id: "a", case_type: "golden", case_source: "test", session_log: "a" },
+      { case_id: "b", case_type: "golden", case_source: "test", session_log: "b" },
+    ],
+    sessions,
+  });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  assert.deepEqual(metrics.meaningful_cold_attempt_rate, {
+    rate: 1,
+    numerator_count: 2,
+    denominator_count: 2,
+    source_event_types: ["cold_attempt_submitted", "cold_attempt_evaluated"],
+    formula_label:
+      "sessions with a score-eligible cold attempt / sessions started",
+    empty_state_reason: null,
+  });
+  assert.deepEqual(metrics.substrate_seed_use_rate, {
+    rate: 0.5,
+    numerator_count: 1,
+    denominator_count: 2,
+    source_event_types: ["substrate_seed_shown"],
+    formula_label: "sessions shown a substrate seed / sessions started",
+    empty_state_reason: null,
+  });
+  assert.equal(metrics.bridge_reach_rate.numerator_count, 1);
+  assert.deepEqual(metrics.bridge_reach_rate.source_event_types, ["bridge_prompted"]);
+  assert.equal(metrics.repair_load_rate.numerator_count, 1);
+  assert.deepEqual(metrics.repair_load_rate.source_event_types, [
+    "repair_prompted",
+    "repair_submitted",
+  ]);
+  assert.equal(metrics.case_complete_rate.numerator_count, 1);
+  assert.deepEqual(metrics.case_complete_rate.source_event_types, [
+    "case_completed",
+    "spaced_redrill_submitted",
+  ]);
+  assert.equal(metrics.evidence_hold_rate.numerator_count, 1);
+  assert.deepEqual(metrics.evidence_hold_rate.source_event_types, [
+    "cold_attempt_evaluated",
+    "spaced_redrill_submitted",
+  ]);
+  assert.equal(metrics.meta_use_rate.numerator_count, 1);
+  assert.deepEqual(metrics.meta_use_rate.source_event_types, [
+    "meta_requested",
+    "meta_returned",
+  ]);
+});
+
+test("product metrics report empty-state reason when canonical denominator is zero", () => {
+  const payload = buildDashboardPayload({ cases: [], sessions: [] });
+  const metrics = payload.product_strategy_v2.activation_funnel.product_metrics;
+
+  for (const metric of Object.values(metrics)) {
+    assert.equal(metric.rate, 0);
+    assert.equal(metric.numerator_count, 0);
+    assert.equal(metric.denominator_count, 0);
+    assert.match(metric.empty_state_reason, /No canonical/);
+  }
+});

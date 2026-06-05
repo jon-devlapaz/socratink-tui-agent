@@ -172,6 +172,23 @@ test("substrate seed requested projects from actual seed offer, not launch alone
   );
 });
 
+test("score eligibility falls back to nested evaluation contract", () => {
+  const scoreEligible = canonicalEventsForSession({
+    events: [
+      {
+        type: "cold_attempt",
+        evaluation: { classification: "shallow", score_eligible: false },
+      },
+      {
+        type: "spaced_redrill",
+        evaluation: { classification: "solid", score_eligible: false },
+      },
+    ],
+  }).filter((event) => event.score_eligible);
+
+  assert.deepEqual(scoreEligible, []);
+});
+
 test("public taxonomy vocabulary guard rejects Repair Reps unless recanonized", () => {
   assert.throws(
     () => assertPublicVocabularySafe("Show Repair Reps in the dashboard"),

@@ -111,10 +111,10 @@ Run:
 ```bash
 rtk ./scripts/check-canon-drift.sh
 rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q
-rtk find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
+rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
 rtk ./socratink-harness replay
 rtk ./socratink-harness routing-proof
-rtk SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never
+rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never
 ```
 
 Narrower pytest gates are acceptable only if unchanged areas do not need full smoke coverage. Document the rationale in the progress log.

@@ -90,9 +90,9 @@ export interface SedaCtx {
   repairScaffold: Record<string, unknown> | null;
   /**
    * writer: post-bridge-transfer. reader: post-bridge-transfer.
-   * Adapter-owned HTTP continuation when prompt.ask splits across handler
-   * invocations; not mirrored to events[] and not reconstructable after
-   * process restart. Terminal construction keeps the field for shape parity.
+   * Adapter convenience for the post-bridge HTTP prompt split. The authoritative
+   * choice is mirrored to `post_bridge_transfer_decision`, so this field is
+   * reconstructable after process restart.
    */
   postBridgeTransfer: { runGap: boolean } | null;
   /** writer: delta. readers: repair-dialogue, repair-recovery (gap_id on events). */

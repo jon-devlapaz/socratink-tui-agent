@@ -25,6 +25,7 @@ test("DIRECT_PHASE table is honored for direct event types", () => {
     gap_identified: "repair_dialogue",
     repair: "model_bridge",
     model_bridge: "post_bridge_transfer",
+    post_bridge_transfer_decision: "post_bridge_transfer",
     post_bridge_transfer_check: "spacing",
     post_bridge_transfer_skipped: "spacing",
     gap_drill: "spacing",
@@ -32,6 +33,7 @@ test("DIRECT_PHASE table is honored for direct event types", () => {
     spaced_redrill: "idle",
     evidence_hold_recorded: "idle",
     idle_new_concept: "ignition",
+    learner_goal_set: "ignition",
     idle_redrill: "spaced_redrill",
   };
   for (const [type, expected] of Object.entries(cases)) {

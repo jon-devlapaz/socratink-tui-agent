@@ -6,8 +6,8 @@ import { resolveTuiPaths, preflightTuiPaths } from "../../lib/config/paths.mjs";
 
 test("preflight passes for the vendored standalone layout", () => {
   // Vendored canon + bridge must exist in-repo. Override `python` with the
-  // running node binary so the check does not depend on .venv being bootstrapped
-  // in this environment (CI bootstraps it separately).
+  // running node binary so this unit test does not require .venv; CI and
+  // ./scripts/run-js-unit-tests.sh bootstrap .venv before loop-server tests.
   const paths = { ...resolveTuiPaths(), python: process.execPath };
   assert.doesNotThrow(() => preflightTuiPaths(paths));
 });

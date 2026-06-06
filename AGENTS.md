@@ -207,6 +207,12 @@ Two channels carry state, and the distinction matters:
   phase, evidence derivation reads it to decide graph state, and replay /
   dashboard read it for observability. If routing or truth depends on it, it
   lives here.
+- **Runtime event construction lives in `lib/seda/event-facts.mjs`.** New SEDA
+  append sites should use `eventBuilders` or a local helper that calls
+  `eventBuilders`; do not hand-author event shape/invariant metadata in
+  handlers. `event-facts.mjs` owns construction and static invariants only, not
+  routing, training derivation, canonical projection cardinality, or product
+  metric formulas.
 - **`ctx` — the mutable blackboard, in-flight working state for the current
   process only.** Handlers share it (`firstNode`, `route`, `repairScaffold`,
   `repairState`, ...). It is NOT replayed and NOT authoritative. Every field, its

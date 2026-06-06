@@ -62,6 +62,7 @@ test("repair_dialogue_turn events embed the repair_state snapshot", () => {
     turnIndex: 1,
     text: "not sure",
     nextDialogueAction: "probe_again",
+    kcId: "c1_s1",
     repairState: { turnIndex: 1, escalationLevel: 0, ladderPolicyVersion: "v9" },
   });
   assert.equal(event.repair_state.escalation_level, 0);

@@ -13,6 +13,7 @@ import {
   handleFeedbackCommand,
 } from "./lib/feedback/handle.mjs";
 import { printPromptHelp } from "./lib/loop-server/prompt-help.mjs";
+import { eventBuilders } from "./lib/seda/event-facts.mjs";
 import { appendMetaTurn } from "./lib/seda/meta-command.mjs";
 import {
   isExitCommand,
@@ -225,7 +226,7 @@ async function run(options) {
   } catch (error) {
     if (error?.message !== "exit-requested") throw error;
     if (!events.some((e) => e.type === "idle_exit")) {
-      events.push({ type: "idle_exit" });
+      events.push(eventBuilders.idleExit());
     }
     console.log("\nSession ended.");
   }

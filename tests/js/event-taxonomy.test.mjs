@@ -68,6 +68,22 @@ test("canonical definitions derive safe direct runtime flags from event facts", 
   }
 });
 
+test("canonicalizeEvent preserves runtime flags for direct legacy projections", () => {
+  const directLegacyMappings = [
+    ["repair_dialogue_turn", "repair_submitted"],
+    ["repair", "repair_submitted"],
+    ["post_bridge_transfer_check", "bridge_submitted"],
+  ];
+
+  for (const [legacyType, canonicalType] of directLegacyMappings) {
+    const runtime = eventDefinition(legacyType);
+    const [canonical] = canonicalizeEvent({ type: legacyType });
+    assert.equal(canonical.event_type, canonicalType);
+    assert.equal(canonical.graph_neutral, runtime.graph_neutral, legacyType);
+    assert.equal(canonical.score_eligible, runtime.score_eligible, legacyType);
+  }
+});
+
 test("canonicalizeEvent returns an envelope without mutating legacy event.type", () => {
   const legacy = {
     type: "substrate_seed_offered",

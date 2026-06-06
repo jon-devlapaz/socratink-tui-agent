@@ -132,6 +132,79 @@ test("HTTP session API persists create, load, and turn through store", async () 
   }
 });
 
+test("HTTP session API maps incomplete journals to explicit resume failure", async () => {
+  const { store } = await tempStore();
+  const sessionId = uuid("500");
+  await store.create(sessionId, {
+    status: "awaiting_input",
+    phase: "cold_attempt",
+  });
+  await store.appendEvents(
+    sessionId,
+    [
+      {
+        type: "launch_attempt",
+        concept: "Caching",
+        concept_id: "caching",
+        learner_goal: "Explain cache hits",
+        text: "Caching keeps prior work.",
+      },
+      {
+        type: "route_generated",
+        substrate_adequacy: "adequate",
+      },
+    ],
+    {
+      status: "awaiting_input",
+      phase: "cold_attempt",
+      awaiting: { key: "cold_attempt" },
+    },
+  );
+
+  const { createLoopServerWithStore } = await import(
+    "../../lib/loop-server/http-server.mjs"
+  );
+  const server = createLoopServerWithStore({ sessionStore: store });
+  const baseUrl = await listen(server);
+  try {
+    const get = await fetch(`${baseUrl}/api/session/${sessionId}`);
+    assert.equal(get.status, 409);
+    assert.deepEqual(await get.json(), {
+      error: "session_resume_failed",
+      code: "CannotRehydrateSession",
+      message:
+        "Persisted session cannot be resumed because required persisted facts are missing.",
+      reason:
+        "route_generated missing required persisted field(s): first_node, node_ids, provisional_map, map_displayed, retry_count, retry_reasons",
+      details: {
+        event_type: "route_generated",
+        missing: [
+          "first_node",
+          "node_ids",
+          "provisional_map",
+          "map_displayed",
+          "retry_count",
+          "retry_reasons",
+        ],
+      },
+    });
+
+    const turn = await fetch(`${baseUrl}/api/session/${sessionId}/turn`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "A cache hit reuses stored work." }),
+    });
+    assert.equal(turn.status, 409);
+    const body = await turn.json();
+    assert.equal(body.error, "session_resume_failed");
+    assert.equal(body.code, "CannotRehydrateSession");
+    assert.match(body.reason, /route_generated missing required persisted field/);
+    assert.equal((await store.load(sessionId)).events.length, 2);
+  } finally {
+    await close(server);
+  }
+});
+
 async function postTurn(baseUrl, sessionId, text) {
   const response = await fetch(`${baseUrl}/api/session/${sessionId}/turn`, {
     method: "POST",

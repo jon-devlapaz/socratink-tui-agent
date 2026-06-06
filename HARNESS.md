@@ -125,7 +125,7 @@ handlers without emitting an event that `nextPhase` understands.
 | --- | --- | --- |
 | **Routing facts** | Drive `nextPhase` via type + payload | `cold_attempt`, `repair_dialogue_turn`, `strong_cold_path` |
 | **Graph-neutral** | Telemetry / routing only; no evidence mutation | `cold_help_turn`, `repair_dialogue_turn`, `post_bridge_transfer_check`, recovery events — see `AGENTS.md` |
-| **Evidence candidates** | Learner text that may affect derivation | `cold_attempt` (scored), `repair`, `spaced_redrill` |
+| **Evidence candidates** | Learner text that may affect derivation | `cold_attempt` (scored), `spaced_redrill` |
 | **Context** | Not evidence | source, goal, route, scaffolds, `/help`, `/hint` |
 
 ## Moss ↔ Socratink map
@@ -180,11 +180,12 @@ Over-decomposed subnodes are **fake dungeon rooms** (see `learnops-extract/extra
 
 ## Graph completion (session vs KC)
 
-Two different “done” signals — do not conflate them in copy or dashboard triage:
+Three different “done” signals — do not conflate them in copy or dashboard triage:
 
 | Signal | Meaning | Where it lives |
 | --- | --- | --- |
-| **Session complete** | Learner ran the product loop to `idle` (often after `spaced_redrill`) | `events[]` ends with `idle_exit` or idle after spacing |
+| **Case complete** | One concept run reached its terminal learning beat, usually after `spaced_redrill` or an evidence hold | Hosted `caseComplete`; terminal/session records infer from the final learning event |
+| **Session complete** | Hosted session was explicitly closed or the terminal run exited | `idle_exit` / hosted `complete` |
 | **Bridge gate passed** | Own-words repair satisfied `bridge_ready`; model bridge may reveal | Last `repair_dialogue_turn.bridge_ready === true` |
 | **KC complete (graph truth)** | Node derived to **`solidified`** | `training-derive.js` on `node_records[].attempts[]` |
 

@@ -94,3 +94,14 @@ On hosted `/loop`, Substrate Gate must surface as separate HTTP turns (composer
 CTA + transcript), not batched into one response with route or cold. Required for
 founder dogfood on `app.socratink.ai/loop`.
 _Avoid_: terminal-only proof, hiding seed/refinement in a single burst
+
+**Hosted Turn Boundary**:
+A learner-visible hosted `/loop` pause between beats. Some boundaries wait for
+fresh learner text; others are transport-only pauses after a beat has completed.
+Routing truth still comes from the event log.
+_Avoid_: router, evidence event, extra handler
+
+**Case Complete**:
+One concept run reached its terminal learning beat while the hosted session can
+remain open at idle for another concept or `/exit`.
+_Avoid_: session complete, graph solidified, bridge gate passed

@@ -27,9 +27,9 @@ test("cold_substantive gate exports isSubstantiveColdEvaluation", () => {
   assert.equal(gate.function, "isSubstantiveColdEvaluation");
 });
 
-test("repair_uncertainty gate lists repair_policy functions", () => {
+test("repair_uncertainty gate lists repair-policy functions", () => {
   const source = readFileSync(
-    path.join(WORKSPACE_ROOT, "repair_policy.mjs"),
+    path.join(WORKSPACE_ROOT, "lib/seda/repair-policy.mjs"),
     "utf8",
   );
   for (const fn of registry.policy_gates.repair_uncertainty.functions) {

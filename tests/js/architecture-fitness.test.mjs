@@ -26,8 +26,6 @@ const REVIEWED_SEDA_BOUNDARY_EDGES = new Set([
   "lib/seda/handlers/idle.mjs -> lib/loop-server/prompt-help.mjs",
   // Idle owns command routing, but feedback delivery is implemented outside SEDA.
   "lib/seda/handlers/idle.mjs -> lib/feedback/handle.mjs",
-  // Repair dialogue policy predates lib/seda and remains a root policy module.
-  "lib/seda/handlers/repair-dialogue.mjs -> repair_policy.mjs",
 ]);
 
 const EVENT_ARRAY_MUTATORS = [

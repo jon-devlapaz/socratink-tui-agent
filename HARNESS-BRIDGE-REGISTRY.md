@@ -14,7 +14,7 @@ and response shape; the SEDA loop and `nextPhase` stay unchanged.
 
 **Covers:** bridge.py subprocess wire actions only
 **Excludes:** `nextPhase coarse table`, `handler policy gates`, `training-derive`
-**See also:** `HARNESS.md`, `lib/seda/cold-gating.mjs`, `repair_policy.mjs`
+**See also:** `HARNESS.md`, `lib/seda/cold-gating.mjs`, `lib/seda/repair-policy.mjs`
 **Policy gates:** documented in `registry.json` → `policy_gates` (not subprocess wire).
 
 ## Summary table
@@ -151,8 +151,8 @@ delta calls.
 Required judge fields include `score_eligible: false` and `graph_neutral: true`;
 repair-dialogue turns are routing practice, not graph mastery evidence.
 
-**Pre-bridge gates (no LLM call):** blank text → `repair_policy.decideBlankTurn`;
-explicit uncertainty → `repair_policy.decideUncertainTurn`. Both emit
+**Pre-bridge gates (no LLM call):** blank text → `repair-policy.decideBlankTurn`;
+explicit uncertainty → `repair-policy.decideUncertainTurn`. Both emit
 `repair_dialogue_turn` with `bridge_ready: false` and policy-driven
 `next_dialogue_action`.
 
@@ -183,7 +183,7 @@ live in `registry.json` at the top level (not subprocess transport):
 
 | Section | Purpose |
 | --- | --- |
-| `policy_gates` | Handler-side gates before bridge call or event append (`cold-gating.mjs`, `repair_policy.mjs`) |
+| `policy_gates` | Handler-side gates before bridge call or event append (`cold-gating.mjs`, `repair-policy.mjs`) |
 | `post_call_hooks` | Bridge normalizers that reshape LLM output before events (`_normalize_tui_evaluation`, `_normalize_repair_dialogue_judge`) |
 
 Drift tests: `tests/js/policy-gates-registry.test.mjs`, `tests/test_bridge_post_call_hooks.py`.

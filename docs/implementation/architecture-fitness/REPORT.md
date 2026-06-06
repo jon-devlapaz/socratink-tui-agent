@@ -47,7 +47,6 @@ the Socratink TUI Agent SEDA harness.
   - `lib/seda/route-generation.mjs -> lib/bridge/client.mjs`
   - `lib/seda/handlers/idle.mjs -> lib/loop-server/prompt-help.mjs`
   - `lib/seda/handlers/idle.mjs -> lib/feedback/handle.mjs`
-  - `lib/seda/handlers/repair-dialogue.mjs -> repair_policy.mjs`
 - Narrow validation:
   - `node --test tests/js/architecture-fitness.test.mjs`: 4 passed.
 

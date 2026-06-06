@@ -22,7 +22,7 @@
   `eventDefinition(event.type).required_fields`.
 - Kept routing in `lib/seda/next-phase.mjs`, training derivation in canon,
   canonical projection cardinality in `lib/seda/event-taxonomy.mjs`, and product
-  metric formulas in `lib/seda/dashboard-metrics.mjs`.
+  metric formulas in `lib/observability/dashboard-metrics.mjs`.
 
 ## MVP / Deployment Risk Check
 

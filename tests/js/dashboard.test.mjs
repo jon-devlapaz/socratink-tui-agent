@@ -8,7 +8,7 @@ import {
   analyzeSession,
   buildDashboardPayload,
   computeRecoveryTelemetry,
-} from "../../lib/seda/dashboard-metrics.mjs";
+} from "../../lib/observability/dashboard-metrics.mjs";
 
 function minimalSession(eventTypes) {
   return {
@@ -163,7 +163,7 @@ test("buildDashboardPayload matches promoted case count", () => {
   assert.deepEqual(payload.version_tracker, {
     dashboard_version: "learning-loop-dashboard-v1",
     payload_version: "dashboard-payload-v1",
-    logic_owner: "lib/seda/dashboard-metrics.mjs",
+    logic_owner: "lib/observability/dashboard-metrics.mjs",
     source_artifacts: [
       "learning_cases/cases.jsonl",
       "learning_cases/traces/**/session.json",

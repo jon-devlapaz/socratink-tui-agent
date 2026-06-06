@@ -54,6 +54,12 @@ export interface RepairState {
   ladderPolicyVersion: string;
 }
 
+/** UI-only composer CTA state surfaced by the hosted awaiting adapter. */
+export interface ComposerCta {
+  label: string | null;
+  text: string;
+}
+
 export interface SedaCtx {
   // --- Session inputs (writer: ignition; also idle for re-entry) ---
   /** writer: ignition, idle. readers: route, app.mjs final write. */
@@ -84,32 +90,39 @@ export interface SedaCtx {
   repairScaffold: Record<string, unknown> | null;
   /**
    * writer: post-bridge-transfer. reader: post-bridge-transfer.
-   * HTTP-only continuation when prompt.ask splits across handler invocations;
-   * not mirrored to events[] and not reconstructable after process restart.
+   * Adapter convenience for the post-bridge HTTP prompt split. The authoritative
+   * choice is mirrored to `post_bridge_transfer_decision`, so this field is
+   * reconstructable after process restart.
    */
   postBridgeTransfer: { runGap: boolean } | null;
   /** writer: delta. readers: repair-dialogue, repair-recovery (gap_id on events). */
   gapId: string;
   /** writer: delta (init), repair-dialogue (mutate / null on exit). reader: repair-dialogue. See RepairState. */
   repairState: RepairState | null;
+  /**
+   * writer: substrate-gate, route, cold-attempt, delta, repair-dialogue,
+   * post-bridge-transfer. reader: loop-server awaiting enrichment.
+   * Graph-neutral UI affordance only; never routing or evidence input.
+   */
+  composerCta: ComposerCta | null;
 
   // --- Accumulators / telemetry ---
-  /** writer: app.mjs init + spaced-redrill (push). reader: app.mjs final write (evidence_holds). */
+  /** writer: session-kernel init + spaced-redrill (push). reader: buildSessionRecord boundary. */
   evidenceHolds: unknown[];
-  /** writer: app.mjs init. readers: prompt command helpers for graph-neutral meta turns. */
-  events?: unknown[];
+  /** writer: session-kernel init. readers: prompt command helpers for graph-neutral meta turns. */
+  events: unknown[];
 
   // --- Infra: I/O, config, agent wiring (not loop state) ---
-  /** writer: app.mjs. readers: repair-dialogue, post-bridge-transfer, idle. Fake-LLM / fixture driver. */
+  /** writer: adapter via session-kernel. readers: repair-dialogue, post-bridge-transfer, idle. Fake-LLM / fixture driver. */
   scripted: Record<string, unknown> | null;
-  /** writer: app.mjs. readers: every handler via agentCall(ctx.agentLookup, ...). */
+  /** writer: session-kernel. readers: every handler via agentCall(ctx.agentLookup, ...). */
   agentLookup: unknown;
-  /** writer: app.mjs. reader: app.mjs final write (architecture metadata); carried on ctx for completeness. */
+  /** writer: session-kernel. reader: buildSessionRecord architecture metadata; carried on ctx for completeness. */
   agentContracts: Record<string, unknown>;
-  /** writer: app.mjs. readers: every handler via ctx.section(...) for UI section headers. */
+  /** writer: adapter via session-kernel. readers: every handler via ctx.section(...) for UI section headers. */
   section: (kind: string, title: string) => string;
-  /** writer: app.mjs. reader: route (map legend formatter). */
+  /** writer: adapter via session-kernel. reader: route (map legend formatter). */
   colorEnabled: boolean;
-  /** writer: app.mjs. reader: app.mjs final write (session.json path); carried on ctx for completeness. */
-  logDir: string;
+  /** writer: adapter via session-kernel. Terminal uses a session path; hosted uses null. */
+  logDir: string | null;
 }

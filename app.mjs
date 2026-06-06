@@ -8,12 +8,12 @@ import { pathToFileURL } from "node:url";
 import { stdin as input, stdout as output } from "node:process";
 import { createBridgeClient } from "./lib/bridge/client.mjs";
 import { resolveTuiPaths, preflightTuiPaths } from "./lib/config/paths.mjs";
-import { HANDLERS } from "./lib/seda/handlers/index.mjs";
 import {
   feedbackMetaFromCtx,
   handleFeedbackCommand,
 } from "./lib/feedback/handle.mjs";
 import { printPromptHelp } from "./lib/loop-server/prompt-help.mjs";
+import { eventBuilders } from "./lib/seda/event-facts.mjs";
 import { appendMetaTurn } from "./lib/seda/meta-command.mjs";
 import {
   isExitCommand,
@@ -23,6 +23,11 @@ import {
 } from "./lib/seda/prompt-commands.mjs";
 import { runSedaLoop } from "./lib/seda/run-loop.mjs";
 import { buildSessionRecord } from "./lib/seda/session-record.mjs";
+import {
+  createSessionKernel,
+  loadAgentContracts,
+  makeAgentLookup,
+} from "./lib/seda/session-kernel.mjs";
 import { initTrainingDerive } from "./lib/seda/training-summary.mjs";
 import { makeSections } from "./lib/ui/sections.mjs";
 
@@ -35,10 +40,6 @@ try {
 }
 const { workspaceRoot } = paths;
 const { callBridge, callBridgeResult } = createBridgeClient(paths);
-const AGENT_CONTRACTS_PATH = path.join(
-  workspaceRoot,
-  "pedagogical_agents/contracts.json",
-);
 await initTrainingDerive(paths);
 const trainingStore = await import(
   pathToFileURL(paths.trainingStorePath).href
@@ -100,36 +101,9 @@ function formatPromptQuestion(label, fallback = "") {
   return `${base}: `;
 }
 
-function createMemoryStorage() {
-  const writes = new Map();
-  return {
-    getItem(key) {
-      return writes.has(key) ? writes.get(key) : null;
-    },
-    setItem(key, value) {
-      writes.set(key, value);
-    },
-    removeItem(key) {
-      writes.delete(key);
-    },
-  };
-}
-
 async function loadScripted(scriptPath) {
   if (!scriptPath) return null;
   return JSON.parse(await fs.readFile(scriptPath, "utf8"));
-}
-
-async function loadAgentContracts() {
-  return JSON.parse(await fs.readFile(AGENT_CONTRACTS_PATH, "utf8"));
-}
-
-function makeAgentLookup(contracts) {
-  const lookup = new Map();
-  (contracts?.agents || []).forEach((agent) => {
-    lookup.set(agent.id, agent);
-  });
-  return lookup;
 }
 
 async function makePrompt(scripted, ctx) {
@@ -203,59 +177,47 @@ async function createSessionLogDir() {
 
 async function run(options) {
   const scripted = await loadScripted(options.scripted);
-  const agentContracts = await loadAgentContracts();
+  const agentContracts = await loadAgentContracts(workspaceRoot);
   const agentLookup = makeAgentLookup(agentContracts);
   const colorEnabled = useColor(options.color);
   const section = makeSections(colorEnabled);
   const logDir = await createSessionLogDir();
-  const llmCalls = [];
-  const events = [];
-  const derived = [];
-  const evidenceHolds = [];
-  const storage = createMemoryStorage();
-  const store = createTrainingStore({ storage });
+
+  const kernel = createSessionKernel({
+    createTrainingStore,
+    bridge: { callBridge, callBridgeResult },
+    agentContracts,
+    agentLookup,
+    section,
+    scripted,
+    colorEnabled,
+    logDir,
+  });
+  const {
+    events,
+    derived,
+    llmCalls,
+    evidenceHolds,
+    store,
+    bridge,
+    handlers,
+    ctx,
+  } = kernel;
 
   console.log("Socratink Terminal");
   console.log("==================");
   console.log("Source-less dogfood loop. Local session only.");
   console.log("");
 
-  /** @type {import("./lib/seda/ctx.d.ts").SedaCtx} */
-  const ctx = {
-    concept: "",
-    conceptId: "",
-    learnerGoal: null,
-    launchAttempt: null,
-    firstNode: null,
-    nodeIds: [],
-    route: null,
-    coldEval: null,
-    coldAttemptText: "",
-    zeroSchemaCold: false,
-    isMisconception: false,
-    repairScaffold: null,
-    postBridgeTransfer: null,
-    gapId: "",
-    repairState: null,
-    evidenceHolds,
-    events,
-    scripted,
-    agentLookup,
-    agentContracts,
-    section,
-    colorEnabled,
-    logDir,
-  };
-
   const prompt = await makePrompt(scripted, ctx);
 
   try {
     await runSedaLoop({
-      handlers: HANDLERS,
+      handlers,
       events,
       derived,
       store,
-      bridge: { callBridge, callBridgeResult },
+      bridge,
       prompt,
       options,
       ctx,
@@ -264,7 +226,7 @@ async function run(options) {
   } catch (error) {
     if (error?.message !== "exit-requested") throw error;
     if (!events.some((e) => e.type === "idle_exit")) {
-      events.push({ type: "idle_exit" });
+      events.push(eventBuilders.idleExit());
     }
     console.log("\nSession ended.");
   }

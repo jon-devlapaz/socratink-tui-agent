@@ -89,6 +89,25 @@ test("buildDashboardPayload counts bridge_error in graph-neutral telemetry", () 
   assert.equal(payload.systems_view.graph_honesty.graph_neutral_events, 2);
 });
 
+test("buildDashboardPayload keeps strong_cold_path out of score-eligible evidence counts", () => {
+  const payload = buildDashboardPayload({
+    cases: [],
+    sessions: [
+      {
+        events: [
+          { type: "strong_cold_path", graph_neutral: true },
+          { type: "cold_attempt" },
+          { type: "spaced_redrill" },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(payload.systems_view.graph_honesty.graph_neutral_events, 1);
+  assert.equal(payload.systems_view.graph_honesty.evidence_candidate_events, 2);
+});
+
+
 test("buildDashboardPayload pairs sessions by session_log, not array index", () => {
   const cases = [
     {

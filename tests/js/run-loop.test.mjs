@@ -65,3 +65,27 @@ test("runSedaLoop afterHandler can stop before dispatching next phase", async ()
 
   assert.deepEqual(visited, ["idle"]);
 });
+
+test("runSedaLoop attaches phaseBefore when a handler throws", async () => {
+  let caught;
+  await assert.rejects(
+    () =>
+      runSedaLoop(
+        baseArgs({
+          initialPhase: "substrate_gate",
+          handlers: {
+            substrate_gate: async () => {
+              const err = new Error("awaiting learner input");
+              err.code = "PROMPT_REQUIRED";
+              throw err;
+            },
+          },
+        }),
+      ),
+    (error) => {
+      caught = error;
+      return true;
+    },
+  );
+  assert.equal(caught.phaseBefore, "substrate_gate");
+});

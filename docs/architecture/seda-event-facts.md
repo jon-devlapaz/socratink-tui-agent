@@ -213,7 +213,7 @@ Reduced duplicated event meaning:
 
 - SEDA handlers no longer hand-author migrated event shapes directly; they call
   `eventBuilders` or helper functions that call `eventBuilders`.
-- `lib/seda/dashboard-metrics.mjs` derives graph-neutral and score-eligible
+- `lib/observability/dashboard-metrics.mjs` derives graph-neutral and score-eligible
   summary sets from `EVENT_FACT_DEFINITIONS`.
 - `lib/seda/session-rehydration.mjs` reads required replay fields from
   `eventDefinition(event.type).required_fields`.
@@ -231,7 +231,7 @@ Ownership boundaries stay fixed:
 - routing stays in `lib/seda/next-phase.mjs`
 - training derivation stays in the canon/training-store path
 - canonical projection cardinality stays in `lib/seda/event-taxonomy.mjs`
-- product metric formulas stay in `lib/seda/dashboard-metrics.mjs`
+- product metric formulas stay in `lib/observability/dashboard-metrics.mjs`
 
 The event-fact module is not a router, training derivation engine, canonical
 taxonomy engine, or dashboard formula module.
@@ -244,7 +244,7 @@ only supply required persisted fields for replay-critical runtime event types.
 
 ## Dashboard Projection Relationship
 
-Dashboard formulas still live in `lib/seda/dashboard-metrics.mjs`. Event facts
+Dashboard formulas still live in `lib/observability/dashboard-metrics.mjs`. Event facts
 only provide static event properties used for summary counts, such as
 graph-neutral and score-eligible type membership. Product metric numerator and
 denominator formulas continue to use canonical learner-loop events.
@@ -264,7 +264,7 @@ denominator formulas continue to use canonical learner-loop events.
 - `lib/seda/event-taxonomy.mjs` keeps one-to-many canonical projection
   cardinality and staged prompt-only canonical events. Event facts are imported
   only for safe one-to-one runtime defaults.
-- `lib/seda/dashboard-metrics.mjs` keeps product metric formulas. Event facts
+- `lib/observability/dashboard-metrics.mjs` keeps product metric formulas. Event facts
   only define static event type membership used by event summary counts.
 - `lib/seda/session-rehydration.mjs` keeps explicit replay reconstruction
   logic. Event facts only define required persisted fields.

@@ -11,7 +11,7 @@
     "see_also": [
       "HARNESS.md",
       "lib/seda/cold-gating.mjs",
-      "repair_policy.mjs"
+      "lib/seda/repair-policy.mjs"
     ]
   },
   "transport": {
@@ -317,8 +317,8 @@
           "module": "lib/seda/handlers/repair-dialogue.mjs",
           "handler_phase": "repair_dialogue",
           "pre_bridge_gates": [
-            "blank → repair_policy.decideBlankTurn (no bridge call)",
-            "uncertain → repair_policy.decideUncertainTurn (no bridge call)"
+            "blank → repair-policy.decideBlankTurn (no bridge call)",
+            "uncertain → repair-policy.decideUncertainTurn (no bridge call)"
           ]
         },
         {
@@ -343,7 +343,7 @@
             "turn_index >= MAX_REPAIR_TURNS OR next_dialogue_action === abandon → repair_abandoned",
             "else → repair_dialogue"
           ],
-          "handler_policy": "repair_policy.decidePostJudgeTurn uses next_dialogue_action before next event"
+          "handler_policy": "repair-policy.decidePostJudgeTurn uses next_dialogue_action before next event"
         }
       ],
       "graph_role": "graph_neutral"
@@ -374,7 +374,7 @@
       "fail_mode": "emit cold_help_turn (graph-neutral)"
     },
     "repair_uncertainty": {
-      "module": "repair_policy.mjs",
+      "module": "lib/seda/repair-policy.mjs",
       "functions": [
         "decideBlankTurn",
         "decideUncertainTurn",

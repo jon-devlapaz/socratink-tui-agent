@@ -34,7 +34,7 @@
 
 ## Checkpoint 4 - Dashboard Metric Projection
 
-- Updated `lib/seda/dashboard-metrics.mjs` product metrics to derive from
+- Updated `lib/observability/dashboard-metrics.mjs` product metrics to derive from
   `canonicalEventsForSession(session)` only.
 - Product metrics now expose `rate`, `numerator_count`, `denominator_count`,
   `source_event_types`, `formula_label`, and `empty_state_reason`.
@@ -79,7 +79,7 @@
   - every dashboard product metric exposes decision-grade provenance fields
 - QA found and fixed one metric gap: product metric numerators were checking
   canonical event presence but not `score_eligible=true` for evidence-bearing
-  metrics. `lib/seda/dashboard-metrics.mjs` now requires score-eligible
+  metrics. `lib/observability/dashboard-metrics.mjs` now requires score-eligible
   canonical projections for meaningful cold attempts, case completion, and
   evidence-hold counting.
 - Validation:
@@ -102,7 +102,7 @@
 - RED validation after writing focused tests first:
   - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - expected fail, 13 pass / 10 fail. Failures covered missing `assertPublicVocabularySafe`, missing meta feature flag helpers, `meta_use_rate` still published, missing `critical_path`, blanket metric denominators, and disabled `/meta` still appending `meta_turn`.
 - Implementation:
-  - `lib/seda/dashboard-metrics.mjs` now derives six critical-path product metrics with metric-specific numerator and denominator counts:
+  - `lib/observability/dashboard-metrics.mjs` now derives six critical-path product metrics with metric-specific numerator and denominator counts:
     `meaningful_cold_attempt_rate`, `bridge_reach_rate`, `case_complete_rate`,
     `repair_load_rate`, `evidence_hold_rate`, and `substrate_seed_use_rate`.
   - `evidence_hold_rate` now means insufficient score-eligible cold evaluation over score-eligible cold evaluations; it ignores `product_loop`, `evidence_holds`, friction tags, and UI state.

@@ -47,6 +47,8 @@ Graph-neutral routing fact after one Substrate Seed and one Substrate Refinement
 still fail adequacy. Session continues: Substrate Confirmed with minimal adequacy,
 then route generates a conservative (novice-grain) Provisional Map — never a hard
 stop to idle.
+Event-name guard: `cold_support_exhausted` is the post-map Cold Attempt help cap;
+`substrate_support_exhausted` is the pre-map Substrate Seed/Refinement cap.
 _Avoid_: blocking route, counting as evidence, cold_support_exhausted (post-map)
 
 **Substrate Confirmed**:

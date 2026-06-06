@@ -6,6 +6,10 @@ It is the substrate contract; product pedagogy lives in `AGENTS.md` and
 `pedagogical_agents/contracts.json`. For the V-model decomposition ↔ verification
 map (what to gate at each tier), see [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md).
 
+**Throughline:** [`AGENTS.md`](AGENTS.md) — *facts in, phase out, handlers don’t route.*
+Everything below expands that contract; if a change violates the throughline, it is wrong
+even when tests pass.
+
 ## Recursive V-model for agent work
 
 Use a recursive V-model for all non-trivial changes. Decompose from intent to requirements, design, and implementation; then climb back through verification, integration, validation, and operational feedback.
@@ -29,7 +33,7 @@ When evidence fails, route the correction to the right abstraction level. Implem
 | **Strategy** | Graph honesty, phase catalog, canon boundaries | `AGENTS.md`, `pedagogical_agents/contracts.json`, prompt versions in `prompt_templates.py` |
 | **Substrate** | Orchestration, event log, routing, bridge calls | `app.mjs` (`HANDLERS`), `lib/seda/run-loop.mjs`, `lib/seda/next-phase.mjs`, `lib/seda/handlers/`, `lib/bridge/client.mjs`, `lib/bridge/registry.json`, `bridge.py` |
 | **App** | Founder-facing session UX | `./socratink-tui`, scripted fixtures under `fixtures/` |
-| **Observability** | Read-only truth over runs | `session.json`, `./socratink-harness replay`, `./socratink-dashboard`, `DOGFOODING.md` |
+| **Observability** | Read-only truth over runs | `session.json`, `./socratink-harness replay`, `./socratink-dashboard`, `lib/observability/dashboard-metrics.mjs`, `DOGFOODING.md` |
 
 The interactive TUI is an **app** on the harness. Do not treat UI copy or LLM prose as
 the source of routing truth.
@@ -51,6 +55,9 @@ These are non-negotiable for changes to the loop:
    `solidified` / `primed`. The UI must explain holds when they disagree.
 5. **Observability is read-only** — Replay and dashboard consume `session.json`; they do
    not rewrite events or derived state.
+
+These invariants are enforced in CI by [`tests/js/architecture-fitness.test.mjs`](tests/js/architecture-fitness.test.mjs)
+(pure `nextPhase`, append-only `events[]`, SEDA boundary edges, handler registry coverage).
 
 Moss’s **Fact → Audit → Broadcast** maps here as:
 
@@ -82,6 +89,14 @@ Handler turn  →  append event(s)     (fact)
 `spaced_redrill`.
 
 **Facts** (events): see `DIRECT_PHASE` and special branches in `nextPhase()` in `lib/seda/next-phase.mjs`.
+
+## Event modules (do not conflate)
+
+| Module | Role | Agents |
+| --- | --- | --- |
+| `lib/seda/event-facts.mjs` | Runtime append + static invariants (`eventBuilders`) | **Append here** |
+| `lib/seda/event-taxonomy.mjs` | Canonical learner-loop projection for dashboard/QA | **Read only** — never routing or append |
+| `lib/observability/dashboard-metrics.mjs` | Product metrics from sessions | **Derive** from facts; never drive `nextPhase` |
 
 ## Two-stage routing
 
@@ -236,18 +251,21 @@ SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
 
 ## Changing the harness
 
-1. Emit a new or extended **event** (fact) from the handler.
+Follow the throughline: emit a fact, teach the router, verify at the matching tier.
+
+1. Emit a new or extended **event** (fact) from the handler via `eventBuilders`.
 2. Teach **coarse** routing in `DIRECT_PHASE` if `last.type` alone suffices.
 3. Teach **fine** policy in `nextPhase` if fields on `last` decide the branch.
 4. Add a **handler** only when a new phase needs distinct UX/work.
-5. Bump prompt template version if bridge slots change; run `pytest tests/test_prompt_template.py`.
-6. Promote a trace: `learning_cases/cases.jsonl` + `expected_invariants` + replay green.
+5. Run [`tests/js/architecture-fitness.test.mjs`](tests/js/architecture-fitness.test.mjs).
+6. Bump prompt template version if bridge slots change; run `pytest tests/test_prompt_template.py`.
+7. Promote a trace: `learning_cases/cases.jsonl` + `expected_invariants` + replay green.
 
 See `AGENTS.md` for graph-honesty rules and fixture format.
 
 ## Bridge function catalog
 
-Wire contracts for the five `bridge.py` actions (template version, I/O schema, emitted
+Wire contracts for the six `bridge.py` actions (template version, I/O schema, emitted
 events, routing fields read by `nextPhase`): [`HARNESS-BRIDGE-REGISTRY.md`](HARNESS-BRIDGE-REGISTRY.md).
 Machine-readable: `lib/bridge/registry.json`. Summary table is generated from
 `registry.json` via `node scripts/refresh-bridge-registry-doc.mjs`.

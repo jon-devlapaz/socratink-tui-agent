@@ -1,0 +1,23 @@
+name: Setup TUI runtime
+description: >-
+  Node.js, Python (.python-version), and bootstrapped .venv. Required before
+  loop-server imports, bridge subprocess calls, or scripted TUI runs.
+inputs:
+  node-version:
+    description: Node.js version for setup-node
+    required: false
+    default: "22"
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: .python-version
+    - name: Bootstrap Python venv
+      shell: bash
+      run: ./scripts/bootstrap-python.sh

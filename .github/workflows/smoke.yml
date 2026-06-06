@@ -2,7 +2,8 @@
 #
 # Jobs:
 # - prompt-templates: TUI prompt template unit tests (no API, no venv deps)
-# - canon: vendored graph-truth drift gate + ported training tests (Node)
+# - canon: vendored graph-truth drift gate + ported training tests + JS unit
+#   suite (./scripts/run-js-unit-tests.sh; needs .venv via setup-tui-runtime)
 # - scripted-loop: fake-LLM end-to-end SEDA session (no API key)
 
 name: Smoke
@@ -29,19 +30,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: .python-version
+      - uses: ./.github/actions/setup-tui-runtime
       - name: Verify vendored canon matches committed checksums
         run: ./scripts/check-canon-drift.sh
       - run: python -m pip install --upgrade pip pytest
       - name: Ported training-store / training-derive tests
         run: pytest tests/test_training_store.py tests/test_training_derivation.py -q
       - name: JS preflight + self-contained unit tests
-        run: find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
+        run: ./scripts/run-js-unit-tests.sh
 
   scripted-loop:
     name: Scripted loop (fake LLM)
@@ -51,14 +47,7 @@ jobs:
       SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION: shallow
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: .python-version
-      - name: Bootstrap self-contained venv
-        run: ./scripts/bootstrap-python.sh
+      - uses: ./.github/actions/setup-tui-runtime
       - name: Scripted TUI smoke (shell)
         run: ./socratink-tui --scripted fixtures/source_less_script.json --color=never
       - name: Bridge registry + prompt eval gates

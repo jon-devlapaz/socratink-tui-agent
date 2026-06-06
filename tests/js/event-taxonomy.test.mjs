@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { nextPhase } from "../../lib/seda/next-phase.mjs";
+import { eventDefinition } from "../../lib/seda/event-facts.mjs";
 import {
   CANONICAL_EVENT_TAXONOMY_VERSION,
   CANONICAL_LEARNER_LOOP_EVENTS,
@@ -47,6 +48,39 @@ test("canonical taxonomy names every learner-loop event with versions and curren
       Array.isArray(definition.source_event_types),
       `${eventType} must declare source_event_types`,
     );
+  }
+});
+
+test("canonical definitions derive safe direct runtime flags from event facts", () => {
+  const directMappings = [
+    ["substrate_refinement_submitted", "substrate_refinement"],
+    ["substrate_confirmed", "substrate_confirmed"],
+    ["repair_prompted", "gap_identified"],
+    ["bridge_prompted", "model_bridge"],
+    ["evidence_hold_recorded", "evidence_hold_recorded"],
+  ];
+
+  for (const [canonicalType, runtimeType] of directMappings) {
+    const canonical = CANONICAL_LEARNER_LOOP_EVENTS[canonicalType];
+    const runtime = eventDefinition(runtimeType);
+    assert.equal(canonical.graph_neutral, runtime.graph_neutral, canonicalType);
+    assert.equal(canonical.score_eligible, runtime.score_eligible, canonicalType);
+  }
+});
+
+test("canonicalizeEvent preserves runtime flags for direct legacy projections", () => {
+  const directLegacyMappings = [
+    ["repair_dialogue_turn", "repair_submitted"],
+    ["repair", "repair_submitted"],
+    ["post_bridge_transfer_check", "bridge_submitted"],
+  ];
+
+  for (const [legacyType, canonicalType] of directLegacyMappings) {
+    const runtime = eventDefinition(legacyType);
+    const [canonical] = canonicalizeEvent({ type: legacyType });
+    assert.equal(canonical.event_type, canonicalType);
+    assert.equal(canonical.graph_neutral, runtime.graph_neutral, legacyType);
+    assert.equal(canonical.score_eligible, runtime.score_eligible, legacyType);
   }
 });
 

@@ -4,11 +4,15 @@ Minimum runnable Socratink terminal lab, trimmed for **agents and automation** f
 
 ## Start here (agents)
 
-1. **`AGENTS.md`** — architecture, SEDA loop, graph honesty, testing commands
-2. **`HARNESS.md`** — event log vs `ctx`, replay contract
-3. **`pedagogical_agents/contracts.json`** — agent boundaries and failure modes
-4. **`prompt_templates.py`** — versioned LLM prompts (edit here, bump `version`, run tests)
-5. **`bridge.py`** — five bridge actions; subprocess LLM seam only
+**Throughline:** handlers append facts → `nextPhase(events)` routes. See `AGENTS.md`.
+
+1. **`AGENTS.md`** — throughline, architecture, graph honesty, testing commands
+2. **`CONTEXT.md`** — product vocabulary (glossary only; no implementation)
+3. **`HARNESS.md`** — substrate invariants, event-module roles, replay contract
+4. **`HARNESS-TRACEABILITY.md`** — V-model tiers and merge checklist
+5. **`pedagogical_agents/contracts.json`** — agent boundaries and failure modes
+6. **`prompt_templates.py`** — versioned LLM prompts (edit here, bump `version`, run tests)
+7. **`bridge.py`** — six bridge actions; subprocess LLM seam only
 
 ## Setup
 
@@ -87,7 +91,9 @@ Railway step-by-step plan: **`deploy/RAILWAY.md`**.
 ## Layout
 
 ```text
-AGENTS.md              ← read first
+AGENTS.md              ← read first (throughline)
+CONTEXT.md             ← vocabulary
+HARNESS.md             ← substrate contract
 app.mjs                ← session entry
 bridge.py              ← LLM subprocess
 prompt_templates.py    ← prompts
@@ -95,7 +101,7 @@ lib/seda/              ← phase handlers + router
 lib/canon/             ← graph truth (vendored)
 vendor/python/         ← LLM seam (vendored)
 evals/prompts/         ← L2 prompt eval cases
-tests/                 ← CI gates
+tests/                 ← CI gates (incl. architecture-fitness)
 fixtures/              ← scripted sessions
 ```
 

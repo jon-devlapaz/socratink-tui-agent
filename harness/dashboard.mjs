@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
-import { buildDashboardPayload } from "../lib/seda/dashboard-metrics.mjs";
+import { buildDashboardPayload } from "../lib/observability/dashboard-metrics.mjs";
 
 const WORKSPACE_ROOT = process.cwd();
 const CASES_PATH = path.join(WORKSPACE_ROOT, "learning_cases/cases.jsonl");

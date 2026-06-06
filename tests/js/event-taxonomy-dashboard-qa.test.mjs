@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildDashboardPayload } from "../../lib/seda/dashboard-metrics.mjs";
+import { buildDashboardPayload } from "../../lib/observability/dashboard-metrics.mjs";
 import {
   CANONICAL_LEARNER_LOOP_EVENTS,
   canonicalEventsForSession,
@@ -279,7 +279,7 @@ test("QA: dashboard metric objects expose decision-grade provenance fields", () 
 test("QA: public taxonomy and dashboard surfaces do not revive Repair Reps vocabulary", () => {
   const publicSurfaceFiles = [
     "lib/seda/event-taxonomy.mjs",
-    "lib/seda/dashboard-metrics.mjs",
+    "lib/observability/dashboard-metrics.mjs",
     "lib/seda/meta-command.mjs",
     "lib/loop-server/prompt-help.mjs",
     "public/dashboard/dashboard.js",

@@ -6,6 +6,48 @@ append-only event log as the state machine.
 
 Harness substrate contract (layers, invariants, Moss mapping): `HARNESS.md`.
 V-model traceability map for agents (requirements ↔ verification tiers): `HARNESS-TRACEABILITY.md`.
+Product vocabulary (glossary only): `CONTEXT.md`.
+
+## Throughline (read before editing)
+
+One story about state — everything else is detail:
+
+```text
+Handler turn  →  events.push(fact)       append-only, authoritative
+              →  derive training          audit (canon); not a router input
+              →  phase = nextPhase(events)   pure; the only control-flow owner
+```
+
+**Handlers do lane work and append facts. They do not route.** Skipping a step
+still emits a fact (e.g. `post_bridge_transfer_skipped`).
+
+| Concern | Owner | Do not |
+| --- | --- | --- |
+| Control flow | `lib/seda/next-phase.mjs` | Pick the next phase in handlers; add imports to `nextPhase` |
+| Runtime facts | `lib/seda/event-facts.mjs` (`eventBuilders`) | Hand-author event shapes in handlers |
+| Working scratch | `ctx` — see `lib/seda/ctx.d.ts` | Leave unreconstructable routing state only in `ctx` |
+| Dashboard vocabulary | `lib/seda/event-taxonomy.mjs` | Use taxonomy for routing or append sites |
+| Product metrics | `lib/observability/dashboard-metrics.mjs` | Duplicate routing state or drive `nextPhase` |
+| LLM I/O | `bridge.py` + `prompt_templates.py` | Inline prompts in Node |
+
+Orchestration: `lib/seda/run-loop.mjs` (terminal) and `lib/loop-server/session.mjs`
+(hosted — same `nextPhase`; HTTP pacing stops are transport only, not routing).
+The hosted session adapter calls `runSedaLoop` and uses `afterHandler` only to
+stop at HTTP pacing boundaries after facts have been appended.
+Enforced in CI: `tests/js/architecture-fitness.test.mjs`.
+
+**Smallest-change rule:** every diff should trace to one fact type, one router
+branch, or one handler lane. If you need a second state machine, stop.
+
+### Agent anti-patterns
+
+- Routing inside handlers without an event `nextPhase` understands
+- Using `event-taxonomy` or dashboard metrics for runtime append or routing
+- Mutating `events[]` in place (`pop`, `splice`, … — fitness test fails)
+- Confusing `substrate_support_exhausted` (pre-map) with `cold_support_exhausted`
+  (post-map help cap) — see `CONTEXT.md`
+- Refactoring adjacent handlers while fixing an unrelated bug
+- Replacing readable `nextPhase` branches with a generic router framework
 
 ## Closed-loop agent operating model
 
@@ -26,7 +68,12 @@ Use minimal durable context. Reference canonical files, ADRs, tests, and example
 app.mjs              Thin entry: session bootstrap, prompt I/O, run loop wiring
 lib/seda/next-phase.mjs  Pure router: nextPhase(events), DIRECT_PHASE
 lib/seda/run-loop.mjs    Phase dispatch loop (handlers passed in; nextPhase owns all transitions)
+lib/seda/event-facts.mjs  Runtime append + invariants (`eventBuilders`)
+lib/seda/event-taxonomy.mjs  Dashboard canonical projection (read model only)
+lib/seda/repair-policy.mjs  Pure repair dialogue ladder policy
 lib/seda/handlers/       All phase handlers + HANDLERS map
+lib/loop-server/session.mjs  Hosted orchestration (same nextPhase; HTTP pacing stops)
+lib/observability/       Read-only dashboard metrics and operator projections
 lib/ui/                  Terminal sections and map legend formatters
 lib/seda/cold-gating.mjs Cold substantive vs help_request evidence gates
 lib/seda/repair-scaffold.mjs  Answer-shaped scaffold rejection (generation before recognition)
@@ -39,7 +86,7 @@ lib/bridge/client.mjs    Bridge subprocess I/O (no routing, no event append)
 lib/config/paths.mjs     Workspace/vendor/bridge/python path resolution
 lib/canon/               Vendored graph-truth JS (training-store/derive) + checksums
 vendor/python/           Vendored LLM seam (ai_service, llm/, models/, app_prompts/)
-bridge.py            Python LLM bridge (4 actions, shells out from Node)
+bridge.py            Python LLM bridge (6 actions, shells out from Node)
 prompt_templates.py  Canonical prompt templates (versioned, testable)
 dashboard.mjs        Founder dashboard (case summaries, traces)
 ```
@@ -51,22 +98,25 @@ graph truth; the TUI holds a checksum-gated mirror (`scripts/check-canon-drift.s
 
 ### SEDA Loop
 
-- `nextPhase(events)` — pure function in `lib/seda/next-phase.mjs`; lookup table +
-  special cases (`cold_attempt` classification, `repair_dialogue_turn`
+See **Throughline** above. Implementation map:
+
+- `nextPhase(events)` — pure function in `lib/seda/next-phase.mjs`; `DIRECT_PHASE`
+  table + special cases (`cold_attempt` classification, `repair_dialogue_turn`
   bridge_ready/escalate/recover/cap). Must not import bridge, handlers, or I/O.
-- 12 phase handlers, one turn per invocation
-- While-loop dispatches: `handler = HANDLERS[phase]; result = await handler(...); phase = nextPhase(events)`
-- 11 event types in `DIRECT_PHASE`, loop exits on `idle_exit`
+- 15 phase handlers in `HANDLERS` — one handler invocation per loop turn
+- `runSedaLoop` dispatches: `handler = HANDLERS[phase]; await handler(...); phase = nextPhase(events)`
+- Loop exits when `nextPhase` returns `null` (e.g. after `idle_exit`)
 
 ### Python Bridge (bridge.py)
 
-Five actions dispatched from Node via subprocess. Full function catalog (template
+Six actions dispatched from Node via subprocess. Full function catalog (template
 versions, I/O schemas, emitted events, `nextPhase` routing fields):
 `HARNESS-BRIDGE-REGISTRY.md` / `lib/bridge/registry.json`.
 
 | CLI arg | Function | Template |
 |---|---|---|
 | `generate-route` | `generate_route()` | delegates to `ai_service` |
+| `substrate-gate` | `substrate_gate()` | `TEMPLATES["substrate_gate"]` |
 | `evaluate-attempt` | `evaluate_attempt()` | `TEMPLATES["evaluator"]` |
 | `repair-scaffold` | `build_repair_scaffold()` | `TEMPLATES["delta"]` |
 | `socratic-repair-drill` | `build_socratic_repair_drill()` | `TEMPLATES["socratic_repair_drill"]` |
@@ -89,15 +139,18 @@ To add or modify a prompt:
 
 ## Graph Honesty Rules
 
-- **Graph-neutral events**: `cold_help_turn`, `cold_support_exhausted`,
-  `gap_identified`, `repair_dialogue_turn`, `repair_abandoned`, `repair`,
-  `model_bridge`, `post_bridge_transfer_check`, `repair_state_bucketed`,
-  `repair_cap_selected`, `repair_recovery_started`, `repair_recovery_turn`,
-  `repair_recovery_closed` — do NOT mutate evidence.
+- **Graph-neutral events**: `substrate_seed_offered`, `substrate_refinement`,
+  `substrate_support_exhausted`, `substrate_confirmed`, `cold_help_turn`,
+  `cold_support_exhausted`, `gap_identified`, `repair_dialogue_turn`,
+  `repair_abandoned`, `repair`, `model_bridge`, `post_bridge_transfer_check`,
+  `repair_state_bucketed`, `repair_cap_selected`, `repair_recovery_started`,
+  `repair_recovery_turn`, `repair_recovery_closed` — do NOT mutate evidence.
 - **Cold help turns**: non-substantive cold text (`answer_mode: help_request`)
   emits `cold_help_turn` only — no `appendAttempt`, no derived evidence change.
   After `MAX_COLD_HELP_TURNS` (2), `cold_support_exhausted` may enter Delta with
   zero-schema framing.
+  Do not confuse this with `substrate_support_exhausted`: that is the pre-map
+  Substrate Seed/Refinement cap defined in `CONTEXT.md`.
 - **KC ID tracking**: `kc_id` must be present on `cold_attempt`,
   `repair_dialogue_turn`, `repair`, `spaced_redrill`, `strong_cold_path`,
   and `post_bridge_transfer_check`.
@@ -113,7 +166,7 @@ To add or modify a prompt:
   (`bounded_causal_link` → `keyword_to_sentence`, `MAX_UNCERTAINTY_RECOVERY_STEPS`),
   preserving generation at lower load, then abandons once the ladder is
   exhausted or the turn cap (`MAX_REPAIR_TURNS`) is hit. Policy lives in
-  `repair_policy.mjs` (`decideUncertainTurn` / `decidePostJudgeTurn`). This
+  `lib/seda/repair-policy.mjs` (`decideUncertainTurn` / `decidePostJudgeTurn`). This
   recovery-ladder behavior (Policy B) supersedes the older "fade-back rule"
   that abandoned at the analogical stage; the learning-science review favored
   contingent load reduction over early abandonment.
@@ -140,6 +193,9 @@ To add or modify a prompt:
 ```bash
 find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
 ```
+
+Architecture guard (throughline): `tests/js/architecture-fitness.test.mjs` — pure
+`nextPhase`, append-only `events[]`, handler registry, SEDA boundary edges.
 
 ### Loop chat UI tests (server-backed)
 ```bash
@@ -200,31 +256,18 @@ Scripted fixtures live in `fixtures/`. Format:
 
 ## State: event log (authoritative) + `ctx` (working state)
 
-Two channels carry state, and the distinction matters:
+Two channels — see **Throughline**. Details:
 
-- **`events[]` — the append-only fact chain, authoritative.** Never mutate past
-  events. The phase router (`nextPhase`) reads the log to determine the next
-  phase, evidence derivation reads it to decide graph state, and replay /
-  dashboard read it for observability. If routing or truth depends on it, it
-  lives here.
-- **Runtime event construction lives in `lib/seda/event-facts.mjs`.** New SEDA
-  append sites should use `eventBuilders` or a local helper that calls
-  `eventBuilders`; do not hand-author event shape/invariant metadata in
-  handlers. `event-facts.mjs` owns construction and static invariants only, not
-  routing, training derivation, canonical projection cardinality, or product
-  metric formulas.
-- **`ctx` — the mutable blackboard, in-flight working state for the current
-  process only.** Handlers share it (`firstNode`, `route`, `repairScaffold`,
-  `repairState`, ...). It is NOT replayed and NOT authoritative. Every field, its
-  writer, and its readers are documented in `lib/seda/ctx.d.ts`.
-
-Closed-loop rule: a field may be `ctx`-only if it is infra/telemetry **or** fully
-reconstructable from `events[]`. Phase-critical working state that is not
-reconstructable must be mirrored into the log. Example: `ctx.repairState`
-(`escalationLevel`, recovery/hint counters) is set to `null` on repair exit, so
-it is snapshotted onto each `repair_dialogue_turn` / `repair_hint_requested`
-event via `repairStateSnapshot()` (graph-neutral, never read by `nextPhase`),
-keeping a mid-repair session replayable.
+- **`events[]`** — append-only fact chain. `nextPhase`, derivation, replay, and
+  dashboard read it. If routing or truth depends on it, it lives here.
+- **Append via `eventBuilders`** in `lib/seda/event-facts.mjs` only — static
+  invariants (`graph_neutral`, `score_eligible`, `required_fields`), not routing
+  or product-metric formulas. Canonical dashboard projection lives separately in
+  `lib/seda/event-taxonomy.mjs` (read model; never an append site).
+- **`ctx`** — in-flight blackboard documented in `lib/seda/ctx.d.ts`. Safe
+  ctx-only fields are infra/telemetry or fully reconstructable from `events[]`.
+  Phase-critical state that is not reconstructable must be mirrored into the log
+  (example: `repairStateSnapshot()` on each `repair_dialogue_turn`).
 
 ## Boundaries
 
@@ -239,12 +282,12 @@ keeping a mid-repair session replayable.
 ## Common Tasks
 
 ### Adding a new phase handler
-1. Add the event type to the `DIRECT_PHASE` mapping
-2. Add the phase entry to the `nextPhase` lookup table
-3. Implement the handler function
-4. Add to `HANDLERS` dictionary
+1. Add the event type to `DIRECT_PHASE` and/or a fine branch in `nextPhase`
+2. Add `eventBuilders.*` in `lib/seda/event-facts.mjs` if the fact is new
+3. Implement the handler (append facts; do not route)
+4. Register in `HANDLERS` (`lib/seda/handlers/index.mjs`)
 5. Add a fixture exercising the new path
-6. Verify the harness still passes
+6. Run `tests/js/architecture-fitness.test.mjs` and `./socratink-harness replay`
 
 ### Bumping the loop release version (every PR)
 
@@ -281,7 +324,9 @@ keeping a mid-repair session replayable.
 - GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs and passing Smoke CI.
 - Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; deploy via `./scripts/railway-deploy.sh` (`deploy/RAILWAY.md`). Production learner URL is `app.socratink.ai/loop` via `socratink-app` FastAPI proxy (`LOOP_BACKEND_URL` → Railway; see `deploy/LOOP-HOSTING.md`).
 - `socratink-app` proxies `/loop`, `/health`, and `/api/session/*` through `loop_backend_proxy.py`; `public/loop/loop.js` polls `/health` (not `/api/health`) for version/LLM pills. Avoid duplicate Vercel edge rewrites for the same paths.
-- Loop server `advanceSession` batches multiple SEDA phases per HTTP turn until `PROMPT_REQUIRED` (hosted pacing differs from terminal TUI one-phase-per-prompt).
+- Loop server `advanceSession` may run several handler turns per HTTP request until
+  `PROMPT_REQUIRED`; pacing stops (`lib/loop-server/pacing-stops.mjs`) are transport
+  only — routing truth still comes from append-only events and `nextPhase`.
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
 - `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). **Bump it on every PR** (patch step: `v0.02` → `v0.03`). `railway-deploy.sh` reads it automatically; optional `LOOP_APP_VERSION` in `.env` overrides locally.
 - Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).

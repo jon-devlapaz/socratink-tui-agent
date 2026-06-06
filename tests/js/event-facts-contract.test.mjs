@@ -318,7 +318,7 @@ test("event-facts architecture note captures duplication inventory and destinati
     "routing stays in `lib/seda/next-phase.mjs`",
     "training derivation stays in the canon/training-store path",
     "canonical projection cardinality stays in `lib/seda/event-taxonomy.mjs`",
-    "product metric formulas stay in `lib/seda/dashboard-metrics.mjs`",
+    "product metric formulas stay in `lib/observability/dashboard-metrics.mjs`",
   ]) {
     assert.match(doc, new RegExp(requiredPhrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }

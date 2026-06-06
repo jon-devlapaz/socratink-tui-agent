@@ -10,7 +10,7 @@ Use only:
 
 - `lib/seda/event-taxonomy.mjs` or equivalent
 - `lib/seda/session-record.mjs`
-- `lib/seda/dashboard-metrics.mjs`
+- `lib/observability/dashboard-metrics.mjs`
 - `lib/seda/meta-command.mjs`
 - `lib/seda/handlers/**` event append sites as needed
 - `lib/loop-server/session.mjs` and `lib/loop-server/http-server.mjs` only if response exposure is required

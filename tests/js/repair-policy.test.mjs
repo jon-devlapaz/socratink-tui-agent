@@ -5,7 +5,7 @@ import {
   decideBlankTurn,
   decidePostJudgeTurn,
   decideUncertainTurn,
-} from "../../repair_policy.mjs";
+} from "../../lib/seda/repair-policy.mjs";
 import { MAX_REPAIR_TURNS, nextPhase } from "../../lib/seda/next-phase.mjs";
 import { MAX_UNCERTAINTY_RECOVERY_STEPS } from "../../lib/seda/repair-recovery-config.mjs";
 import { uncertaintyDialogueTurnEvent } from "../../lib/seda/repair-dialogue-helpers.mjs";

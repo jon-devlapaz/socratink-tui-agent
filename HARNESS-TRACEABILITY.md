@@ -2,7 +2,10 @@
 
 Agent-facing guide: how **NASA-style V-model** decomposition and verification map
 to this repo’s closed-loop harness. Read with [`HARNESS.md`](HARNESS.md) (substrate
-contract) and [`AGENTS.md`](AGENTS.md) (SEDA loop).
+contract) and [`AGENTS.md`](AGENTS.md) (throughline + SEDA loop).
+
+**Throughline (all tiers):** handlers append facts → `nextPhase(events)` routes.
+Requirements belong on events and invariants, not handler `if` chains.
 
 ```text
 CONOPS / requirements  ←————————→  validation / verification
@@ -22,8 +25,8 @@ executable (`pytest`, `node --test`, `./socratink-harness replay`).
 | --- | --- | --- |
 | **Concept of operations** | [`AGENTS.md`](AGENTS.md), [`HARNESS.md`](HARNESS.md), graph-honesty rules | Founder intent; not a CI gate |
 | **System requirements** | [`learning_cases/cases.jsonl`](learning_cases/cases.jsonl) — `product_question`, `expected_invariants` | `./socratink-harness replay` |
-| **Sub-system design** | `nextPhase(events)`, `repair_policy.mjs`, event taxonomy, two-stage routing | [`tests/js/next-phase.test.mjs`](tests/js/next-phase.test.mjs), [`tests/js/repair-policy.test.mjs`](tests/js/repair-policy.test.mjs), [`tests/js/routing-proofs.test.mjs`](tests/js/routing-proofs.test.mjs), `./socratink-harness routing-proof` |
-| **Component design** | Handlers, `bridge.py`, `lib/seda/session-record.mjs`, `lib/seda/dashboard-metrics.mjs` | Unit tests under `tests/js/`, `tests/test_*.py` |
+| **Sub-system design** | `nextPhase(events)`, `lib/seda/repair-policy.mjs`, event-facts vs event-taxonomy, two-stage routing | [`tests/js/next-phase.test.mjs`](tests/js/next-phase.test.mjs), [`tests/js/architecture-fitness.test.mjs`](tests/js/architecture-fitness.test.mjs), [`tests/js/repair-policy.test.mjs`](tests/js/repair-policy.test.mjs), [`tests/js/routing-proofs.test.mjs`](tests/js/routing-proofs.test.mjs), `./socratink-harness routing-proof` |
+| **Component design** | Handlers, `bridge.py`, `lib/seda/session-record.mjs`, `lib/observability/dashboard-metrics.mjs` | Unit tests under `tests/js/`, `tests/test_*.py` |
 | **Implementation** | `./socratink-tui`, handlers, bridge subprocess | Scripted fixtures, fake LLM smoke |
 | **Component verification** | Fake judge contract, policy golden matrix, session broadcast derive | [`tests/test_fake_repair_dialogue_golden.py`](tests/test_fake_repair_dialogue_golden.py), [`tests/js/session-record.test.mjs`](tests/js/session-record.test.mjs) |
 | **Sub-system verification** | Full SEDA path on fixtures | `SOCRATINK_TUI_FAKE_LLM=1 ./socratink-tui --scripted fixtures/...` |
@@ -60,15 +63,17 @@ Whether copy feels Socratic is **validation** (human / research cases).
 
 When changing the harness:
 
-1. **Requirement** — state as an event or invariant, not a handler `if`.
-2. **Design** — teach `nextPhase` and/or append a new fact type; keep router pure.
+1. **Requirement** — state as an event or invariant, not a handler `if` (throughline).
+2. **Design** — teach `nextPhase` and/or append via `eventBuilders`; keep router pure.
 3. **Verify** — add the smallest test at the matching tier (unit → replay → smoke).
 4. **Validate** — capture a trace; promote only when `expected_invariants` is falsifiable.
 5. **Broadcast** — if observability shape changes, derive from `events[]`; never read `product_loop` for routing.
 
 Checklist before merge on harness changes:
 
-- [ ] Coarse route in `DIRECT_PHASE` or fine policy in `nextPhase` / `repair_policy`
+- [ ] Coarse route in `DIRECT_PHASE` or fine policy in `nextPhase` / `repair-policy`
+- [ ] New runtime facts use `eventBuilders` (`event-facts.mjs`), not taxonomy
+- [ ] `tests/js/architecture-fitness.test.mjs` still green
 - [ ] Promoted case updated or new row in `cases.jsonl` if behavior is a regression gate
 - [ ] `./socratink-harness replay` green
 - [ ] Relevant `tests/js/` or `tests/test_*.py` added at the correct tier

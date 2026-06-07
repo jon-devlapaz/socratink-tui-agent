@@ -1,6 +1,10 @@
 # Codex Lane 1 — Substrate gate routing skeleton (PR1)
 
-You are implementing **Lane 1 only** in repo `socratink-tui-agent` on branch `feat/substrate-gate`.
+Status: historical lane packet. Prefer `SUMMARY.md` for the current PR1
+provenance summary.
+
+Original Lane 1 packet for repo `socratink-tui-agent` on branch
+`feat/substrate-gate`.
 
 ## Authority
 - `docs/adr/0001-substrate-gate-before-route.md`

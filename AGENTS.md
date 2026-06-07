@@ -271,8 +271,9 @@ Two channels — see **Throughline**. Details:
 
 ## Boundaries
 
-- Cold attempts, repairs, and re-drills are learner text — they ARE evidence
-  candidates.
+- Cold attempts and spaced re-drills are learner text that may affect evidence.
+  Repair dialogue and `repair` events are graph-neutral routing/telemetry, not
+  evidence candidates.
 - Source, learner goal, route, scaffolds, and `/help` are context, not evidence.
 - `repair_dialogue_turn` and `post_bridge_transfer_check` are graph-neutral —
   they inform routing but do not mutate the graph.

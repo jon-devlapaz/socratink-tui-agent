@@ -25,7 +25,7 @@ executable (`pytest`, `node --test`, `./socratink-harness replay`).
 | --- | --- | --- |
 | **Concept of operations** | [`AGENTS.md`](AGENTS.md), [`HARNESS.md`](HARNESS.md), graph-honesty rules | Founder intent; not a CI gate |
 | **System requirements** | [`learning_cases/cases.jsonl`](learning_cases/cases.jsonl) — `product_question`, `expected_invariants` | `./socratink-harness replay` |
-| **Sub-system design** | `nextPhase(events)`, `lib/seda/repair-policy.mjs`, event-facts vs event-taxonomy, two-stage routing | [`tests/js/next-phase.test.mjs`](tests/js/next-phase.test.mjs), [`tests/js/architecture-fitness.test.mjs`](tests/js/architecture-fitness.test.mjs), [`tests/js/repair-policy.test.mjs`](tests/js/repair-policy.test.mjs), [`tests/js/routing-proofs.test.mjs`](tests/js/routing-proofs.test.mjs), `./socratink-harness routing-proof` |
+| **Sub-system design** | `nextPhase(events)`, `lib/seda/repair-policy.mjs`, event-facts vs event-taxonomy, two-stage routing | `./scripts/check-seda-spine.sh` |
 | **Component design** | Handlers, `bridge.py`, `lib/seda/session-record.mjs`, `lib/observability/dashboard-metrics.mjs` | Unit tests under `tests/js/`, `tests/test_*.py` |
 | **Implementation** | `./socratink-tui`, handlers, bridge subprocess | Scripted fixtures, fake LLM smoke |
 | **Component verification** | Fake judge contract, policy golden matrix, session broadcast derive | [`tests/test_fake_repair_dialogue_golden.py`](tests/test_fake_repair_dialogue_golden.py), [`tests/js/session-record.test.mjs`](tests/js/session-record.test.mjs) |

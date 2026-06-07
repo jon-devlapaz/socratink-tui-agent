@@ -1,6 +1,9 @@
 # Codex Lane 3 — Loop UI substrate turns (PR1)
 
-Build on Lane 1+2 branch state.
+Status: historical lane packet. Prefer `SUMMARY.md` for the current PR1
+provenance summary.
+
+Original Lane 3 packet. It assumed Lane 1+2 branch state.
 
 ## Authority
 ADR-0001 loop UI requirement: substrate gate must yield separate HTTP turns on `/loop`.

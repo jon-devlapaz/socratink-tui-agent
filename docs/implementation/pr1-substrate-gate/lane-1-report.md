@@ -1,3 +1,6 @@
+Status: historical lane report. Prefer `SUMMARY.md` for the current PR1
+provenance summary.
+
 Implemented Lane 1 only.
 
 Changed:
@@ -17,4 +20,3 @@ Verification:
 - Extra scripted TUI smoke was attempted but blocked because `.venv/bin/python` is missing in this checkout.
 
 Lane 2 must add the real bridge-backed substrate gate: `prompt_templates.py` template/version, `bridge.py` action, bridge registry/docs updates, live LLM classification/output schema, and prompt/template tests. No Loop UI pacing, PR2 pacing split, or evidence derivation changes were added here.
-

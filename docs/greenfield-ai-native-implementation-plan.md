@@ -87,8 +87,9 @@ Build the product around stable local contracts first:
 1. **Define the truth boundary before the first model call.**
    State which user actions can change product truth and which artifacts are
    context. For Socratink, source, learner goal, route, scaffolds, and help are
-   context, not evidence; cold attempts, repairs, and spaced re-drills are
-   evidence candidates only when the training derivation accepts them.
+   context, not evidence; cold attempts and spaced re-drills are evidence
+   candidates only when the training derivation accepts them. Repair dialogue
+   and bridge-repair events are graph-neutral.
 
 2. **Create the minimal fact vocabulary.**
    Name events before handlers. Classify each event as routing fact,

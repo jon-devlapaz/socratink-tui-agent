@@ -1,6 +1,10 @@
 # Codex Lane 2 — Substrate gate bridge + handler logic (PR1)
 
-Build on **Lane 1** branch state. Lane 1 routing + handler stub must already exist.
+Status: historical lane packet. Prefer `SUMMARY.md` for the current PR1
+provenance summary.
+
+Original Lane 2 packet. It assumed the Lane 1 routing skeleton and handler stub
+already existed.
 
 ## Authority
 Same as Lane 1: ADR-0001, CONTEXT.md, AGENTS.md.

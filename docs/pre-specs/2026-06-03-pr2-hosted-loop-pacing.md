@@ -1,6 +1,7 @@
 # Pre-Spec: PR2 — Hosted loop pacing (`advanceSession`)
 
-Status: approved next track (post PR1 substrate gate)  
+Status: historical pre-spec; implemented by PR2 hosted-loop pacing work. Current
+proof lives in `docs/implementation/pr2-hosted-loop-pacing/REPORT.md`.
 Date: 2026-06-03  
 Depends on: [ADR-0001](../adr/0001-substrate-gate-before-route.md) (substrate gate merged)  
 Surfaces: `lib/loop-server/session.mjs`, `/loop`, `/api/session/*`, `tests/js/loop-chat-ui.test.mjs`

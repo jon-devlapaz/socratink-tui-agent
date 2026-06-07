@@ -1,5 +1,8 @@
 # Event Taxonomy Dashboard V2 Goal
 
+Status: historical implementation goal. The shipped evidence lives in
+`PROGRESS.md`; use current runtime files and tests for present truth.
+
 ## Objective
 
 Establish a versioned canonical learner-loop event taxonomy and make dashboard product metrics a read-only projection of that contract, verified by focused JS/Python tests, harness replay, and fake-loop smoke, while preserving append-only `events[]` semantics, graph-neutral/evidence boundaries, pure `nextPhase(events)` routing, and existing promoted-trace compatibility.

@@ -96,9 +96,9 @@ founder dogfood on `app.socratink.ai/loop`.
 _Avoid_: terminal-only proof, hiding seed/refinement in a single burst
 
 **Hosted Turn Boundary**:
-A learner-visible hosted `/loop` pause between beats. Some boundaries wait for
-fresh learner text; others are transport-only pauses after a beat has completed.
-Routing truth still comes from the event log.
+A learner-visible hosted `/loop` pause between beats. Prompt-required boundaries
+wait for fresh learner text; post-handler pacing stops are transport-only pauses
+after a beat has completed. Routing truth still comes from the event log.
 _Avoid_: router, evidence event, extra handler
 
 **Case Complete**:

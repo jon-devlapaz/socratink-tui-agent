@@ -25,10 +25,16 @@ cp .env.example .env          # GEMINI_API_KEY for live sessions
 
 ```bash
 ./scripts/check-canon-drift.sh
+./scripts/check-seda-spine.sh
 .venv/bin/pytest tests/test_prompt_template.py tests/test_prompt_eval_evaluator.py tests/test_prompt_eval_repair_dialogue.py -q
 find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
 SOCRATINK_TUI_FAKE_LLM=1 ./socratink-tui --scripted fixtures/source_less_script.json --color=never
 ```
+
+Use `./scripts/check-seda-spine.sh` for the fast architecture spine: router purity,
+append-only event writes, event-fact invariants, hosted pacing boundaries, and
+promoted routing traces. Use the full ladder above before release or when bridge,
+canon, Python, or hosted UI behavior changes.
 
 `tests/js/loop-chat-ui.test.mjs` is server-backed, not part of the
 self-contained Node test set. Run it with the loop server:

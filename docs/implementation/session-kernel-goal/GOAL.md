@@ -1,5 +1,9 @@
 # Goal
 
+Status: historical implementation goal. The shared session kernel now exists in
+`lib/seda/session-kernel.mjs`; use current runtime files and
+`tests/js/session-kernel.test.mjs` for present truth.
+
 Extract one shared SEDA session-kernel constructor used by both the terminal TUI (`app.mjs`) and hosted loop (`lib/loop-server/runtime.mjs`) so both surfaces assemble the same canonical runtime state from one owner while preserving their adapter-specific prompt, transcript, pacing, and persistence behavior.
 
 The kernel should own only behavior-neutral construction: `events[]`, `derived`, `llmCalls`, `evidenceHolds`, training store, bridge client wiring, `HANDLERS`, agent contracts/lookup, and the full default `ctx` shape. Terminal and hosted adapters should supply surface concerns such as prompt implementation, color/section renderer, log directory, HTTP session id/status/transcript/awaiting state, and hosted pacing options.

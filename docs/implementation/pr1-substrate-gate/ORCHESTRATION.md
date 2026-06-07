@@ -1,5 +1,8 @@
 # PR1 Orchestration — substrate gate
 
+Status: historical lane packet. Prefer `SUMMARY.md` for the current PR1
+provenance summary.
+
 Branch: `feat/substrate-gate`  
 Worktree: `../socratink-tui-substrate-gate`  
 Model: `gpt-5.5` (`model_reasoning_effort = high`)

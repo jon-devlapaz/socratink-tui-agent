@@ -1,3 +1,6 @@
+Status: historical lane report. Prefer `SUMMARY.md` for the current PR1
+provenance summary.
+
 Implemented Lane 3 substrate turn handling.
 
 Changed:
@@ -12,4 +15,3 @@ Verification:
 - `find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` passed: 100 tests.
 
 Could not run the real server-backed command because this sandbox rejects binding the loop server: `listen EPERM: operation not permitted 0.0.0.0:8787`.
-

@@ -201,7 +201,7 @@ Three different “done” signals — do not conflate them in copy or dashboard
 Strong cold (one session can solidify):
   cold solid → strong #1 → primed → strong_cold_path → spacing → spaced solid → strong #2 → solidified
 
-Repair path (session complete ≠ solidified):
+Repair path (case complete can still be graph-primed, not solidified):
   cold shallow → partial → delta → repair_dialogue → bridge_ready → model bridge
   → spacing → spaced solid → strong #1 only → primed (+ evidence_hold if UI explains)
   → second strong spaced later (/redrill) → solidified

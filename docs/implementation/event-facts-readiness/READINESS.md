@@ -1,6 +1,8 @@
 # SEDA Event-Facts Readiness Review
 
-Status: `IN_PROGRESS`
+Status: historical readiness review. The implementation passed the full Phase 6
+validation ladder; use `PR_READY_SUMMARY.md`, current tests, and current runtime
+files for present truth.
 
 Candidate baseline: working tree diff from baseline ref
 `00448b2d76e5889a1760e0fa3b2182af47baf57f`.

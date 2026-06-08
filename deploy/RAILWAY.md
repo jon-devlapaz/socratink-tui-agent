@@ -237,7 +237,9 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 only after all Smoke jobs pass, pushes the current repo contents to Railway via
 CLI, forces `LOOP_APP_VERSION` to the canonical value from
 `lib/loop-server/version.mjs`, and waits until both the direct Railway health
-endpoint and `https://app.socratink.ai/health` report that version.
+endpoint and `https://app.socratink.ai/health` report that version. The action
+does not rely on a linked local Railway workspace; it targets the service using
+the explicit project/environment/service IDs from GitHub secrets.
 
 Required GitHub configuration:
 

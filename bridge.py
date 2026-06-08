@@ -52,8 +52,6 @@ if not hasattr(ai_service, "_normalize_drill_evaluation"):
 _fake_evaluation = bridge_fake.fake_evaluation
 _fake_map = bridge_fake.fake_map
 _fake_map_uses_cache_route = bridge_fake.fake_map_uses_cache_route
-_has_fake_causal_chain = bridge_fake.has_fake_causal_chain
-_is_fake_fluent_shallow = bridge_fake.is_fake_fluent_shallow
 _fake_repair_scaffold = bridge_fake.fake_repair_scaffold
 _fake_repair_dialogue = bridge_fake.fake_repair_dialogue
 _fake_socratic_repair_drill = bridge_fake.fake_socratic_repair_drill

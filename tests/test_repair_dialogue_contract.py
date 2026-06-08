@@ -120,9 +120,11 @@ def test_fake_route_varies_first_node_by_concept() -> None:
 
 
 def test_fake_route_immune_memory_not_cache() -> None:
-    assert bridge._fake_map_uses_cache_route("immune memory") is False
-    assert bridge._fake_map_uses_cache_route("caching in apis") is True
-    assert bridge._fake_map_uses_cache_route("memoization layer") is True
+    from bridge_fake_defaults import fake_map_uses_cache_route
+
+    assert fake_map_uses_cache_route("immune memory") is False
+    assert fake_map_uses_cache_route("caching in apis") is True
+    assert fake_map_uses_cache_route("memoization layer") is True
 
 
 def test_fake_mode_validates_prompt_template_slots() -> None:

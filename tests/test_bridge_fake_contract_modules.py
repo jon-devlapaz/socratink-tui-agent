@@ -42,28 +42,13 @@ def _repair_request() -> dict[str, Any]:
     }
 
 
-def test_fake_route_and_evaluator_helpers_are_importable_directly() -> None:
-    from bridge_fake import (
-        fake_map_uses_cache_route,
-        has_fake_causal_chain,
-        is_fake_fluent_shallow,
-    )
-
-    solid = (
-        "On the first request the server computes and stores it; when the same "
-        "request comes again it reads that stored result instead of recomputing, "
-        "so the later response is faster."
-    )
-    shallow = (
-        "Caching is a common performance optimization that stores data for "
-        "faster retrieval and improved response times in distributed web systems."
-    )
+def test_fake_route_helpers_use_concept_buckets() -> None:
+    from bridge_fake_defaults import fake_map_uses_cache_route, fake_map_uses_immune_route
 
     assert fake_map_uses_cache_route("immune memory") is False
     assert fake_map_uses_cache_route("caching in apis") is True
-    assert has_fake_causal_chain(solid) is True
-    assert is_fake_fluent_shallow(shallow) is True
-    assert has_fake_causal_chain(shallow) is False
+    assert fake_map_uses_immune_route("immune memory") is True
+    assert fake_map_uses_immune_route("caching in apis") is False
 
 
 def test_fake_substrate_gate_helper_covers_fast_slow_and_minimal() -> None:
@@ -118,6 +103,30 @@ def test_fake_evaluation_direct_helper_keeps_template_slot_validation() -> None:
         prompt_templates.TEMPLATES["evaluator"]["dynamic"] = original_dynamic
 
 
+def test_fake_evaluation_lookup_hit_for_l2_solid_case() -> None:
+    from bridge_fake import fake_evaluation
+
+    payload = fake_evaluation(
+        {
+            "node_id": "c1_s1",
+            "node_label": "Cache hit path",
+            "node_mechanism": (
+                "The first request computes and stores the result; later identical "
+                "requests read from cache and return faster."
+            ),
+            "learner_text": (
+                "On the first request the server computes the answer and stores it; "
+                "when the same request comes again it reads that stored result "
+                "instead of recomputing, so the later response is faster."
+            ),
+            "drill_mode": "cold_attempt",
+            "repair_drill_context": None,
+            "knowledge_map": {},
+        }
+    )
+    assert payload["evaluation"]["classification"] == "solid"
+
+
 def test_fake_scaffold_and_dialogue_helpers_are_importable_directly() -> None:
     from bridge_fake import (
         fake_repair_dialogue,
@@ -148,6 +157,26 @@ def test_fake_scaffold_and_dialogue_helpers_are_importable_directly() -> None:
     assert judge["graph_neutral"] is True
     assert judge["score_eligible"] is False
     assert judge["bridge_ready"] is True
+
+
+def test_fake_repair_dialogue_default_probe_again_on_miss() -> None:
+    from bridge_fake import fake_repair_dialogue
+
+    payload = fake_repair_dialogue(
+        {
+            "node_label": "Unmapped topic",
+            "node_mechanism": "No lookup row for this request.",
+            "gap_id": "gap-miss",
+            "missing_operation": "unknown step",
+            "before": "Before.",
+            "after": "After.",
+            "learner_text": "something unmatched",
+            "turn_index": 1,
+        }
+    )
+    judge = payload["repair_dialogue"]
+    assert judge["bridge_ready"] is False
+    assert judge["next_dialogue_action"] == "probe_again"
 
 
 def test_fake_repair_helpers_keep_template_slot_validation() -> None:

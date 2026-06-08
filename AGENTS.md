@@ -199,10 +199,11 @@ Prompt eval cases: `evals/prompts/` (`evals/README.md`). Key suites:
 `test_prompt_template.py` (13 template tests), `test_workspace_smoke.py`
 (end-to-end scripted TUI + harness/dashboard).
 
-Fake mode env vars:
-- `SOCRATINK_TUI_FAKE_LLM=1` — use fake evaluators instead of real LLM
-- `SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=solid|shallow|thin|misconception`
+Fake mode env vars (bridge **VCR stub**: knobs → lookup → defaults):
+- `SOCRATINK_TUI_FAKE_LLM=1` — use VCR stub instead of real LLM subprocess calls
+- `SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=solid|shallow|thin|misconception|deep`
 - `SOCRATINK_TUI_FAKE_SPACED_CLASSIFICATION=solid|shallow|…` — override spaced re-drill evaluator (recapture fixtures)
+- `SOCRATINK_TUI_FAKE_SUBSTRATE_CLASSIFICATION=fast|slow|minimal`
 - `SOCRATINK_TUI_FAKE_ROUTE_FAIL_ONCE=1` — test route retry
 - `SOCRATINK_TUI_FAKE_ROUTE_FAIL_ALWAYS=1` — test route exhaustion
 - `SOCRATINK_TUI_LOG_ROOT=/path` — session log destination

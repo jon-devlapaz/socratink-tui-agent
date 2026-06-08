@@ -111,7 +111,7 @@ Fake-mode env vars and fixture format: [`AGENTS.md`](AGENTS.md) § Testing.
 - Graph-neutral vs evidence-candidate event roles
 - `expected_invariants` on every promoted regression case
 - Broadcast (`session.json`, `product_loop`) derived from facts — see `lib/seda/session-record.mjs`
-- Fake validation app (`SOCRATINK_TUI_FAKE_LLM`) aligned to promoted traces
+- Fake validation app (`SOCRATINK_TUI_FAKE_LLM`) — bridge VCR stub aligned to promoted traces and L2 eval lookup rows
 
 **Light (explore first, promote when settled):**
 

@@ -194,7 +194,7 @@ Drift tests: `tests/js/policy-gates-registry.test.mjs`, `tests/test_bridge_post_
 
 | Goal | Keep | Replace |
 | --- | --- | --- |
-| Fake evaluators in CI | action ids + response shapes | LLM behind `SOCRATINK_TUI_FAKE_LLM` |
+| Fake evaluators in CI | action ids + response shapes | VCR stub behind `SOCRATINK_TUI_FAKE_LLM` (`bridge_fake_lookup.py` + env knobs) |
 | New provider | `bridge.py` CLI surface | `vendor/python/llm/` client |
 | Stricter cold gate | `evaluate-attempt` wire shape | `cold-gating.mjs` only |
 | Different repair judge | `RepairDialogueJudge` fields on event | prompt template + normalizer |

@@ -5,6 +5,7 @@ import { EventEmitter } from "node:events";
 
 import {
   cancelLabRun,
+  getLabRun,
   getLabRunSnapshot,
   resetLabRuns,
   startLabRun,
@@ -73,5 +74,38 @@ test("cancelLabRun writes cancel flag and kills CLI child", async () => {
 
   const snap = getLabRunSnapshot(runId);
   assert.ok(fs.existsSync(`${snap.outDir}/.cancel`));
+  resetLabRuns();
+});
+
+test("getLabRunSnapshot evicts terminal run from Map but still polls from disk", async () => {
+  resetLabRuns();
+  const spawnChild = mockSpawnChild();
+  const runId = startLabRun(
+    { cartridgeId: "jordan-ai", student: "cloud", allowFake: true },
+    { spawnChild },
+  );
+
+  await new Promise((r) => setTimeout(r, 10));
+  const outDir = getLabRunSnapshot(runId).outDir;
+  writeLabProgress(outDir, {
+    status: "done",
+    busy: false,
+    busyLabel: null,
+    brains: "tutor=sandbox student=cloud allow_fake=true",
+    log: {
+      brains: "tutor=sandbox student=cloud allow_fake=true",
+      turns: [{ n: 1, display: "AI" }],
+      final: { case_complete: true, hit_max_turns: false },
+    },
+  });
+
+  const done = getLabRunSnapshot(runId);
+  assert.equal(done.status, "done");
+  assert.equal(getLabRun(runId), null);
+
+  const fromDisk = getLabRunSnapshot(runId);
+  assert.equal(fromDisk.status, "done");
+  assert.equal(fromDisk.log.final.case_complete, true);
+
   resetLabRuns();
 });

@@ -123,28 +123,27 @@ jobs:
           done
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-      - name: Link Railway target
-        run: railway link --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE"
       - name: Sync Railway variables to repo version
         run: |
           LOOP_EXPECTED_VERSION="$(node --input-type=module -e "import { LOOP_APP_VERSION_DEFAULT } from './lib/loop-server/version.mjs'; console.log(LOOP_APP_VERSION_DEFAULT);")"
           echo "LOOP_EXPECTED_VERSION=$LOOP_EXPECTED_VERSION" >> "$GITHUB_ENV"
-          railway variables set --skip-deploys \
+          railway variable set --skip-deploys \
+            --project "$RAILWAY_PROJECT_ID" \
             --environment "$RAILWAY_ENVIRONMENT" \
             --service "$RAILWAY_SERVICE" \
             "GEMINI_API_KEY=${GEMINI_API_KEY}" \
             "LLM_MODEL=gemini-2.5-flash" \
             "LOOP_APP_VERSION=${LOOP_EXPECTED_VERSION}"
           if [[ -n "${SOCRATINK_FEEDBACK_WEBHOOK_URL:-}" ]]; then
-            railway variables set --skip-deploys --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
+            railway variable set --skip-deploys --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
               "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"
           fi
           if [[ -n "${SOCRATINK_FEEDBACK_SECRET:-}" ]]; then
-            railway variables set --skip-deploys --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
+            railway variable set --skip-deploys --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
               "SOCRATINK_FEEDBACK_SECRET=${SOCRATINK_FEEDBACK_SECRET}"
           fi
           if [[ -n "${SOCRATINK_FEEDBACK_TO:-}" ]]; then
-            railway variables set --skip-deploys --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
+            railway variable set --skip-deploys --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
               "SOCRATINK_FEEDBACK_TO=${SOCRATINK_FEEDBACK_TO}"
           fi
       - name: Deploy to Railway

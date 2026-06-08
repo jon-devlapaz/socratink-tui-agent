@@ -1,87 +1,27 @@
 #!/usr/bin/env node
 /**
- * Three-learner persona matrix for substrate gate (live Gemini on loop API).
- *
- * Profiles:
- *   1. novice     — blank launch → substrate seed → refinement (slow path)
- *   2. middle     — thin generative launch (middle-school voice)
- *   3. expert     — process-rich launch (fast path, no seed)
- *
- * Prerequisites:
- *   GEMINI_API_KEY in .env (or env)
- *   ./socratink-loop-server  (unset SOCRATINK_TUI_FAKE_LLM for live)
+ * Three-learner substrate gate matrix (novice / middle / expert cartridges).
  *
  * Usage:
  *   node scripts/run-substrate-persona-matrix.mjs
- *   node scripts/run-substrate-persona-matrix.mjs --allow-fake
+ *   node scripts/run-substrate-persona-matrix.mjs --profile novice --student local --allow-fake
  */
 
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import {
+  applyStudentProvider,
+  bootstrapPersonaEnv,
+  getCartridge,
+  preflightPersonaRun,
+  REPO_ROOT,
+  runPersonaSession,
+} from "../lib/lab/persona-runner.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
-const MAIN_VENV_PYTHON =
-  "/Users/jondev/dev/socratink/prod/socratink-tui-agent/.venv/bin/python";
-
-function resolvePersonaPython() {
-  if (process.env.SOCRATINK_PERSONA_PYTHON) {
-    return process.env.SOCRATINK_PERSONA_PYTHON;
-  }
-  const candidates = [
-    path.join(ROOT, ".venv/bin/python"),
-    MAIN_VENV_PYTHON,
-  ].filter((p) => fs.existsSync(p));
-  for (const candidate of candidates) {
-    const probe = spawnSync(candidate, ["-c", "from google import genai"], {
-      encoding: "utf8",
-    });
-    if (probe.status === 0) return candidate;
-  }
-  return candidates[0] || MAIN_VENV_PYTHON;
-}
-
-const PYTHON = resolvePersonaPython();
-const PERSONA_SCRIPT = path.join(ROOT, "scripts/loop_persona_turn.py");
-
-const PROFILES = [
-  {
-    id: "novice",
-    label: "Novice (explicit unknown)",
-    concept: "Immune memory",
-    learner_goal: "I want to explain why vaccines work, but I am starting from scratch.",
-    launch_attempt: "I don't know.",
-    substrate_refinement:
-      "Vaccines give the body a safe preview so it can learn before a real infection.",
-    persona_hint: "You are Mia, a true beginner. You needed the seed. Keep answers short.",
-  },
-  {
-    id: "middle_schooler",
-    label: "Middle schooler (thin but trying)",
-    concept: "Immune memory",
-    learner_goal: "I want to understand how vaccines help my body fight germs.",
-    launch_attempt:
-      "Vaccines put a little bit of the germ in you so your body learns how to fight it.",
-    substrate_refinement: null,
-    persona_hint:
-      "You are Sam, grade 7. You try with simple words; your ideas are incomplete but genuine.",
-  },
-  {
-    id: "expert",
-    label: "PhD systems researcher (fast substrate)",
-    concept: "Immune memory",
-    learner_goal:
-      "Map vaccine priming to a durable, faster secondary response.",
-    launch_attempt:
-      "A vaccine is a controlled, attenuated exposure: the immune system runs a training pass on antigen shape without paying the full pathogenic cost, so a later real infection can short-circuit to a faster effector response.",
-    substrate_refinement: null,
-    persona_hint:
-      "You are Dr. Chen. Precise mechanism language; you reconstruct causal chains.",
-  },
-];
+const MATRIX_IDS = ["novice", "middle_schooler", "expert"];
 
 function parseArgs(argv) {
   const options = {
@@ -89,7 +29,8 @@ function parseArgs(argv) {
     maxTurns: 20,
     allowFake: false,
     profiles: null,
-    outRoot: path.join(ROOT, ".qa-runs/substrate-persona-matrix"),
+    student: null,
+    outRoot: path.join(REPO_ROOT, ".qa-runs/substrate-persona-matrix"),
   };
   const args = [...argv.slice(2)];
   while (args.length) {
@@ -100,85 +41,15 @@ function parseArgs(argv) {
       options.profiles = options.profiles || [];
       options.profiles.push(args.shift());
     } else if (arg === "--allow-fake") options.allowFake = true;
+    else if (arg === "--student") options.student = args.shift();
     else if (arg === "--help" || arg === "-h") {
       console.log(
-        "Usage: node scripts/run-substrate-persona-matrix.mjs [--profile id] [--allow-fake]",
+        "Usage: node scripts/run-substrate-persona-matrix.mjs [--profile novice] [--student local|cloud] [--allow-fake]",
       );
       process.exit(0);
     } else throw new Error(`unknown argument: ${arg}`);
   }
   return options;
-}
-
-async function fetchJson(url, init) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 300_000);
-  try {
-    const res = await fetch(url, { ...init, signal: controller.signal });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || res.statusText || `HTTP ${res.status}`);
-    return body;
-  } catch (err) {
-    if (err?.name === "AbortError") {
-      throw new Error(`request timed out after 300s: ${url}`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-function transcriptText(lines) {
-  return (lines || []).map((line) => line.text || "").join("\n");
-}
-
-function isContinueAwaiting(session) {
-  return session.awaiting?.key === "continue";
-}
-
-function scriptedInput(session, profile) {
-  const key = session.awaiting?.key;
-  if (key === "concept" || (key === "cmd" && session.phase === "idle")) {
-    return profile.concept;
-  }
-  if (key === "learner_goal") return profile.learner_goal;
-  if (key === "launch_attempt") return profile.launch_attempt;
-  if (key === "substrate_refinement" && profile.substrate_refinement) {
-    return profile.substrate_refinement;
-  }
-  if (key === "run_gap_drill") return "y";
-  return null;
-}
-
-function fakeFallback(session) {
-  const key = session.awaiting?.key;
-  if (key === "substrate_refinement") {
-    return "Vaccines give the body a safe preview so it can respond faster later.";
-  }
-  if (key === "cold_attempt" || key === "spaced_attempt" || key === "gap_attempt") {
-    return "A vaccine presents antigen safely; memory cells make the next response faster.";
-  }
-  return null;
-}
-
-function personaTurn(profile, session) {
-  const result = spawnSync(PYTHON, [PERSONA_SCRIPT], {
-    cwd: ROOT,
-    input: JSON.stringify({
-      concept: profile.concept,
-      learner_goal: profile.learner_goal,
-      phase: session.phase,
-      awaiting_label: session.awaiting?.label || session.awaiting?.key || "",
-      transcript_text: transcriptText(session.transcript),
-      persona_hint: profile.persona_hint,
-    }),
-    encoding: "utf8",
-    env: process.env,
-  });
-  if (result.status !== 0) {
-    throw new Error(result.stderr || result.stdout || "persona turn failed");
-  }
-  return result.stdout.trim();
 }
 
 function substrateMetrics(events) {
@@ -203,131 +74,92 @@ function substrateMetrics(events) {
   };
 }
 
+function collectFriction(profile, metrics) {
+  const friction = [];
+  if (profile.id === "novice-immune-memory") {
+    if (!metrics.has_substrate_seed) friction.push("Expected substrate_seed_offered for novice — missing.");
+    if (!metrics.seed_before_route) friction.push("Expected seed before route_generated — order wrong.");
+    if (metrics.turn_count_at_first_awaiting_refinement == null) {
+      friction.push("Never reached substrate_refinement awaiting state.");
+    }
+  }
+  if (profile.id === "expert-immune-memory") {
+    if (metrics.has_substrate_seed) {
+      friction.push("Expert should fast-path without substrate_seed_offered.");
+    }
+    if (!metrics.confirmed_before_route) {
+      friction.push("Expected substrate_confirmed before route.");
+    }
+  }
+  return friction;
+}
+
 async function runProfile(profile, options, health) {
-  const log = {
-    profile: profile.id,
-    label: profile.label,
-    concept: profile.concept,
-    learner_goal: profile.learner_goal,
-    launch_attempt: profile.launch_attempt,
-    turns: [],
-    metrics: null,
-    friction: [],
-  };
+  const { log, session } = await runPersonaSession({
+    profile,
+    baseUrl: options.baseUrl,
+    maxTurns: options.maxTurns,
+    allowFake: options.allowFake,
+    health,
+    onTurn: (turn) => {
+      console.log(
+        `  [${profile.id} turn ${turn.n}] phase=${turn.phase} key=${turn.awaiting_key_before || "?"} » ${turn.display.slice(0, 90)}${turn.display.length > 90 ? "…" : ""}`,
+      );
+    },
+  });
 
-  let session = await fetchJson(`${options.baseUrl}/api/session`, { method: "POST" });
-  let turns = 0;
-
-  while (!session.complete && !session.caseComplete && turns < options.maxTurns) {
-    const beforeKey = session.awaiting?.key;
-    const transportContinue = isContinueAwaiting(session);
-    let text = transportContinue ? "" : scriptedInput(session, profile);
-    if (!transportContinue && !text && options.allowFake && health.fake_llm) {
-      text = fakeFallback(session);
-    }
-    if (!transportContinue && !text) {
-      text = personaTurn(profile, session);
-    }
-    const body = transportContinue ? {} : { text };
-    const displayText = transportContinue ? "[continue]" : text;
-
-    console.log(
-      `  [${profile.id} turn ${turns + 1}] phase=${session.phase} key=${beforeKey || "?"} » ${displayText.slice(0, 90)}${displayText.length > 90 ? "…" : ""}`,
-    );
-
-    session = await fetchJson(
-      `${options.baseUrl}/api/session/${session.sessionId}/turn`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
-
+  const metrics = substrateMetrics(session.events);
+  for (const turn of log.turns) {
     if (
-      beforeKey !== "substrate_refinement" &&
-      session.awaiting?.key === "substrate_refinement"
+      turn.awaiting_key_before !== "substrate_refinement" &&
+      turn.awaiting?.key === "substrate_refinement"
     ) {
-      log.metrics = log.metrics || {};
-      log.metrics.turn_count_at_first_awaiting_refinement = turns + 1;
+      metrics.turn_count_at_first_awaiting_refinement = turn.n;
     }
-
-    log.turns.push({
-      input: transportContinue ? null : text,
-      transport_continue: transportContinue,
-      phase: session.phase,
-      status: session.status,
-      awaiting: session.awaiting,
-      transcript_delta: session.transcript,
-    });
-    turns += 1;
   }
 
-  log.metrics = { ...substrateMetrics(session.events), ...log.metrics };
-  log.final = {
-    status: session.status,
-    phase: session.phase,
-    complete: session.complete,
-    case_complete: session.caseComplete,
+  const friction = collectFriction(profile, metrics);
+  return {
+    profile: profile.id.replace(/-immune-memory$/, ""),
+    label: profile.label,
+    brains: log.brains,
+    turns: log.turns,
+    metrics,
+    friction,
+    final: log.final,
   };
-
-  if (profile.id === "novice") {
-    if (!log.metrics.has_substrate_seed) {
-      log.friction.push("Expected substrate_seed_offered for novice — missing.");
-    }
-    if (!log.metrics.seed_before_route) {
-      log.friction.push("Expected seed before route_generated — order wrong.");
-    }
-    if (log.metrics.turn_count_at_first_awaiting_refinement == null) {
-      log.friction.push("Never reached substrate_refinement awaiting state.");
-    }
-  }
-  if (profile.id === "expert") {
-    if (log.metrics.has_substrate_seed) {
-      log.friction.push("Expert should fast-path without substrate_seed_offered.");
-    }
-    if (!log.metrics.confirmed_before_route) {
-      log.friction.push("Expected substrate_confirmed before route.");
-    }
-  }
-
-  return log;
 }
 
 async function main() {
+  bootstrapPersonaEnv(REPO_ROOT);
   const options = parseArgs(process.argv);
+  if (options.student) applyStudentProvider(options.student);
+
   const stamp = new Date().toISOString().replaceAll(":", "T").slice(0, 19);
   const outDir = path.join(options.outRoot, stamp);
   fs.mkdirSync(outDir, { recursive: true });
 
-  const health = await fetchJson(`${options.baseUrl}/health`);
-  if (health.fake_llm && !options.allowFake) {
-    console.error(
-      "Server is FAKE_LLM. Restart without SOCRATINK_TUI_FAKE_LLM or pass --allow-fake.",
-    );
-    process.exit(1);
-  }
+  const health = await preflightPersonaRun({
+    baseUrl: options.baseUrl,
+    allowFake: options.allowFake,
+    student: options.student,
+  });
 
-  console.log(
-    `[matrix] mode=${health.llm_mode} fake=${health.fake_llm} base=${options.baseUrl}`,
-  );
+  console.log(`[matrix] ${health.llm_mode} fake=${health.fake_llm} base=${options.baseUrl}`);
 
-  const profileList = options.profiles?.length
-    ? PROFILES.filter((p) => options.profiles.includes(p.id))
-    : PROFILES;
-  if (!profileList.length) {
-    throw new Error(`no profiles match: ${options.profiles?.join(", ")}`);
-  }
+  const profileIds = options.profiles?.length ? options.profiles : MATRIX_IDS;
+  const profiles = profileIds.map((id) => getCartridge(id));
+  if (!profiles.length) throw new Error(`no profiles match: ${profileIds.join(", ")}`);
 
   const results = [];
-  for (const profile of profileList) {
+  for (const profile of profiles) {
     console.log(`\n[matrix] === ${profile.label} ===`);
     const log = await runProfile(profile, options, health);
     results.push(log);
-    const outPath = path.join(outDir, `${profile.id}.json`);
+    const outPath = path.join(outDir, `${log.profile}.json`);
     fs.writeFileSync(outPath, JSON.stringify(log, null, 2));
     console.log(
-      `[matrix] ${profile.id}: events=${log.metrics.event_types.length} friction=${log.friction.length} case_complete=${log.final.case_complete}`,
+      `[matrix] ${log.profile}: brains=${log.brains} events=${log.metrics.event_types.length} friction=${log.friction.length} case_complete=${log.final.case_complete}`,
     );
   }
 
@@ -335,13 +167,13 @@ async function main() {
   const lines = [
     `# Substrate persona matrix (${health.fake_llm ? "fake" : "live"})`,
     "",
-    `| Profile | Seed | Confirmed→Route | Case complete | Friction |`,
-    `|---------|------|-----------------|---------------|----------|`,
+    `| Profile | Brains | Seed | Confirmed→Route | Case complete | Friction |`,
+    `|---------|--------|------|-----------------|---------------|----------|`,
   ];
   for (const log of results) {
     const m = log.metrics;
     lines.push(
-      `| ${log.profile} | ${m.has_substrate_seed ? "yes" : "no"} | ${m.confirmed_before_route ? "yes" : "no"} | ${log.final.case_complete ? "yes" : "no"} | ${log.friction.length ? log.friction.join("; ") : "—"} |`,
+      `| ${log.profile} | ${log.brains} | ${m.has_substrate_seed ? "yes" : "no"} | ${m.confirmed_before_route ? "yes" : "no"} | ${log.final.case_complete ? "yes" : "no"} | ${log.friction.length ? log.friction.join("; ") : "—"} |`,
     );
     lines.push("");
     lines.push(`### ${log.profile} event order`);

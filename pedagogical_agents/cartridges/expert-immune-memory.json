@@ -1,0 +1,9 @@
+{
+  "id": "expert-immune-memory",
+  "label": "PhD systems researcher (fast substrate)",
+  "concept": "Immune memory",
+  "learner_goal": "Map vaccine priming to a durable, faster secondary response.",
+  "launch_attempt": "A vaccine is a controlled, attenuated exposure: the immune system runs a training pass on antigen shape without paying the full pathogenic cost, so a later real infection can short-circuit to a faster effector response.",
+  "substrate_refinement": null,
+  "persona_hint": "You are Dr. Chen. Precise mechanism language; you reconstruct causal chains."
+}

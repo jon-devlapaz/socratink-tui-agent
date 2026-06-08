@@ -317,6 +317,8 @@ Two channels — see **Throughline**. Details:
 - Loop chat UI must not expose `/redrill` in startup help; spaced re-drill is automatic, not a learner command.
 - For main-app loop integration, use path proxy at `app.socratink.ai/loop` (sibling `socratink-app`) over native SPA embed until graph integration is needed.
 - For substantial feature implementation, prefer **Codex (gpt-5.5, high reasoning)** in an isolated worktree; Cursor owns spec (`CONTEXT.md`, ADRs), review, verification, and merge.
+- For lab/persona orchestration, prefer spawning the existing CLI with file-based progress (`lab-progress.json`) over in-process runners or fork+IPC workers on loop-server.
+- After lab ship, prefer outer persona validation (substrate/repair via `novice-immune-memory`, one traceable product fix) over more lab infrastructure.
 - Use **Confirmed Substrate**, **Substrate Gate**, and related terms from `CONTEXT.md`; avoid informal **floor** in code, docs, and prompts.
 
 ## Learned Workspace Facts
@@ -331,5 +333,8 @@ Two channels — see **Throughline**. Details:
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
 - `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). **Bump it on every PR** (patch step: `v0.02` → `v0.03`). `railway-deploy.sh` reads it automatically; optional `LOOP_APP_VERSION` in `.env` overrides locally.
 - Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).
-- `scripts/railway-deploy.sh` wraps `railway variables set --skip-deploys` to avoid Railway CLI backboard timeouts.
+- Smoke CI and `scripts/railway-deploy.sh` set Railway vars with `railway variable set --skip-deploys --project …` (no `railway link`); deploy script uses `--skip-deploys` to avoid backboard timeouts.
+- **Founder Lab + persona runs:** `/lab` at `http://127.0.0.1:8787/lab` when `SOCRATINK_LAB_ENABLED=1` (loopback-only); lab spawns `loop-persona-live.mjs` and reads `lab-progress.json`. Shared runner `lib/lab/persona-runner.mjs`, cartridges in `pedagogical_agents/cartridges/`, CLI `./socratink-persona-lab`; local mock student via `PERSONA_LLM_*` (LM Studio `openai_compatible`).
+- Fast doc/architecture gate before doc trims: `./scripts/check-seda-spine.sh`; full release ladder lives in `HARNESS-TRACEABILITY.md`.
+- Persona cartridges: `jordan-ai` = lab instrument smoke only; `novice-immune-memory` (or substrate matrix) validates substrate seed/refinement and repair paths.
 - Separate from sibling `../socratink-tui`: own git history; do not copy remotes or history from the old lab checkout.

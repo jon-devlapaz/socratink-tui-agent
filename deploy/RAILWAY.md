@@ -182,7 +182,7 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 
 | Task | How |
 |------|-----|
-| Deploy update | `git push` → Railway auto-build |
+| Deploy update | `git push origin main` → Smoke CI → production deploy job → verify direct Railway + `app.socratink.ai/health` match repo version |
 | Rollback | Railway → Deployments → redeploy previous |
 | Logs | Railway deploy + runtime logs; search `bridge`, `error` |
 | Cost | Railway dashboard + Google AI Studio usage |
@@ -229,7 +229,37 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 - Supabase / app account auth  
 - Durable session store (Redis)  
 - `SOCRATINK_LOOP_API_KEY` without browser wiring  
-- CI deploy gate (add GitHub Action later if desired)
+- Automatic Vercel env rewiring if the Railway public domain itself changes
+
+## GitHub Actions production deploy
+
+`main` now has a production deploy job in `.github/workflows/smoke.yml`. It runs
+only after all Smoke jobs pass, pushes the current repo contents to Railway via
+CLI, forces `LOOP_APP_VERSION` to the canonical value from
+`lib/loop-server/version.mjs`, and waits until both the direct Railway health
+endpoint and `https://app.socratink.ai/health` report that version.
+
+Required GitHub configuration:
+
+| Key | Type | Purpose |
+|-----|------|---------|
+| `RAILWAY_TOKEN` | secret | Railway project token for CI deploys |
+| `RAILWAY_PROJECT_ID` | secret | Target Railway project |
+| `RAILWAY_ENVIRONMENT` | secret | Usually `production` |
+| `RAILWAY_SERVICE` | secret | Loop service name or ID |
+| `GEMINI_API_KEY` | secret | Live model key |
+| `SOCRATINK_FEEDBACK_WEBHOOK_URL` | secret, optional | Feedback delivery |
+| `SOCRATINK_FEEDBACK_SECRET` | secret, optional | Feedback signing |
+| `SOCRATINK_FEEDBACK_TO` | secret, optional | Mailto fallback |
+| `RAILWAY_LOOP_HEALTH_URL` | variable | Direct Railway `/health` URL |
+
+Local/manual verification uses:
+
+```bash
+RAILWAY_LOOP_HEALTH_URL=https://loop-production-07a3.up.railway.app/health \
+APP_LOOP_HEALTH_URL=https://app.socratink.ai/health \
+node scripts/verify-live-loop-version.mjs
+```
 
 ---
 
@@ -237,6 +267,6 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 
 1. **Optional:** `.dockerignore` + bind `0.0.0.0` explicitly in `http-server.mjs` (defensive).  
 2. **Optional:** `/loop/config.js` for API key when hardening public URL.  
-3. **Optional:** GitHub Action — `docker build` + `verify-loop-gemini` against staging URL on PR.
+3. **Optional:** add a staging deploy/verification lane for PR branches if you want pre-merge hosted proof.
 
 When Phase 4 is green, you are ready to invite power users.

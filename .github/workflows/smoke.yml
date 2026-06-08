@@ -83,3 +83,71 @@ jobs:
           SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
       - name: Workspace smoke + contract tests (pytest)
         run: .venv/bin/pytest tests/test_workspace_smoke.py tests/test_app_contract.py -q
+
+  deploy-production:
+    name: Deploy production loop
+    runs-on: ubuntu-latest
+    needs: [prompt-templates, canon, scripted-loop]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_ENVIRONMENT: ${{ secrets.RAILWAY_ENVIRONMENT }}
+      RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SOCRATINK_FEEDBACK_WEBHOOK_URL: ${{ secrets.SOCRATINK_FEEDBACK_WEBHOOK_URL }}
+      SOCRATINK_FEEDBACK_SECRET: ${{ secrets.SOCRATINK_FEEDBACK_SECRET }}
+      SOCRATINK_FEEDBACK_TO: ${{ secrets.SOCRATINK_FEEDBACK_TO }}
+      RAILWAY_LOOP_HEALTH_URL: ${{ vars.RAILWAY_LOOP_HEALTH_URL }}
+      APP_LOOP_HEALTH_URL: https://app.socratink.ai/health
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate production deploy config
+        run: |
+          required=(
+            RAILWAY_TOKEN
+            RAILWAY_PROJECT_ID
+            RAILWAY_ENVIRONMENT
+            RAILWAY_SERVICE
+            GEMINI_API_KEY
+            RAILWAY_LOOP_HEALTH_URL
+          )
+          for key in "${required[@]}"; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "Missing required GitHub secret/variable: $key" >&2
+              exit 1
+            fi
+          done
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      - name: Link Railway target
+        run: railway link --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE"
+      - name: Sync Railway variables to repo version
+        run: |
+          LOOP_EXPECTED_VERSION="$(node --input-type=module -e "import { LOOP_APP_VERSION_DEFAULT } from './lib/loop-server/version.mjs'; console.log(LOOP_APP_VERSION_DEFAULT);")"
+          echo "LOOP_EXPECTED_VERSION=$LOOP_EXPECTED_VERSION" >> "$GITHUB_ENV"
+          railway variables set --skip-deploys \
+            --environment "$RAILWAY_ENVIRONMENT" \
+            --service "$RAILWAY_SERVICE" \
+            "GEMINI_API_KEY=${GEMINI_API_KEY}" \
+            "LLM_MODEL=gemini-2.5-flash" \
+            "LOOP_APP_VERSION=${LOOP_EXPECTED_VERSION}"
+          if [[ -n "${SOCRATINK_FEEDBACK_WEBHOOK_URL:-}" ]]; then
+            railway variables set --skip-deploys --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
+              "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"
+          fi
+          if [[ -n "${SOCRATINK_FEEDBACK_SECRET:-}" ]]; then
+            railway variables set --skip-deploys --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
+              "SOCRATINK_FEEDBACK_SECRET=${SOCRATINK_FEEDBACK_SECRET}"
+          fi
+          if [[ -n "${SOCRATINK_FEEDBACK_TO:-}" ]]; then
+            railway variables set --skip-deploys --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
+              "SOCRATINK_FEEDBACK_TO=${SOCRATINK_FEEDBACK_TO}"
+          fi
+      - name: Deploy to Railway
+        run: railway up --ci --service "$RAILWAY_SERVICE" --environment "$RAILWAY_ENVIRONMENT" --project "$RAILWAY_PROJECT_ID"
+      - name: Verify Railway and app.socratink.ai are on the deployed version
+        run: node scripts/verify-live-loop-version.mjs

@@ -6,6 +6,7 @@ import {
   DIRECT_PHASE,
   MAX_REPAIR_TURNS,
 } from "../../lib/seda/next-phase.mjs";
+import { eventDefinition } from "../../lib/seda/event-facts.mjs";
 
 const ev = (type, extra = {}) => ({ type, ...extra });
 
@@ -20,6 +21,7 @@ test("DIRECT_PHASE table is honored for direct event types", () => {
     substrate_refinement: "substrate_gate",
     substrate_support_exhausted: "substrate_gate",
     substrate_confirmed: "route",
+    route_retry: "route",
     route_generated: "cold_attempt",
     strong_cold_path: "spacing",
     gap_identified: "repair_dialogue",
@@ -39,6 +41,15 @@ test("DIRECT_PHASE table is honored for direct event types", () => {
   for (const [type, expected] of Object.entries(cases)) {
     assert.equal(nextPhase([ev(type)]), expected, `${type} -> ${expected}`);
   }
+});
+
+test("terminal route_retry resumes to route phase", () => {
+  assert.equal(eventDefinition("route_retry").routing_fact, true);
+  assert.equal(nextPhase([ev("route_retry")]), "route");
+  assert.equal(
+    nextPhase([ev("substrate_confirmed"), ev("route_retry")]),
+    "route",
+  );
 });
 
 test("idle_exit terminates the loop (null)", () => {

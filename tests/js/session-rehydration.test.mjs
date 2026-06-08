@@ -119,6 +119,25 @@ async function rehydrate(events) {
   return { kernel, training };
 }
 
+test("resume after terminal route_retry derives route phase without throwing", async () => {
+  const { kernel } = await rehydrate([
+    launchEvent,
+    { type: "substrate_confirmed", adequacy: "adequate", graph_neutral: true },
+    {
+      type: "route_retry",
+      attempt: 1,
+      error: "SmallestRouteCapExceeded",
+      message: "copies hidden mechanism",
+      graph_neutral: true,
+    },
+  ]);
+
+  assert.equal(kernel.phase, "route");
+  assert.equal(kernel.ctx.concept, "Immune memory");
+  assert.equal(kernel.ctx.launchAttempt, "Vaccines give a safe preview.");
+  assert.equal(kernel.ctx.route, null);
+});
+
 test("resume after route generation reconstructs launch and route ctx", async () => {
   const { kernel, training } = await rehydrate(baseEvents());
 

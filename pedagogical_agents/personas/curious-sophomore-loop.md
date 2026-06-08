@@ -45,3 +45,40 @@ unset SOCRATINK_TUI_FAKE_LLM
 ```
 
 Logs land in `.qa-runs/loop-persona/<timestamp>/`.
+
+## Persona Lab CLI (cartridge runner)
+
+Cartridges live in `pedagogical_agents/cartridges/`. The runner loads `.env`, preflights loop + student brain, and logs `tutor=… student=… allow_fake=…` on every run.
+
+```bash
+# Terminal 1
+SOCRATINK_TUI_FAKE_LLM=1 ./socratink-loop-server
+
+# Terminal 2 — local LM Studio student, fake bridge
+./socratink-persona-lab --cartridge jordan-ai --student local --allow-fake
+
+# Cloud student (Gemini) against live bridge
+./socratink-persona-lab --cartridge jordan-ai --student cloud
+```
+
+Substrate matrix (three cartridges):
+
+```bash
+node scripts/run-substrate-persona-matrix.mjs --student local --allow-fake
+```
+
+LM Studio must expose `/v1/models`. Gemma 4 needs `reasoning_effort: "none"` (handled in `loop_persona_turn.py`).
+
+## Founder Lab GUI (localhost)
+
+Browser panel at `http://127.0.0.1:8787/lab` when loop-server runs with `SOCRATINK_LAB_ENABLED=1`. Loopback-only — not exposed on Railway unless you explicitly set the env var.
+
+```bash
+# Terminal 1
+SOCRATINK_LAB_ENABLED=1 SOCRATINK_TUI_FAKE_LLM=1 ./socratink-loop-server
+
+# Browser
+open http://127.0.0.1:8787/lab
+```
+
+Pick a cartridge, choose **Local** or **Cloud** student brain, and **Run**. The GUI spawns the same `loop-persona-live.mjs` CLI as `./socratink-persona-lab`; live state is written to `lab-progress.json` in the run folder while the theater polls it. Artifacts land in `.qa-runs/loop-persona/<timestamp>/` (`persona-run.json`, `REPORT.md`, `lab-progress.json`).

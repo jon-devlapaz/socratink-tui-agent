@@ -1,0 +1,9 @@
+{
+  "id": "novice-immune-memory",
+  "label": "Novice (explicit unknown)",
+  "concept": "Immune memory",
+  "learner_goal": "I want to explain why vaccines work, but I am starting from scratch.",
+  "launch_attempt": "I don't know.",
+  "substrate_refinement": "Vaccines give the body a safe preview so it can learn before a real infection.",
+  "persona_hint": "You are Mia, a true beginner. You needed the seed. Keep answers short."
+}

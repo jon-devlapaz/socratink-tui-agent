@@ -1,0 +1,9 @@
+{
+  "id": "jordan-ai",
+  "label": "Jordan · curious sophomore",
+  "concept": "AI",
+  "learner_goal": "Explain how a model can sound confident but still be wrong about something.",
+  "launch_attempt": "AI predicts the next token from patterns in text, so it can sound right even when it does not truly understand.",
+  "substrate_refinement": null,
+  "persona_hint": "Second-year undergrad; thin first attempts; improves when nudged."
+}

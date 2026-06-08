@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#141210">
+  <title>socratink founder lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/loop/loop.css">
+  <link rel="stylesheet" href="/lab/lab.css">
+</head>
+<body>
+  <main class="shell lab-shell">
+    <header class="chrome">
+      <div class="brand">
+        <span class="brand-name">socratink</span>
+        <span class="brand-loop">founder lab</span>
+      </div>
+      <div class="chrome-meta lab-pills">
+        <span id="loop-pill" class="llm-pill" data-mode="checking">loop…</span>
+        <span id="tutor-pill" class="llm-pill" data-mode="checking">tutor…</span>
+        <span id="student-pill" class="llm-pill" data-mode="checking">student…</span>
+      </div>
+    </header>
+
+    <p class="lab-hint">Start loop-server in another terminal: <code>SOCRATINK_LAB_ENABLED=1 ./socratink-loop-server</code></p>
+
+    <section class="lab-bay" aria-label="Cartridge bay">
+      <div class="lab-controls">
+        <label class="lab-field">
+          <span>Cartridge</span>
+          <select id="cartridge-select"></select>
+        </label>
+        <label class="lab-field">
+          <span>Student brain</span>
+          <select id="student-select">
+            <option value="local">Local (LM Studio)</option>
+            <option value="cloud">Cloud (Gemini)</option>
+          </select>
+        </label>
+        <label class="lab-field lab-field-narrow">
+          <span>Max turns</span>
+          <input id="max-turns" type="number" min="1" max="48" value="24">
+        </label>
+        <label class="lab-check">
+          <input id="allow-fake" type="checkbox">
+          Allow sandbox tutor stubs
+        </label>
+        <div class="lab-actions">
+          <button id="run-btn" type="button" class="lab-btn lab-btn-primary">Run</button>
+          <button id="cancel-btn" type="button" class="lab-btn" disabled>Cancel</button>
+        </div>
+      </div>
+      <article id="cartridge-preview" class="cartridge-preview" hidden></article>
+    </section>
+
+    <section id="theater" class="terminal lab-theater" aria-label="Persona run output" aria-busy="false">
+      <div id="run-header" class="run-header" hidden></div>
+      <div id="busy-bar" class="busy-bar" hidden>
+        <span class="braille-spinner" aria-hidden="true"></span>
+        <span id="busy-label">working…</span>
+      </div>
+      <div id="banner" class="run-banner" hidden></div>
+      <div id="transcript" class="transcript" aria-live="polite"></div>
+      <div class="lab-footer">
+        <button id="open-folder-btn" type="button" class="lab-btn" hidden disabled>Open run folder</button>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/lab/lab.js?v=0.11"></script>
+</body>
+</html>

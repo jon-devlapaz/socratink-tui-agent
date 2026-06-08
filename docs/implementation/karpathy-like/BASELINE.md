@@ -82,3 +82,8 @@ and was intentionally left untouched during the five-phase run.
 Follow-up change: the user explicitly asked to fold this wrapper change into the
 same work. The final report treats `socratink-loop-server` as goal-owned and
 the loop version is bumped accordingly.
+
+## Debloat
+
+Repo-native size/hygiene assessment (pygount scope, JSON/trace path
+constraints, do-not-do list): `debloat-assessment.md` in this folder.

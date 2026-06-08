@@ -24,28 +24,16 @@ cp .env.example .env          # GEMINI_API_KEY for live sessions
 ## Verify (no API key)
 
 ```bash
-./scripts/check-canon-drift.sh
 ./scripts/check-seda-spine.sh
-.venv/bin/pytest tests/test_prompt_template.py tests/test_prompt_eval_evaluator.py tests/test_prompt_eval_repair_dialogue.py -q
-find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
-SOCRATINK_TUI_FAKE_LLM=1 ./socratink-tui --scripted fixtures/source_less_script.json --color=never
 ```
 
-Use `./scripts/check-seda-spine.sh` for the fast architecture spine: router purity,
-append-only event writes, event-fact invariants, hosted pacing boundaries, and
-promoted routing traces. Use the full ladder above before release or when bridge,
-canon, Python, or hosted UI behavior changes.
+Full merge ladder (canon, JS, Python, harness replay, scripted smoke, hosted UI):
+[`HARNESS-TRACEABILITY.md` § Release ladder](HARNESS-TRACEABILITY.md#release-ladder).
 
-`tests/js/loop-chat-ui.test.mjs` is server-backed, not part of the
-self-contained Node test set. Run it with the loop server:
+For a quick human smoke without the full ladder:
 
 ```bash
-SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
-SOCRATINK_TUI_FAKE_LLM=1 \
-SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-  node --no-warnings loop-server.mjs
-
-SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
+SOCRATINK_TUI_FAKE_LLM=1 ./socratink-tui --scripted fixtures/source_less_script.json --color=never
 ```
 
 ## A/B vs full lab (live Gemini)

@@ -8,6 +8,18 @@ Harness substrate contract (layers, invariants, Moss mapping): `HARNESS.md`.
 V-model traceability map for agents (requirements ↔ verification tiers): `HARNESS-TRACEABILITY.md`.
 Product vocabulary (glossary only): `CONTEXT.md`.
 
+## Doc map (one owner per concern)
+
+| Concern | Owner | Others should |
+| --- | --- | --- |
+| Throughline, graph honesty, agent tasks | this file | Link here; do not restate routing rules |
+| Product vocabulary | `CONTEXT.md` | Glossary only — no implementation or test commands |
+| Substrate invariants, Moss map, observability | `HARNESS.md` | Link inward; no release ladder duplication |
+| V-model tiers, release ladder, merge checklist | `HARNESS-TRACEABILITY.md` | Executable gates only — not pedagogy or graph-honesty lists |
+| Human onboarding | `README.md` | Point to spine + release ladder; no architecture depth |
+
+**Fast spine gate:** `./scripts/check-seda-spine.sh`. **Full release ladder:** `HARNESS-TRACEABILITY.md` § Release ladder.
+
 ## Throughline (read before editing)
 
 One story about state — everything else is detail:
@@ -179,57 +191,13 @@ To add or modify a prompt:
 
 ## Testing
 
-### Canon drift
-```bash
-./scripts/check-canon-drift.sh
-```
+Tiered commands live in **`HARNESS-TRACEABILITY.md` § Release ladder** (spine →
+merge → prompt evals → hosted UI). Use `./scripts/check-seda-spine.sh` for
+architecture/router/event-fact changes; run the full ladder before release.
 
-### Python tests
-```bash
-.venv/bin/pytest tests -q
-```
-
-### Self-contained JS tests
-```bash
-find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
-```
-
-Architecture guard (throughline): `tests/js/architecture-fitness.test.mjs` — pure
-`nextPhase`, append-only `events[]`, handler registry, SEDA boundary edges.
-
-### Loop chat UI tests (server-backed)
-```bash
-SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
-SOCRATINK_TUI_FAKE_LLM=1 \
-SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-  node --no-warnings loop-server.mjs
-
-SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
-```
-
-### Prompt evals (L2, fake CI gate)
-```bash
-.venv/bin/pytest \
-  tests/test_prompt_eval_repair_dialogue.py \
-  tests/test_prompt_eval_evaluator.py \
-  tests/test_repair_dialogue_contract.py \
-  tests/test_prompt_template.py -q
-```
-Cases live under `evals/prompts/`; see `evals/README.md`.
-- `test_prompt_template.py` — 13 tests for template system
-- `test_workspace_smoke.py` — end-to-end scripted TUI + harness/dashboard
-
-### Harness regression
-```bash
-./socratink-harness replay
-```
-
-### Scripted TUI (fake LLM)
-```bash
-SOCRATINK_TUI_FAKE_LLM=1 \
-SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-./socratink-tui --scripted fixtures/source_less_script.json --color=never
-```
+Prompt eval cases: `evals/prompts/` (`evals/README.md`). Key suites:
+`test_prompt_template.py` (13 template tests), `test_workspace_smoke.py`
+(end-to-end scripted TUI + harness/dashboard).
 
 Fake mode env vars:
 - `SOCRATINK_TUI_FAKE_LLM=1` — use fake evaluators instead of real LLM
@@ -288,7 +256,7 @@ Two channels — see **Throughline**. Details:
 3. Implement the handler (append facts; do not route)
 4. Register in `HANDLERS` (`lib/seda/handlers/index.mjs`)
 5. Add a fixture exercising the new path
-6. Run `tests/js/architecture-fitness.test.mjs` and `./socratink-harness replay`
+6. Run `./scripts/check-seda-spine.sh` and `./socratink-harness replay`
 
 ### Bumping the loop release version (every PR)
 

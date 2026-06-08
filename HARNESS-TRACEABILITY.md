@@ -7,6 +7,10 @@ contract) and [`AGENTS.md`](AGENTS.md) (throughline + SEDA loop).
 **Throughline (all tiers):** handlers append facts → `nextPhase(events)` routes.
 Requirements belong on events and invariants, not handler `if` chains.
 
+**Doc map:** vocabulary → [`CONTEXT.md`](CONTEXT.md); substrate contract →
+[`HARNESS.md`](HARNESS.md); throughline + agent tasks → [`AGENTS.md`](AGENTS.md);
+human onboarding → [`README.md`](README.md).
+
 ```text
 CONOPS / requirements  ←————————→  validation / verification
         ↓                                    ↑
@@ -43,6 +47,62 @@ executable (`pytest`, `node --test`, `./socratink-harness replay`).
 Evaluator `solid` ≠ derived `solidified` is a **verification** rule (graph honesty).
 Whether copy feels Socratic is **validation** (human / research cases).
 
+## Release ladder
+
+Run the shallowest tier that covers your change. Stop early only when the change
+is doc-only or explicitly scoped to a single test file.
+
+### Tier 1 — Spine (architecture / router / event-facts / pacing)
+
+```bash
+./scripts/check-seda-spine.sh
+```
+
+Includes `architecture-fitness`, `next-phase`, `event-facts`, `loop-pacing-stops`,
+`routing-proofs`, and `./socratink-harness routing-proof`.
+
+### Tier 2 — Default merge (canon, JS, Python, harness, scripted smoke)
+
+```bash
+./scripts/check-canon-drift.sh
+find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
+.venv/bin/pytest tests -q
+./socratink-harness replay
+SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
+  ./socratink-tui --scripted fixtures/source_less_script.json --color=never
+```
+
+Tier 2 includes Tier 1 when the change touches routing, event append, or hosted
+pacing — run spine first.
+
+### Tier 3 — Prompt / bridge template changes
+
+Add L2 prompt evals on top of Tier 2:
+
+```bash
+.venv/bin/pytest \
+  tests/test_prompt_eval_repair_dialogue.py \
+  tests/test_prompt_eval_evaluator.py \
+  tests/test_repair_dialogue_contract.py \
+  tests/test_prompt_template.py -q
+```
+
+### Tier 4 — Hosted loop UI
+
+`tests/js/loop-chat-ui.test.mjs` is **server-backed** — not part of Tier 2's
+self-contained JS set. Run when loop surfaces, session HTTP, or `public/loop/`
+change:
+
+```bash
+SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
+SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
+  node --no-warnings loop-server.mjs
+
+SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
+```
+
+Fake-mode env vars and fixture format: [`AGENTS.md`](AGENTS.md) § Testing.
+
 ## Where to apply V-model hard vs light
 
 **Hard (non-negotiable traceability):**
@@ -73,7 +133,7 @@ Checklist before merge on harness changes:
 
 - [ ] Coarse route in `DIRECT_PHASE` or fine policy in `nextPhase` / `repair-policy`
 - [ ] New runtime facts use `eventBuilders` (`event-facts.mjs`), not taxonomy
-- [ ] `tests/js/architecture-fitness.test.mjs` still green
+- [ ] `./scripts/check-seda-spine.sh` green
 - [ ] Promoted case updated or new row in `cases.jsonl` if behavior is a regression gate
 - [ ] `./socratink-harness replay` green
 - [ ] Relevant `tests/js/` or `tests/test_*.py` added at the correct tier
@@ -92,6 +152,6 @@ Observability tools are **read-only**: `./socratink-harness replay`, `./socratin
 
 ## Related docs
 
-- [`HARNESS.md`](HARNESS.md) — SEDA invariants, Moss map, changing the harness
-- [`AGENTS.md`](AGENTS.md) — phase catalog, testing commands, graph honesty
+- [`HARNESS.md`](HARNESS.md) — SEDA invariants, Moss map, observability surfaces
+- [`AGENTS.md`](AGENTS.md) — throughline, graph honesty, fake-mode env vars, fixtures
 - [`learning_cases/README.md`](learning_cases/README.md) — case types and promotion

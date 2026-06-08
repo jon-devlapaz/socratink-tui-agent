@@ -4,6 +4,9 @@ Founder-facing adaptive learning loop: learners reconstruct mechanisms from memo
 the system routes repair and spacing from an append-only event log while graph
 truth is derived separately from evaluator labels.
 
+Glossary only — no implementation or test commands. Architecture and verification:
+[`AGENTS.md`](AGENTS.md), [`HARNESS.md`](HARNESS.md), [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md).
+
 ## Language
 
 **Session**:

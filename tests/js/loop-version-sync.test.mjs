@@ -11,6 +11,7 @@ import {
   loopVersionToSemver,
   nextLoopVersion,
   parseLoopVersion,
+  validateLoopVersion,
 } from "../../scripts/bump-loop-version.mjs";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -28,6 +29,13 @@ test("bump-loop-version helpers advance v0.NN labels", () => {
   const current = parseLoopVersion(src);
   assert.equal(nextLoopVersion("v0.16"), "v0.17");
   assert.equal(loopVersionToSemver(current), `0.${current.slice(3)}.0`);
+});
+
+test("applyLoopVersion rejects invalid labels before writing", () => {
+  const before = assertVersionsSynced();
+  assert.throws(() => validateLoopVersion("v0.999"), /Invalid loop version label/);
+  assert.throws(() => applyLoopVersion("not-a-version"), /Invalid loop version label/);
+  assert.equal(assertVersionsSynced(), before);
 });
 
 test("--set applies explicit release target", () => {

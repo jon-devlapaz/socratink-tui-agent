@@ -42,11 +42,15 @@ export function nextLoopVersion(current) {
   return `v0.${String(next).padStart(2, "0")}`;
 }
 
-export function loopVersionToSemver(loopVersion) {
-  const match = loopVersion.match(LOOP_VERSION_RE);
-  if (!match) {
+export function validateLoopVersion(loopVersion) {
+  if (!LOOP_VERSION_RE.test(loopVersion)) {
     throw new Error(`Invalid loop version label: ${loopVersion}`);
   }
+  return loopVersion;
+}
+
+export function loopVersionToSemver(loopVersion) {
+  const match = validateLoopVersion(loopVersion).match(LOOP_VERSION_RE);
   return `0.${match[1]}.0`;
 }
 
@@ -146,6 +150,7 @@ export function assertVersionsSynced() {
 }
 
 export function applyLoopVersion(version) {
+  validateLoopVersion(version);
   updateVersionMjs(version);
   updateIndexHtml(version);
   updateLoopJs(version);

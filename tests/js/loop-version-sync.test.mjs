@@ -30,6 +30,14 @@ test("bump-loop-version helpers advance v0.NN labels", () => {
   assert.equal(loopVersionToSemver(current), `0.${current.slice(3)}.0`);
 });
 
+test("--set applies explicit release target", () => {
+  const before = assertVersionsSynced();
+  applyLoopVersion(nextLoopVersion(before));
+  assert.equal(assertVersionsSynced(), nextLoopVersion(before));
+  applyLoopVersion(before);
+  assert.equal(assertVersionsSynced(), before);
+});
+
 test("bumpLoopVersion is idempotent when restored", () => {
   const before = assertVersionsSynced();
   const { previous, next } = bumpLoopVersion();

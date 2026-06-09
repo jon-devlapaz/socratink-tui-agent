@@ -4,7 +4,7 @@
 
 ## Version
 
-- [ ] No manual `LOOP_APP_VERSION` bump needed — CI auto-bumps on merge to `main` (`npm run bump:loop`)
+- [ ] No manual `LOOP_APP_VERSION` bump — CI auto-bumps the PR branch (`bump-loop-version` job)
 
 ## Test plan
 

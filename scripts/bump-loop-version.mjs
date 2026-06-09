@@ -6,6 +6,8 @@
  *   node scripts/bump-loop-version.mjs          # increment v0.NN
  *   node scripts/bump-loop-version.mjs --check    # verify all files match version.mjs
  *   node scripts/bump-loop-version.mjs --print    # print current version only
+ *   node scripts/bump-loop-version.mjs --next v0.17
+ *   node scripts/bump-loop-version.mjs --set v0.18
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -164,7 +166,8 @@ function isMainModule() {
 }
 
 if (isMainModule()) {
-  const args = new Set(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  const args = new Set(argv);
 
   if (args.has("--print")) {
     console.log(readCurrentVersion());
@@ -174,6 +177,30 @@ if (isMainModule()) {
   if (args.has("--check")) {
     const version = assertVersionsSynced();
     console.log(`[bump-loop-version] synced at ${version}`);
+    process.exit(0);
+  }
+
+  const nextFlag = argv.find((arg) => arg === "--next");
+  const nextIndex = nextFlag ? argv.indexOf("--next") : -1;
+  if (nextIndex !== -1) {
+    const base = argv[nextIndex + 1];
+    if (!base) {
+      throw new Error("--next requires a version argument");
+    }
+    console.log(nextLoopVersion(base));
+    process.exit(0);
+  }
+
+  const setFlag = argv.find((arg) => arg === "--set");
+  const setIndex = setFlag ? argv.indexOf("--set") : -1;
+  if (setIndex !== -1) {
+    const target = argv[setIndex + 1];
+    if (!target) {
+      throw new Error("--set requires a version argument");
+    }
+    const current = readCurrentVersion();
+    applyLoopVersion(target);
+    console.log(`[bump-loop-version] ${current} -> ${target}`);
     process.exit(0);
   }
 

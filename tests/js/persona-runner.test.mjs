@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  fakeFallback,
   getCartridge,
   isContinueAwaiting,
   loadCartridges,
@@ -53,6 +54,24 @@ test("scriptedInput covers ignition and gap drill", () => {
     profile.concept,
   );
   assert.equal(scriptedInput({ awaiting: { key: "run_gap_drill" } }, profile), "y");
+});
+
+test("fakeFallback uses immune-themed cold text for immune-memory cartridges", () => {
+  const profile = getCartridge("novice-immune-memory", ROOT);
+  const health = { fake_llm: true };
+  const immuneCold = fakeFallback(
+    { awaiting: { key: "cold_attempt" } },
+    { allowFake: true, health, profile },
+  );
+  assert.match(immuneCold, /memory cells/i);
+  assert.doesNotMatch(immuneCold, /cache hit/i);
+
+  const cacheProfile = { concept: "Caching in Redis" };
+  const cacheCold = fakeFallback(
+    { awaiting: { key: "cold_attempt" } },
+    { allowFake: true, health, profile: cacheProfile },
+  );
+  assert.match(cacheCold, /cache/i);
 });
 
 test("isContinueAwaiting detects transport continue", () => {

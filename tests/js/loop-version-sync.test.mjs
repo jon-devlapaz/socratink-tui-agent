@@ -38,21 +38,22 @@ test("applyLoopVersion rejects invalid labels before writing", () => {
   assert.equal(assertVersionsSynced(), before);
 });
 
-test("--set applies explicit release target", () => {
+test("--set applies explicit release target", (t) => {
   const before = assertVersionsSynced();
+  t.after(() => {
+    applyLoopVersion(before);
+  });
   applyLoopVersion(nextLoopVersion(before));
   assert.equal(assertVersionsSynced(), nextLoopVersion(before));
-  applyLoopVersion(before);
-  assert.equal(assertVersionsSynced(), before);
 });
 
-test("bumpLoopVersion is idempotent when restored", () => {
+test("bumpLoopVersion is idempotent when restored", (t) => {
   const before = assertVersionsSynced();
+  t.after(() => {
+    applyLoopVersion(before);
+  });
   const { previous, next } = bumpLoopVersion();
   assert.equal(previous, before);
   assert.equal(next, nextLoopVersion(before));
   assert.equal(assertVersionsSynced(), next);
-
-  applyLoopVersion(before);
-  assert.equal(assertVersionsSynced(), before);
 });

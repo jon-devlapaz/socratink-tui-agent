@@ -68,7 +68,7 @@ Import from `models` directly.
   `sketch_validation.py:115`** against a `str`-typed parameter. This
   violates AGENTS.md anti-defensiveness and is captured as a follow-up.
   Removing it is what enables flipping `warn_unreachable = True` in
-  `mypy.ini`.
+  root `pyproject.toml` (`[tool.mypy]`).
 
 ## Related
 

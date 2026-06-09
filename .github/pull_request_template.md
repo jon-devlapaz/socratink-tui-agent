@@ -4,7 +4,7 @@
 
 ## Version
 
-- [ ] Bumped `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` (required on every PR)
+- [ ] No manual `LOOP_APP_VERSION` bump needed — CI auto-bumps on merge to `main` (`npm run bump:loop`)
 
 ## Test plan
 

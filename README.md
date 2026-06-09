@@ -19,6 +19,9 @@ Minimum runnable Socratink terminal lab, trimmed for **agents and automation** f
 ```bash
 cp .env.example .env          # GEMINI_API_KEY for live sessions
 ./scripts/bootstrap-python.sh
+npm install                   # eslint for lib/
+pip install poetry && poetry install --no-root   # mypy + pre-commit (dev only)
+pre-commit install            # optional: lint hooks before commit
 ```
 
 ## Verify (no API key)

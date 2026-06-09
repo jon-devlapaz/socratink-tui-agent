@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def validate_knowledge_map(knowledge_map: dict) -> None:
+def validate_knowledge_map(knowledge_map: dict[str, Any]) -> None:
     if not isinstance(knowledge_map, dict):
         raise ValueError("knowledge_map must be an object.")
     if not isinstance(knowledge_map.get("metadata"), dict):
@@ -26,7 +26,7 @@ def validate_knowledge_map(knowledge_map: dict) -> None:
         raise ValueError("knowledge_map.frameworks must be a list.")
 
 
-def knowledge_map_has_node(knowledge_map: dict, node_id: str) -> bool:
+def knowledge_map_has_node(knowledge_map: dict[str, Any], node_id: str) -> bool:
     if node_id == "core-thesis":
         return True
 
@@ -47,7 +47,7 @@ def knowledge_map_has_node(knowledge_map: dict, node_id: str) -> bool:
 
 
 def resolve_target_cluster_id(
-    knowledge_map: dict, target_node_id: str
+    knowledge_map: dict[str, Any], target_node_id: str
 ) -> str | None:
     if target_node_id.startswith("c") and "_s" not in target_node_id:
         return target_node_id
@@ -69,7 +69,7 @@ def resolve_target_cluster_id(
     return None
 
 
-def prune_context(knowledge_map: dict, target_node_id: str) -> dict:
+def prune_context(knowledge_map: dict[str, Any], target_node_id: str) -> dict[str, Any]:
     metadata = knowledge_map.get("metadata") or {}
     pruned: dict[str, Any] = {
         "metadata": {

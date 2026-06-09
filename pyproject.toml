@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "socratink-tui-agent"
+version = "0.0.0"
+description = "Socratink TUI agent lab — dev tooling only (runtime uses requirements.txt + .venv)"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.15"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^2.1"
+pre-commit = "^4.2"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["vendor/python"]
+mypy_path = "vendor/python"
+namespace_packages = true
+explicit_package_bases = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "learning_commons"
+ignore_missing_imports = true
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

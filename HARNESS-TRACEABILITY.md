@@ -64,6 +64,8 @@ Includes `architecture-fitness`, `next-phase`, `event-facts`, `loop-pacing-stops
 ### Tier 2 — Default merge (canon, JS, Python, harness, scripted smoke)
 
 ```bash
+npm run lint
+poetry run mypy vendor/python
 ./scripts/check-canon-drift.sh
 find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
 .venv/bin/pytest tests -q

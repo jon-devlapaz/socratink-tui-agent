@@ -10,21 +10,9 @@ map (what to gate at each tier), see [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEAB
 Everything below expands that contract; if a change violates the throughline, it is wrong
 even when tests pass.
 
-## Recursive V-model for agent work
-
-Use a recursive V-model for all non-trivial changes. Decompose from intent to requirements, design, and implementation; then climb back through verification, integration, validation, and operational feedback.
-
-Every artifact should have a proof counterpart:
-- requirement → test, eval, or acceptance criterion
-- design decision → architectural rationale or ADR
-- implementation → unit/integration/e2e evidence
-- user-facing behavior → validation against the original intent
-
-A task is not done when code is written. It is done when the change is verified against its specification, validated against its intended use, and traceable from goal to evidence.
-
-When evidence fails, route the correction to the right abstraction level. Implementation failure means repair code. Integration failure means inspect boundaries and interfaces. Validation failure means revisit assumptions, requirements, or user intent. Repeated failures should produce a durable rule, test, or doc update.
-
-
+**Agent workflow:** V-model tiers, merge checklist, and release ladder live in
+[`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md). Closed-loop operating model:
+[`AGENTS.md`](AGENTS.md) § Closed-loop agent operating model.
 
 ## Layers
 
@@ -56,17 +44,10 @@ These are non-negotiable for changes to the loop:
 5. **Observability is read-only** — Replay and dashboard consume `session.json`; they do
    not rewrite events or derived state.
 
-These invariants are enforced in CI by [`tests/js/architecture-fitness.test.mjs`](tests/js/architecture-fitness.test.mjs)
-(pure `nextPhase`, append-only `events[]`, SEDA boundary edges, handler registry coverage).
+These invariants are enforced by [`./scripts/check-seda-spine.sh`](scripts/check-seda-spine.sh)
+(architecture-fitness, event-facts, pacing stops, routing-proof).
 
-Moss’s **Fact → Audit → Broadcast** maps here as:
-
-```text
-Handler turn  →  append event(s)     (fact)
-              →  derive training      (audit / policy view)
-              →  write session.json   (broadcast to operators)
-              →  nextPhase(events)    (orchestrator)
-```
+Moss’s **Fact → Audit → Broadcast** matches the throughline in [`AGENTS.md`](AGENTS.md):
 
 ## The closed loop
 
@@ -180,7 +161,9 @@ Over-decomposed subnodes are **fake dungeon rooms** (see `learnops-extract/extra
 
 ## Graph completion (session vs KC)
 
-Three different “done” signals — do not conflate them in copy or dashboard triage:
+Vocabulary for **Case Complete**, **Session complete**, and graph **solidified**:
+[`CONTEXT.md`](CONTEXT.md). Three different “done” signals — do not conflate them in
+copy or dashboard triage:
 
 | Signal | Meaning | Where it lives |
 | --- | --- | --- |
@@ -240,29 +223,22 @@ spaced_redrill        spaced_redrill                  eval solid; derive may hol
 bridge-ready turn authorizes `repair` and thus `model_bridge`. Evaluator “solid” on spaced
 redrill does not override derivation — replay enforces `evidence_hold_required` on this case.
 
-## Scripted smoke (validation app)
+## Scripted smoke
 
-```bash
-SOCRATINK_TUI_FAKE_LLM=1 \
-SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-./socratink-tui --scripted fixtures/source_less_script.json --color=never
-
-./socratink-harness replay
-```
+Tier 2 scripted smoke and harness replay:
+[`HARNESS-TRACEABILITY.md` § Release ladder](HARNESS-TRACEABILITY.md#release-ladder).
 
 ## Changing the harness
 
 Follow the throughline: emit a fact, teach the router, verify at the matching tier.
+Merge checklist and tiered gates: [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md).
 
 1. Emit a new or extended **event** (fact) from the handler via `eventBuilders`.
 2. Teach **coarse** routing in `DIRECT_PHASE` if `last.type` alone suffices.
 3. Teach **fine** policy in `nextPhase` if fields on `last` decide the branch.
 4. Add a **handler** only when a new phase needs distinct UX/work.
-5. Run [`tests/js/architecture-fitness.test.mjs`](tests/js/architecture-fitness.test.mjs).
-6. Bump prompt template version if bridge slots change; run `pytest tests/test_prompt_template.py`.
-7. Promote a trace: `learning_cases/cases.jsonl` + `expected_invariants` + replay green.
 
-See `AGENTS.md` for graph-honesty rules and fixture format.
+Graph-honesty rules and fixture format: [`AGENTS.md`](AGENTS.md).
 
 ## Bridge function catalog
 

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-WORKSPACE_ROOT = Path(__file__).resolve().parent
+WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 VENDOR_PYTHON_ROOT = WORKSPACE_ROOT / "vendor" / "python"
 if str(VENDOR_PYTHON_ROOT) not in sys.path:
     sys.path.insert(0, str(VENDOR_PYTHON_ROOT))
@@ -21,7 +21,7 @@ from models.provisional_map import (
     Subnode,
 )
 
-from bridge_fake_response import build_response_from_expect
+from bridge_lib.fake.response import build_response_from_expect
 
 UNKNOWN_LAUNCH_MARKERS = (
     "i don't know",

@@ -7,7 +7,7 @@ from typing import Any
 
 import prompt_templates
 
-from bridge_fake_defaults import (
+from bridge_lib.fake.defaults import (
     default_evaluate_attempt,
     default_repair_dialogue,
     default_repair_scaffold,
@@ -17,12 +17,12 @@ from bridge_fake_defaults import (
     fake_map_uses_cache_route,
     fake_map_uses_immune_route,
 )
-from bridge_fake_knobs import (
+from bridge_lib.fake.knobs import (
     evaluate_attempt_override,
     repair_scaffold_override,
     substrate_gate_override,
 )
-from bridge_fake_lookup import build_lookup, lookup_fake_response
+from bridge_lib.fake.lookup import build_lookup, lookup_fake_response
 
 __all__ = [
     "fake_map",

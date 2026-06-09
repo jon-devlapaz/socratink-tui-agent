@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from bridge_contracts import (
+from bridge_lib.contracts import (
     RepairDialogueJudge,
     RepairScaffold,
     SocraticRepairDrill,

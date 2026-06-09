@@ -19,7 +19,10 @@
       </div>
       <div class="chrome-meta">
         <span id="version-pill" class="version-pill" title="Loop release">v0.23</span>
-        <span id="llm-pill" class="llm-pill" data-mode="checking">llm…</span>
+        <div id="llm-picker" class="llm-picker">
+          <button type="button" id="llm-pill" class="llm-pill" data-mode="checking" aria-haspopup="listbox" aria-expanded="false">llm…</button>
+          <ul id="llm-picker-menu" class="llm-picker-menu" role="listbox" hidden></ul>
+        </div>
         <span id="phase-pill" class="phase-pill" data-phase="—">—</span>
         <span id="session-tag" class="session-tag" hidden></span>
       </div>

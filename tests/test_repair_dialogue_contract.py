@@ -120,7 +120,7 @@ def test_fake_route_varies_first_node_by_concept() -> None:
 
 
 def test_fake_route_immune_memory_not_cache() -> None:
-    from bridge_fake_defaults import fake_map_uses_cache_route
+    from bridge_lib.fake.defaults import fake_map_uses_cache_route
 
     assert fake_map_uses_cache_route("immune memory") is False
     assert fake_map_uses_cache_route("caching in apis") is True

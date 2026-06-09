@@ -322,20 +322,19 @@ bump:loop`. `npm run version:check` runs in lint CI.
 - After lab ship, prefer outer persona validation (substrate/repair via `novice-immune-memory`, one traceable product fix) over more lab infrastructure.
 - Use **Confirmed Substrate**, **Substrate Gate**, and related terms from `CONTEXT.md`; avoid informal **floor** in code, docs, and prompts.
 - For agent-facing doc triage, dedupe, and `docs/implementation/**` disposition, use `agent_doc_pruner_skill`; diagnose-only unless asked to apply or commit edits.
+- Keep tutor LLM providers to `gemini` and `openai_compatible` only; do not re-add `pi` unless explicitly requested.
 
 ## Learned Workspace Facts
 
 - Product vocabulary and substrate-gate decisions live in `CONTEXT.md` and `docs/adr/`; pre-map substrate is graph-neutral routing only — evidence still begins at **Cold Attempt**.
 - GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs, passing Smoke CI, and strict up-to-date. CodeRabbit `CHANGES_REQUESTED` can block merge despite green CI — use `gh pr merge --admin` when appropriate.
-- Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; **production deploy** is automatic on merge to `main` (Railway GitHub connection + Smoke CI var sync/verify — `deploy/RAILWAY.md`). Production URL `app.socratink.ai/loop` via `socratink-app` FastAPI proxy (`loop_backend_proxy.py`; `LOOP_BACKEND_URL` → Railway; see `deploy/LOOP-HOSTING.md`). `public/loop/loop.js` polls `/health` (not `/api/health`); avoid duplicate Vercel rewrites for the same paths.
-- Loop server `advanceSession` may run several handler turns per HTTP request until
-  `PROMPT_REQUIRED`; pacing stops (`lib/loop-server/pacing-stops.mjs`) are transport
-  only — routing truth still comes from append-only events and `nextPhase`.
+- Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; production deploy automatic on merge to `main` (Railway — `deploy/RAILWAY.md`). URL `app.socratink.ai/loop` via socratink-app proxy (`LOOP_BACKEND_URL`; `deploy/LOOP-HOSTING.md`). `loop.js` polls `/health` (not `/api/health`). `advanceSession` may run multiple handler turns per HTTP request until `PROMPT_REQUIRED` (pacing stops transport-only).
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
 - `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). **CI auto-bumps on PRs to `main`**. Production uses the baked-in constant from the deployed image — do not set `LOOP_APP_VERSION` on Railway (stale override without restart). Optional `LOOP_APP_VERSION` in `.env` overrides locally.
 - Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).
 - Smoke CI syncs Railway secrets with `railway variable set --skip-deploys --project …`, deletes stale `LOOP_APP_VERSION`, then `railway redeploy --from-source` before health verify (no `railway link`).
-- **Founder Lab + persona runs:** `/lab` at `http://127.0.0.1:8787/lab` when `SOCRATINK_LAB_ENABLED=1` (loopback-only); lab spawns `loop-persona-live.mjs` and reads `lab-progress.json`. Persona `--out` dirs get `session.json` (full event log) on `caseComplete`. Shared runner `lib/lab/persona-runner.mjs`, cartridges in `pedagogical_agents/cartridges/`, CLI `./socratink-persona-lab`; local mock student via `PERSONA_LLM_*` (LM Studio `openai_compatible`).
-- Fast doc/architecture gate before doc trims: `./scripts/check-seda-spine.sh`; full release ladder lives in `HARNESS-TRACEABILITY.md`.
-- Persona cartridges: `jordan-ai` = lab instrument smoke only; `novice-immune-memory` (or substrate matrix) validates substrate seed/refinement and repair paths.
+- **Founder Lab + persona runs:** `/lab` at `http://127.0.0.1:8787/lab` when `SOCRATINK_LAB_ENABLED=1` (loopback-only); lab spawns `loop-persona-live.mjs` and reads `lab-progress.json`. Persona `--out` dirs get `session.json` (full event log) on `caseComplete`. Runner `lib/lab/persona-runner.mjs`, cartridges `pedagogical_agents/cartridges/`, CLI `./socratink-persona-lab`. **Tutor** bridge uses `LLM_PROVIDER`/`LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL` (only `gemini` or `openai_compatible`); **`PERSONA_LLM_*` is mock-student only** — not the loop tutor.
+- Fast doc gate: `./scripts/check-seda-spine.sh`; full release ladder `HARNESS-TRACEABILITY.md`. Persona cartridges: `jordan-ai` = lab smoke; `novice-immune-memory` validates substrate/repair.
+- Loop **llm pill** model picker: `SOCRATINK_LOOP_ALLOW_MODEL_OVERRIDE=1` plus loopback-only gate; server catalog on `/health` (`llm_options`); per-session override in `metadata.llm`; init picker before auto-start session.
+- Local tutor via `openai_compatible` (LM Studio): set `LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL`; slow models need `LLM_REQUEST_TIMEOUT_SECONDS` (default 120). Schema omissions (e.g. Gemma `judge_reason` on substrate-gate) → `bridge_error` → idle; loop UI shows `[Bridge error] {action}: {message}` in transcript.
 - Separate from sibling `../socratink-tui`: own git history; do not copy remotes or history from the old lab checkout.

@@ -1,4 +1,5 @@
 .env
+riverflow
 .DS_Store
 node_modules/
 .venv/

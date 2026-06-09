@@ -195,6 +195,7 @@ TEMPLATES = {
                 "If a post-seed refinement is still inadequate, return classification='minimal' "
                 "and substrate_adequate=false; the orchestrator will route conservatively.",
                 "Never call this a threshold, grade, mastery, diagnosis, or cold attempt.",
+                "judge_reason: one plain sentence explaining why you chose this path.",
             ],
         },
         "dynamic": {

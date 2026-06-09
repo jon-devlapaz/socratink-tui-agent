@@ -12,11 +12,16 @@ from __future__ import annotations
 
 import os
 
+from .adapter import LLMAdapter
 from .client import LLMClient
 from .gemini_adapter import GeminiAdapter
+from .openai_compatible_adapter import OpenAICompatibleAdapter
 
 _DEFAULT_PROVIDER = "gemini"
-_DEFAULT_MODELS = {"gemini": "gemini-2.5-flash"}
+_DEFAULT_MODELS = {
+    "gemini": "gemini-2.5-flash",
+    "openai_compatible": "gpt-4o-mini",
+}
 
 
 def build_llm_client(*, api_key: str | None = None) -> LLMClient:
@@ -27,12 +32,22 @@ def build_llm_client(*, api_key: str | None = None) -> LLMClient:
     implemented; the factory currently uses one global default.
     """
     provider = os.environ.get("LLM_PROVIDER", _DEFAULT_PROVIDER).strip().lower()
-    if provider != "gemini":
+    if provider not in _DEFAULT_MODELS:
         raise NotImplementedError(
-            f"LLM provider {provider!r} not implemented. Currently supported: 'gemini'."
+            f"LLM provider {provider!r} not implemented. "
+            "Currently supported: 'gemini', 'openai_compatible'."
         )
     model = os.environ.get("LLM_MODEL", _DEFAULT_MODELS[provider]).strip()
     if not model:
         raise ValueError(f"LLM_MODEL must be non-empty for provider {provider!r}.")
-    adapter = GeminiAdapter(api_key=api_key, model=model)
+
+    adapter: LLMAdapter
+    if provider == "gemini":
+        adapter = GeminiAdapter(api_key=api_key, model=model)
+    else:
+        adapter = OpenAICompatibleAdapter(
+            api_key=api_key,
+            model=model,
+            provider=provider,
+        )
     return LLMClient(adapter=adapter)

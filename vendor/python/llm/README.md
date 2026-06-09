@@ -26,6 +26,7 @@ Import from `llm` directly. Submodules are implementation detail.
 | `factory.py` | `build_llm_client`: provider/model resolution from env. |
 | `adapter.py` | `LLMAdapter` Protocol. Every provider implements `call_once`. |
 | `gemini_adapter.py` | The **only** file allowed to import the Gemini SDK. |
+| `openai_compatible_adapter.py` | OpenAI chat-completions-compatible providers (LM Studio, etc.). |
 | `types.py` | `StructuredLLMRequest`, `StructuredLLMResult`, `TokenUsage`. |
 | `errors.py` | Normalized exception hierarchy. |
 
@@ -47,10 +48,11 @@ Import from `llm` directly. Submodules are implementation detail.
 
 ## Footguns
 
-- **`LLM_PROVIDER` defaults to `"gemini"`; nothing else is implemented yet.**
-  The factory raises `NotImplementedError` for any other value. Don't add a
+- **`LLM_PROVIDER` defaults to `"gemini"`.** Also supported:
+  `"openai_compatible"` (LM Studio and similar). Set `LLM_BASE_URL` and
+  `LLM_API_KEY` for local tutors. Don't add a
   provider by editing `factory.py` only — add the adapter, wire the env, and
-  add isolation tests for the new SDK.
+  add tests for the new SDK boundary.
 - **Per-stage provider overrides are NOT implemented.** `LLM_PROVIDER_<STAGE>`
   env vars are documented as planned but ignored. The factory uses one global
   default.
@@ -64,5 +66,9 @@ Import from `llm` directly. Submodules are implementation detail.
 ## Related
 
 - Tests: `tests/test_llm_client.py`, `tests/test_gemini_adapter.py`, `tests/test_llm_factory.py`, `tests/test_extract_route_error_mapping.py`.
-- Env contract: `GEMINI_API_KEY` is the only required value when `LLM_PROVIDER=gemini`. `LLM_MODEL` defaults to `gemini-2.5-flash`.
+- Env contract: `GEMINI_API_KEY` when `LLM_PROVIDER=gemini`; `LLM_BASE_URL` +
+  `LLM_API_KEY` when `LLM_PROVIDER=openai_compatible`. `LLM_MODEL`
+  defaults per provider (`gemini-2.5-flash` for Gemini).
+  `LLM_REQUEST_TIMEOUT_SECONDS` defaults to `120` for openai_compatible
+  (local LM Studio calls are slower than Gemini).
 - Architectural isolation test enforces: no Gemini SDK import outside `gemini_adapter.py`.

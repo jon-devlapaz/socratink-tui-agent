@@ -43,7 +43,7 @@ def _repair_request() -> dict[str, Any]:
 
 
 def test_fake_route_helpers_use_concept_buckets() -> None:
-    from bridge_fake_defaults import fake_map_uses_cache_route, fake_map_uses_immune_route
+    from bridge_lib.fake.defaults import fake_map_uses_cache_route, fake_map_uses_immune_route
 
     assert fake_map_uses_cache_route("immune memory") is False
     assert fake_map_uses_cache_route("caching in apis") is True
@@ -52,7 +52,7 @@ def test_fake_route_helpers_use_concept_buckets() -> None:
 
 
 def test_fake_substrate_gate_helper_covers_fast_slow_and_minimal() -> None:
-    from bridge_fake import fake_substrate_gate
+    from bridge_lib.fake import fake_substrate_gate
 
     fast = fake_substrate_gate(
         {
@@ -87,7 +87,7 @@ def test_fake_substrate_gate_helper_covers_fast_slow_and_minimal() -> None:
 
 
 def test_fake_evaluation_direct_helper_keeps_template_slot_validation() -> None:
-    from bridge_fake import fake_evaluation
+    from bridge_lib.fake import fake_evaluation
 
     original_dynamic: dict[str, Any] = dict(
         prompt_templates.TEMPLATES["evaluator"]["dynamic"]
@@ -104,7 +104,7 @@ def test_fake_evaluation_direct_helper_keeps_template_slot_validation() -> None:
 
 
 def test_fake_evaluation_lookup_hit_for_l2_solid_case() -> None:
-    from bridge_fake import fake_evaluation
+    from bridge_lib.fake import fake_evaluation
 
     payload = fake_evaluation(
         {
@@ -128,7 +128,7 @@ def test_fake_evaluation_lookup_hit_for_l2_solid_case() -> None:
 
 
 def test_fake_scaffold_and_dialogue_helpers_are_importable_directly() -> None:
-    from bridge_fake import (
+    from bridge_lib.fake import (
         fake_repair_dialogue,
         fake_repair_scaffold,
         fake_socratic_repair_drill,
@@ -160,7 +160,7 @@ def test_fake_scaffold_and_dialogue_helpers_are_importable_directly() -> None:
 
 
 def test_fake_repair_dialogue_default_probe_again_on_miss() -> None:
-    from bridge_fake import fake_repair_dialogue
+    from bridge_lib.fake import fake_repair_dialogue
 
     payload = fake_repair_dialogue(
         {
@@ -180,7 +180,7 @@ def test_fake_repair_dialogue_default_probe_again_on_miss() -> None:
 
 
 def test_fake_repair_helpers_keep_template_slot_validation() -> None:
-    from bridge_fake import (
+    from bridge_lib.fake import (
         fake_repair_dialogue,
         fake_repair_scaffold,
         fake_socratic_repair_drill,
@@ -230,7 +230,7 @@ def test_fake_repair_helpers_keep_template_slot_validation() -> None:
 
 
 def test_contract_module_normalizes_ready_dialogue() -> None:
-    from bridge_contracts import RepairDialogueJudge, normalize_repair_dialogue_judge
+    from bridge_lib.contracts import RepairDialogueJudge, normalize_repair_dialogue_judge
 
     judge = RepairDialogueJudge(
         classification="strong",
@@ -255,7 +255,7 @@ def test_contract_module_normalizes_ready_dialogue() -> None:
 
 
 def test_registry_repair_dialogue_fields_match_contract_module() -> None:
-    from bridge_contracts import RepairDialogueJudge
+    from bridge_lib.contracts import RepairDialogueJudge
 
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     fields = registry["actions"]["repair-dialogue"]["response"][

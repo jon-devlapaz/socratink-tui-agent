@@ -10,7 +10,7 @@ import pytest
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WORKSPACE_ROOT))
 
-from bridge_fake_lookup import build_lookup, lookup_fake_response, stable_key
+from bridge_lib.fake.lookup import build_lookup, lookup_fake_response, stable_key
 
 
 def test_build_lookup_loads_without_duplicate_conflicts() -> None:

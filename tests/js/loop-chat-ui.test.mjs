@@ -17,6 +17,12 @@ const SHALLOW_COLD =
   "Caching improves performance by storing earlier work for faster retrieval.";
 const READY_REPAIR =
   "Memory cells form and stay ready, so the next exposure gets a faster response.";
+const CACHE_REPAIR_READY =
+  "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.";
+const CACHE_GAP_ATTEMPT =
+  "The stored result lets the cache serve the next matching request without recomputing.";
+const CACHE_SPACED_ATTEMPT =
+  "The first request computes and stores; that stored result makes the next identical request faster.";
 
 function makeAgent(id, name = id) {
   return {
@@ -611,37 +617,23 @@ test("loop API keeps default-off /meta out of the evidence path", async () => {
 });
 
 test("loop API marks single concept case complete after spaced redrill", async () => {
-  const create = await fetch(`${BASE}/api/session`, { method: "POST" });
-  const created = await create.json();
-  assert.equal(created.caseComplete, false);
-  const { sessionId } = created;
-  const post = (text) =>
-    fetch(`${BASE}/api/session/${sessionId}/turn`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    }).then((r) => r.json());
+  const session = await createApiSession();
+  assert.equal(session.caseComplete, false);
 
-  await post("Caching");
-  await post("Explain why caching makes repeat requests faster");
-  await post(
-    "Caching stores earlier work so the next matching request can reuse it.",
-  );
-  await post(
-    "Caching improves performance by storing earlier work for faster retrieval.",
-  );
-  await post();
-  await post(
-    "On the first request it computes and stores the result, so a later identical request reads from cache instead of recomputing.",
-  );
-  await post();
-  await post("y");
-  await post(
-    "The stored result lets the cache serve the next matching request without recomputing.",
-  );
-  const body = await post(
-    "The first request computes and stores; that stored result makes the next identical request faster.",
-  );
+  await session.post("Caching");
+  await session.post("Explain why caching makes repeat requests faster");
+  await session.post(FAST_LAUNCH);
+  await session.post(SHALLOW_COLD);
+  const deltaTurn = await session.post();
+  assert.equal(deltaTurn.awaiting?.key, "repair");
+
+  const repairTurn = await session.post(CACHE_REPAIR_READY);
+  assert.ok(repairTurn.events.some((event) => event.type === "repair"));
+
+  await session.post();
+  await session.post("y");
+  await session.post(CACHE_GAP_ATTEMPT);
+  const body = await session.post(CACHE_SPACED_ATTEMPT);
 
   assert.equal(body.events.at(-1)?.type, "spaced_redrill");
   assert.equal(body.phase, "idle");
@@ -649,7 +641,7 @@ test("loop API marks single concept case complete after spaced redrill", async (
   assert.equal(body.complete, false);
   assert.equal(body.caseComplete, true);
 
-  const get = await fetch(`${BASE}/api/session/${sessionId}`);
+  const get = await fetch(`${BASE}/api/session/${session.sessionId}`);
   const saved = await get.json();
   assert.equal(saved.caseComplete, true);
 });

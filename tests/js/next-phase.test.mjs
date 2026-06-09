@@ -171,6 +171,16 @@ test("only the last event drives routing", () => {
   assert.equal(nextPhase(events), "strong_cold_path");
 });
 
+test("repair_hint_requested stays in repair_dialogue", () => {
+  assert.equal(
+    nextPhase([
+      ev("gap_identified"),
+      ev("repair_hint_requested", { next_dialogue_action: "retry_after_hint" }),
+    ]),
+    "repair_dialogue",
+  );
+});
+
 test("unknown event type throws", () => {
   assert.throws(() => nextPhase([ev("not_a_real_event")]), /unknown event type/);
 });

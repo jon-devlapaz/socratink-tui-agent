@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -9,6 +10,7 @@ import {
   loadCartridges,
   scriptedInput,
   validateCartridge,
+  writePersonaArtifacts,
 } from "../../lib/lab/persona-runner.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -56,4 +58,34 @@ test("scriptedInput covers ignition and gap drill", () => {
 test("isContinueAwaiting detects transport continue", () => {
   assert.equal(isContinueAwaiting({ awaiting: { key: "continue" } }), true);
   assert.equal(isContinueAwaiting({ awaiting: { key: "cold_attempt" } }), false);
+});
+
+test("writePersonaArtifacts persists session.json when record is provided", () => {
+  const outDir = mkdtempSync(path.join(tmpdir(), "persona-artifact-"));
+  const profile = getCartridge("novice-immune-memory", ROOT);
+  const sessionRecord = {
+    events: [{ type: "spaced_redrill" }],
+    derived: [{ event: "spaced_redrill", concept_status: { badge: "primed" } }],
+  };
+  const log = {
+    brains: "tutor=live-gemini student=cloud:gemini allow_fake=false",
+    turns: [],
+    final: {
+      complete: false,
+      case_complete: true,
+      hit_max_turns: false,
+      phase: "idle",
+      event_types: ["spaced_redrill"],
+    },
+  };
+  const { sessionPath } = writePersonaArtifacts({
+    log,
+    health: { fake_llm: false },
+    outDir,
+    profile,
+    sessionRecord,
+  });
+  assert.ok(sessionPath?.endsWith("session.json"));
+  const written = JSON.parse(readFileSync(sessionPath, "utf8"));
+  assert.deepEqual(written.derived.at(-1).concept_status.badge, "primed");
 });

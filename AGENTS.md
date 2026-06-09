@@ -174,7 +174,7 @@ prompt strings to `bridge.py`. Each template has:
 - `dynamic` — `{key}` template slots populated at call time
 
 To add or modify a prompt:
-1. Update the template in `prompt_templates.py`
+1. Update the template in `prompt_templates.py` (repo root only — `bridge.py` prepends the workspace root to `sys.path`)
 2. Bump the version string
 3. Run `pytest tests/test_prompt_template.py` (13 tests must pass)
 4. Update the corresponding `bridge.py` function if the dynamic slots changed

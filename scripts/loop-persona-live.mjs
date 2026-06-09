@@ -128,7 +128,7 @@ async function main() {
   });
 
   try {
-    const { log, cancelled } = await runPersonaSession({
+    const { log, session, cancelled } = await runPersonaSession({
       profile,
       baseUrl: options.baseUrl,
       maxTurns: options.maxTurns,
@@ -183,7 +183,13 @@ async function main() {
       return;
     }
 
-    const { reportPath, mdPath } = writePersonaArtifacts({ log, health, outDir, profile });
+    const { reportPath, mdPath, sessionPath } = writePersonaArtifacts({
+      log,
+      health,
+      outDir,
+      profile,
+      sessionRecord: session?.record ?? null,
+    });
 
     pushProgress({
       status: "done",
@@ -201,6 +207,7 @@ async function main() {
     );
     console.log(`[loop-persona] wrote ${reportPath}`);
     console.log(`[loop-persona] wrote ${mdPath}`);
+    if (sessionPath) console.log(`[loop-persona] wrote ${sessionPath}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     pushProgress({

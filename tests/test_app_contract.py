@@ -47,6 +47,12 @@ def test_bridge_imports_with_guard() -> None:
     assert hasattr(bridge, "_normalize_tui_evaluation")
 
 
+def test_bridge_loads_root_prompt_templates_not_vendor_mirror() -> None:
+    import prompt_templates
+
+    assert prompt_templates.__file__ == str(WORKSPACE_ROOT / "prompt_templates.py")
+
+
 def test_substantive_cold_attempt_scores_despite_llm_unscored_flags() -> None:
     """Live evaluators often praise cold attempts but omit classification."""
     evaluation = ai_service.DrillEvaluation(

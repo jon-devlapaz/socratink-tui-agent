@@ -109,3 +109,26 @@ test("session response sets caseComplete on terminal repair abandon", () => {
   );
   assert.equal(recovered.caseComplete, false);
 });
+
+test("sessionResponse exposes materialized session record for persona export", () => {
+  const record = {
+    events: [{ type: "spaced_redrill" }],
+    derived: [{ event: "spaced_redrill" }],
+  };
+  const body = sessionResponse(
+    {
+      id: "session-1",
+      status: "awaiting_input",
+      phase: "idle",
+      awaiting: null,
+      transcript: [],
+      ctx: {},
+      llmCalls: [],
+      events: [{ type: "spaced_redrill" }],
+      record,
+    },
+    [],
+  );
+  assert.equal(body.caseComplete, true);
+  assert.deepEqual(body.record, record);
+});

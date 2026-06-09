@@ -150,7 +150,7 @@ post-map turns feel paced (qualitative).
 2. Wire stops into `advanceSession` for shallow cold → repair path
 3. Extend stops for bridge / transfer if still batching
 4. Server-backed tests + Smoke CI
-5. Deploy `./scripts/railway-deploy.sh` → dogfood `app.socratink.ai/loop`
+5. Merge to `main` (Railway auto-deploy) → dogfood `app.socratink.ai/loop`
 
 ## Open questions
 

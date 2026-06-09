@@ -182,7 +182,7 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 
 | Task | How |
 |------|-----|
-| Deploy update | `git push origin main` → Smoke CI → production deploy job → verify direct Railway + `app.socratink.ai/health` match repo version |
+| Deploy update | Merge to `main` → Railway GitHub connection builds/deploys → Smoke CI syncs secrets + verifies direct Railway + `app.socratink.ai/health` match repo version |
 | Rollback | Railway → Deployments → redeploy previous |
 | Logs | Railway deploy + runtime logs; search `bridge`, `error` |
 | Cost | Railway dashboard + Google AI Studio usage |
@@ -231,21 +231,22 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 - `SOCRATINK_LOOP_API_KEY` without browser wiring  
 - Automatic Vercel env rewiring if the Railway public domain itself changes
 
-## GitHub Actions production deploy
+## Production deploy (Railway GitHub + Smoke CI)
 
-`main` now has a production deploy job in `.github/workflows/smoke.yml`. It runs
-only after all Smoke jobs pass, pushes the current repo contents to Railway via
-CLI, forces `LOOP_APP_VERSION` to the canonical value from
-`lib/loop-server/version.mjs`, and waits until both the direct Railway health
-endpoint and `https://app.socratink.ai/health` report that version. The action
-does not rely on a linked local Railway workspace; it targets the service using
-the explicit project/environment/service IDs from GitHub secrets.
+**Railway** — connect the GitHub repo in the service settings (branch: `main`).
+Railway builds from `Dockerfile` + `railway.toml` on every merge.
+
+**Smoke CI** — after all Smoke jobs pass, the `Verify production loop` job in
+`.github/workflows/smoke.yml` syncs Railway variables from GitHub secrets (including
+`LOOP_APP_VERSION` from `lib/loop-server/version.mjs`) and polls until both the
+direct Railway health endpoint and `https://app.socratink.ai/health` report that
+version. CI does not run `railway up`; the GitHub-connected service owns deploys.
 
 Required GitHub configuration:
 
 | Key | Type | Purpose |
 |-----|------|---------|
-| `RAILWAY_TOKEN` | secret | Railway project token for CI deploys |
+| `RAILWAY_TOKEN` | secret | Railway project token for CI variable sync |
 | `RAILWAY_PROJECT_ID` | secret | Target Railway project |
 | `RAILWAY_ENVIRONMENT` | secret | Usually `production` |
 | `RAILWAY_SERVICE` | secret | Loop service name or ID |

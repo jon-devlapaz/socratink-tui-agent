@@ -29,9 +29,11 @@ import {
   makeAgentLookup,
 } from "./lib/seda/session-kernel.mjs";
 import { initTrainingDerive } from "./lib/seda/training-summary.mjs";
+import { loadRepoEnv } from "./lib/lab/load-repo-env.mjs";
 import { makeSections } from "./lib/ui/sections.mjs";
 
 const paths = resolveTuiPaths();
+loadRepoEnv(paths.workspaceRoot);
 try {
   preflightTuiPaths(paths);
 } catch (err) {

@@ -65,3 +65,47 @@ test("session response keeps caseComplete distinct from hosted complete", () => 
   assert.equal(sessionDone.caseComplete, false);
   assert.equal(sessionDone.complete, true);
 });
+
+test("session response sets caseComplete on terminal repair abandon", () => {
+  const baseSession = {
+    id: "session-abandon",
+    status: "awaiting_input",
+    phase: "idle",
+    awaiting: null,
+    transcript: [],
+    ctx: {},
+    llmCalls: [],
+  };
+
+  const abandoned = sessionResponse(
+    {
+      ...baseSession,
+      events: [
+        { type: "gap_identified", graph_neutral: true },
+        { type: "repair_dialogue_turn", graph_neutral: true },
+        { type: "repair_state_bucketed", graph_neutral: true },
+        { type: "repair_cap_selected", graph_neutral: true },
+        { type: "repair_recovery_started", graph_neutral: true },
+        { type: "repair_recovery_closed", graph_neutral: true, outcome: "idle_return" },
+        { type: "repair_abandoned", graph_neutral: true },
+      ],
+    },
+    [],
+  );
+  assert.equal(abandoned.caseComplete, true);
+  assert.equal(abandoned.complete, false);
+
+  const recovered = sessionResponse(
+    {
+      ...baseSession,
+      events: [
+        { type: "repair_abandoned", graph_neutral: true },
+        { type: "repair_recovery_closed", graph_neutral: true, outcome: "recovered" },
+        { type: "repair" },
+        { type: "model_bridge" },
+      ],
+    },
+    [],
+  );
+  assert.equal(recovered.caseComplete, false);
+});

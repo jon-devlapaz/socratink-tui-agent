@@ -289,13 +289,13 @@ Two channels — see **Throughline**. Details:
 5. Add a fixture exercising the new path
 6. Run `./scripts/check-seda-spine.sh` and `./socratink-harness replay`
 
-### Loop release version (auto on merge to `main`)
+### Loop release version (auto on PR to `main`)
 
-CI bumps `LOOP_APP_VERSION` in the production deploy job via `npm run bump:loop`
-(`scripts/bump-loop-version.mjs` syncs `lib/loop-server/version.mjs`,
-`public/loop/index.html`, `public/loop/loop.js`, and `package.json`). Local
-preview: `npm run bump:loop`. PRs should not hand-bump — `npm run version:check`
-runs in lint CI to keep files in sync.
+CI bumps `LOOP_APP_VERSION` on the PR branch before merge (`bump-loop-version`
+job → `scripts/bump-loop-version.mjs` syncs `lib/loop-server/version.mjs`,
+`public/loop/index.html`, `public/loop/loop.js`, and `package.json`). Deploy
+reads the merged constant — no post-merge git push. Local preview: `npm run
+bump:loop`. `npm run version:check` runs in lint CI.
 
 ### Modifying an evaluator prompt
 1. Edit `TEMPLATES["evaluator"]` in `prompt_templates.py`
@@ -332,7 +332,7 @@ runs in lint CI to keep files in sync.
   `PROMPT_REQUIRED`; pacing stops (`lib/loop-server/pacing-stops.mjs`) are transport
   only — routing truth still comes from append-only events and `nextPhase`.
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
-- `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). **CI auto-bumps on merge to `main`** (`npm run bump:loop`). `railway-deploy.sh` reads it automatically; optional `LOOP_APP_VERSION` in `.env` overrides locally.
+- `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). **CI auto-bumps on PRs to `main`**. `railway-deploy.sh` reads it automatically; optional `LOOP_APP_VERSION` in `.env` overrides locally.
 - Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).
 - Smoke CI and `scripts/railway-deploy.sh` set Railway vars with `railway variable set --skip-deploys --project …` (no `railway link`); deploy script uses `--skip-deploys` to avoid backboard timeouts.
 - **Founder Lab + persona runs:** `/lab` at `http://127.0.0.1:8787/lab` when `SOCRATINK_LAB_ENABLED=1` (loopback-only); lab spawns `loop-persona-live.mjs` and reads `lab-progress.json`. Shared runner `lib/lab/persona-runner.mjs`, cartridges in `pedagogical_agents/cartridges/`, CLI `./socratink-persona-lab`; local mock student via `PERSONA_LLM_*` (LM Studio `openai_compatible`).

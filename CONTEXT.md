@@ -77,8 +77,11 @@ _Avoid_: model bridge, study reveal, answer key
 
 **Cold Attempt**:
 A score-eligible, substantive generative retrieval at the target knowledge
-component — the first evidence candidate for that drill.
-_Avoid_: launch attempt, help turn, repair turn
+component — the first evidence candidate for that drill. **Post-map cold
+attempt** means the first score-eligible generative retrieval at the active KC
+after `route_generated`: graph-relevant evidence territory, but not weak,
+unknown, or solidified by itself.
+_Avoid_: launch attempt, help turn, repair turn, confusing cold with “no attempt”
 
 **Generation Before Recognition**:
 Learner text must be elicited before model-bridge or answer-key material — but

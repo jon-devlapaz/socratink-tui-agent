@@ -9,7 +9,8 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { DIRECT_PHASE } from "../../lib/seda/next-phase.mjs";
+import { DIRECT_PHASE, nextPhase } from "../../lib/seda/next-phase.mjs";
+import { eventDefinition } from "../../lib/seda/event-facts.mjs";
 import { HANDLERS } from "../../lib/seda/handlers/index.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -98,6 +99,127 @@ test("nextPhase stays a pure router with no imports", () => {
   const source = readRepoFile("lib/seda/next-phase.mjs");
   assert.doesNotMatch(source, /^\s*import\b/m);
   assert.doesNotMatch(source, /\brequire\s*\(/);
+});
+
+test("nextPhase routes from the last appended event only", () => {
+  const source = readRepoFile("lib/seda/next-phase.mjs");
+  assert.match(source, /const last = events\.at\(-1\)/);
+  assert.equal(
+    nextPhase([
+      { type: "cold_attempt", evaluation: { classification: "shallow" } },
+      { type: "gap_identified" },
+    ]),
+    "repair_dialogue",
+    "must ignore earlier events when the last event drives routing",
+  );
+});
+
+test("multi-push handlers append the routing fact last", () => {
+  const handlerBody = (relativePath, exportName) => {
+    const source = readRepoFile(relativePath);
+    const start = source.indexOf(`export async function ${exportName}`);
+    assert.ok(start >= 0, `${relativePath} missing ${exportName}`);
+    return source.slice(start);
+  };
+
+  const lastPushMatches = (body, pattern) => {
+    const pushes = [...body.matchAll(/events\.push\(/g)];
+    assert.ok(pushes.length > 0, "expected at least one events.push");
+    assert.match(body.slice(pushes.at(-1).index), pattern);
+  };
+
+  const coldAttempt = handlerBody(
+    "lib/seda/handlers/cold-attempt.mjs",
+    "handleColdAttempt",
+  );
+  const helpCapBlock = coldAttempt.slice(
+    coldAttempt.indexOf("if (turnIndex >= MAX_COLD_HELP_TURNS)"),
+    coldAttempt.indexOf("ctx.composerCta = {", coldAttempt.indexOf("if (turnIndex >= MAX_COLD_HELP_TURNS)")),
+  );
+  lastPushMatches(helpCapBlock, /coldSupportExhausted/);
+
+  const helpTurnBlock = coldAttempt.slice(
+    coldAttempt.indexOf("if (!isSubstantiveColdEvaluation(evaluation))"),
+    coldAttempt.indexOf("if (turnIndex >= MAX_COLD_HELP_TURNS)"),
+  );
+  lastPushMatches(helpTurnBlock, /coldHelpTurn/);
+
+  const substantiveBlock = coldAttempt.slice(
+    coldAttempt.indexOf("await store.appendAttempt"),
+  );
+  lastPushMatches(substantiveBlock, /coldAttempt/);
+
+  lastPushMatches(
+    handlerBody("lib/seda/handlers/repair-abandoned.mjs", "handleRepairAbandoned"),
+    /repairAbandoned/,
+  );
+
+  const spacedRedrill = handlerBody(
+    "lib/seda/handlers/spaced-redrill.mjs",
+    "handleSpacedRedrill",
+  );
+  const evidenceHoldBlock = spacedRedrill.slice(spacedRedrill.indexOf("if (evidenceHold)"));
+  lastPushMatches(evidenceHoldBlock, /evidenceHoldRecorded/);
+
+  const spacedHappyPath = spacedRedrill.slice(
+    spacedRedrill.indexOf("await store.appendAttempt"),
+    spacedRedrill.indexOf("if (evidenceHold)"),
+  );
+  lastPushMatches(spacedHappyPath, /spacedRedrill/);
+
+  const postBridge = handlerBody(
+    "lib/seda/handlers/post-bridge-transfer.mjs",
+    "handlePostBridgeTransfer",
+  );
+  const skipBlock = postBridge.slice(
+    postBridge.indexOf("if (!runGap)"),
+    postBridge.indexOf("console.log(\"\")", postBridge.indexOf("if (!runGap)")),
+  );
+  lastPushMatches(skipBlock, /postBridgeTransferSkipped/);
+
+  const postBridgeEnd = postBridge.indexOf("\nasync function resolveRunGapDecision");
+  const handlePostBridge = postBridge.slice(0, postBridgeEnd);
+  lastPushMatches(handlePostBridge, /postBridgeTransferCheck/);
+});
+
+test("SEDA authority separates evaluator, bridge readiness, and graph truth", () => {
+  for (const type of [
+    "repair",
+    "model_bridge",
+    "repair_dialogue_turn",
+    "gap_identified",
+    "strong_cold_path",
+  ]) {
+    const definition = eventDefinition(type);
+    assert.equal(definition.graph_neutral, true, type);
+    assert.equal(definition.score_eligible, false, type);
+  }
+
+  assert.equal(eventDefinition("cold_attempt").score_eligible, true);
+  assert.equal(eventDefinition("spaced_redrill").score_eligible, true);
+
+  assert.equal(
+    nextPhase([
+      { type: "route_generated" },
+      { type: "cold_attempt", evaluation: { classification: "solid" } },
+    ]),
+    "strong_cold_path",
+    "evaluator solid is a routing input, not graph solidified",
+  );
+
+  assert.equal(
+    nextPhase([
+      { type: "gap_identified" },
+      {
+        type: "repair_dialogue_turn",
+        bridge_ready: true,
+        turn_index: 1,
+        next_dialogue_action: "commit_repair",
+      },
+    ]),
+    "repair",
+    "bridge_ready is procedural readiness into repair, not graph truth",
+  );
 });
 
 test("SEDA files do not add unreviewed outward dependency edges", () => {

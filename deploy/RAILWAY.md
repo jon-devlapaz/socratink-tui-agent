@@ -98,7 +98,7 @@ git push origin main
 | `SOCRATINK_FEEDBACK_SECRET` | If Apps Script uses it | Match script property |
 | `SOCRATINK_FEEDBACK_TO` | Optional | Mailto fallback only |
 | `SOCRATINK_TUI_FAKE_LLM` | Optional | `1` = no Gemini spend, templated maps |
-| `LOOP_APP_VERSION` | Optional override | Loop chrome label; deploy reads `LOOP_APP_VERSION_DEFAULT` from `lib/loop-server/version.mjs` (bump every PR) |
+| `LOOP_APP_VERSION` | Optional override | Loop chrome label; Smoke CI syncs from `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` (CI bumps PR branches to `main`) |
 | `SOCRATINK_LOOP_API_KEY` | **Skip for v1** | See Phase 6 — breaks browser unless wired |
 | `PORT` | Auto | Railway injects; do not hardcode in Dockerfile CMD |
 

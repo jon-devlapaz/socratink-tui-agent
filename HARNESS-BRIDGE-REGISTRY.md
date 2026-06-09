@@ -23,7 +23,7 @@ and response shape; the SEDA loop and `nextPhase` stay unchanged.
 | --- | --- | --- | --- | --- | --- | --- |
 | `generate-route` | `route`¹ | `socratink-route-v3` | `ProvisionalMap` + `first_node` | route | route_generated, route_retry | `route_generated` → `cold_attempt` (coarse) |
 | `substrate-gate` | `substrate_gate` | `socratink-substrate-gate-v1` | bridge.SubstrateGateDecision | substrate_gate | substrate_seed_offered, substrate_refinement, substrate_support_exhausted, substrate_confirmed | `substrate_confirmed` → `route` (coarse) |
-| `evaluate-attempt` | `evaluator` | `socratink-evaluator-v6` | ai_service.DrillEvaluation | cold_attempt, post_bridge_transfer, spaced_redrill | cold_attempt, cold_help_turn, cold_support_exhausted, post_bridge_transfer_check, spaced_redrill, evidence_hold_recorded | See [evaluator routing](#evaluate-attempt) |
+| `evaluate-attempt` | `evaluator` | `socratink-evaluator-v7` | ai_service.DrillEvaluation | cold_attempt, post_bridge_transfer, spaced_redrill | cold_attempt, cold_help_turn, cold_support_exhausted, post_bridge_transfer_check, spaced_redrill, evidence_hold_recorded | See [evaluator routing](#evaluate-attempt) |
 | `repair-scaffold` | `delta` | `socratink-delta-v5` | bridge.RepairScaffold | delta | gap_identified | `gap_identified` → `repair_dialogue` (coarse) |
 | `socratic-repair-drill` | `socratic_repair_drill` | `socratink-socratic-drill-v3` | bridge.SocraticRepairDrill | delta | gap_identified | — |
 | `repair-dialogue` | `repair_dialogue` | `socratink-repair-dialogue-v4` | bridge.RepairDialogueJudge | repair_dialogue, repair_recovery | repair_dialogue_turn, repair_recovery_turn | See [repair dialogue routing](#repair-dialogue) |

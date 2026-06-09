@@ -23,6 +23,7 @@ if not (VENDOR_PYTHON_ROOT / "ai_service.py").exists():
         "./scripts/sync-canon-from-app.sh to populate vendor/python/."
     )
 sys.path.insert(0, str(VENDOR_PYTHON_ROOT))
+sys.path.insert(0, str(WORKSPACE_ROOT))
 
 import ai_service
 import bridge_fake

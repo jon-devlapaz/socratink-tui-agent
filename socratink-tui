@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")"
-ENV_FILE="${SOCRATINK_TUI_ENV_FILE:-.env}"
-if [[ -f "$ENV_FILE" ]]; then
-  set -a
-  # shellcheck source=/dev/null
-  . "$ENV_FILE"
-  set +a
-fi
 exec node --no-warnings app.mjs "$@"

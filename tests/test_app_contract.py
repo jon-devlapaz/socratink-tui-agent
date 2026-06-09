@@ -19,6 +19,11 @@ sys.path.insert(0, str(VENDOR_PYTHON_ROOT))
 import ai_service
 
 
+def test_ai_service_uses_llm_seam_not_direct_gemini_helpers() -> None:
+    assert not hasattr(ai_service, "_get_client")
+    assert not hasattr(ai_service, "_call_gemini_with_retry")
+
+
 def test_normalize_drill_evaluation_exists_and_is_callable() -> None:
     fn = getattr(ai_service, "_normalize_drill_evaluation", None)
     assert callable(fn), "ai_service._normalize_drill_evaluation missing or not callable"

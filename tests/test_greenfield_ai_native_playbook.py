@@ -9,8 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PLAYBOOK = ROOT / "docs" / "greenfield-ai-native-implementation-plan.md"
 BRIDGE_SLICE = [
     ROOT / "bridge.py",
-    ROOT / "bridge_contracts.py",
-    ROOT / "bridge_fake.py",
+    ROOT / "bridge_lib" / "contracts.py",
+    ROOT / "bridge_lib" / "fake" / "__init__.py",
 ]
 
 REQUIRED_SECTIONS = [
@@ -160,8 +160,8 @@ def test_bridge_slice_keeps_provider_sdks_out_of_local_contracts() -> None:
 def test_bridge_slice_keeps_contract_and_fake_helpers_extracted() -> None:
     bridge_text = (ROOT / "bridge.py").read_text(encoding="utf-8")
 
-    assert "import bridge_fake" in bridge_text
-    assert "from bridge_contracts import" in bridge_text
+    assert "import bridge_lib.fake as bridge_fake" in bridge_text
+    assert "from bridge_lib.contracts import" in bridge_text
     assert "class RepairScaffold" not in bridge_text
     assert "class SocraticRepairDrill" not in bridge_text
     assert "class RepairDialogueJudge" not in bridge_text

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from bridge_fake_response import build_response_from_expect
+from bridge_lib.fake.response import build_response_from_expect
 
 COLD_CLASSIFICATION_ENV = "SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION"
 SPACED_CLASSIFICATION_ENV = "SOCRATINK_TUI_FAKE_SPACED_CLASSIFICATION"

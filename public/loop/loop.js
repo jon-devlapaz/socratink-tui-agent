@@ -8,6 +8,8 @@ const input = document.getElementById("input");
 const phasePill = document.getElementById("phase-pill");
 const versionPill = document.getElementById("version-pill");
 const llmPill = document.getElementById("llm-pill");
+const llmPicker = document.getElementById("llm-picker");
+const llmPickerMenu = document.getElementById("llm-picker-menu");
 const sessionTag = document.getElementById("session-tag");
 const srStatus = document.getElementById("sr-status");
 const composerCtaEl = document.getElementById("composer-cta");
@@ -21,6 +23,12 @@ let busy = false;
 let lastPromptMarker = null;
 let lastLlmStamp = null;
 let currentAwaiting = null;
+let llmOverrideAllowed = false;
+let llmOptions = [];
+let activeLlmSelection = null;
+
+const LLM_PREF_KEY = "socratink.loop.llmPreference";
+const LOCAL_LLM_PROVIDERS = new Set(["openai_compatible"]);
 
 const THINKING_COPY = {
   idle: "starting session",
@@ -157,6 +165,10 @@ function appendTranscript(lines) {
   for (const entry of lines || []) {
     const t = entry.text || "";
     if (!t.trim() || isSkippedTranscriptLine(t)) continue;
+    if (t.startsWith("[Bridge error]")) {
+      appendChatLine("error", t, { force: true });
+      continue;
+    }
     if (t.startsWith("[Help]")) {
       appendChatLine("help", t);
       continue;
@@ -308,6 +320,113 @@ async function post(path, body) {
   return data;
 }
 
+function llmPillLabel(llm) {
+  const prefix = LOCAL_LLM_PROVIDERS.has(llm.provider) ? "local" : "live";
+  return `${prefix} · ${llm.model}`;
+}
+
+function loadLlmPreference() {
+  try {
+    const raw = localStorage.getItem(LLM_PREF_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.provider && parsed?.model) return parsed;
+  } catch {
+    /* corrupted preference — ignore */
+  }
+  return null;
+}
+
+function saveLlmPreference(llm) {
+  try {
+    localStorage.setItem(LLM_PREF_KEY, JSON.stringify(llm));
+  } catch {
+    /* storage unavailable — preference just won't stick */
+  }
+}
+
+function setLlmSelection(llm) {
+  activeLlmSelection = llm;
+  llmPill.dataset.mode = "live";
+  llmPill.textContent = llmPillLabel(llm);
+  llmPill.title = `tutor via bridge (${llm.provider}) — click to switch model`;
+}
+
+function closeLlmMenu() {
+  if (!llmPickerMenu) return;
+  llmPickerMenu.hidden = true;
+  llmPill.setAttribute("aria-expanded", "false");
+}
+
+function renderLlmMenu() {
+  llmPickerMenu.innerHTML = "";
+  const activeId = activeLlmSelection
+    ? `${activeLlmSelection.provider}:${activeLlmSelection.model}`
+    : null;
+  for (const option of llmOptions) {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.textContent = option.label;
+    li.setAttribute(
+      "aria-selected",
+      String(!option.custom && option.id === activeId),
+    );
+    li.addEventListener("click", () => selectLlmOption(option));
+    llmPickerMenu.appendChild(li);
+  }
+}
+
+async function selectLlmOption(option) {
+  closeLlmMenu();
+  let model = option.model;
+  if (option.custom) {
+    model = (window.prompt("Model id (as loaded in LM Studio):") || "").trim();
+    if (!model || model.length > 128) return;
+  }
+  const llm = { provider: option.provider, model };
+  try {
+    if (sessionId) {
+      const res = await fetch(`/api/session/${sessionId}/llm`, {
+        method: "PATCH",
+        headers: apiHeaders(),
+        body: JSON.stringify({ llm }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+    }
+    setLlmSelection(llm);
+    saveLlmPreference(llm);
+    appendChatLine("meta", `[tutor] model → ${llm.provider}/${llm.model}`, {
+      force: true,
+    });
+  } catch (error) {
+    appendChatLine("error", `Model switch failed: ${error.message}`, {
+      force: true,
+    });
+  }
+}
+
+function initLlmPicker(health) {
+  llmOverrideAllowed = Boolean(health?.llm_override_allowed);
+  llmOptions = Array.isArray(health?.llm_options) ? health.llm_options : [];
+  if (!llmOverrideAllowed || !llmOptions.length || !llmPickerMenu) return;
+  llmPill.dataset.interactive = "true";
+  const stored = loadLlmPreference();
+  if (stored) setLlmSelection(stored);
+  llmPill.addEventListener("click", () => {
+    const open = llmPickerMenu.hidden;
+    if (open) renderLlmMenu();
+    llmPickerMenu.hidden = !open;
+    llmPill.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", (event) => {
+    if (!llmPicker.contains(event.target)) closeLlmMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeLlmMenu();
+  });
+}
+
 function setLlmPillFromHealth(health) {
   if (!llmPill || !health) return;
   if (health.fake_llm) {
@@ -317,20 +436,27 @@ function setLlmPillFromHealth(health) {
       "SOCRATINK_TUI_FAKE_LLM=1 — maps/evals are templates. Restart server without it.";
     return;
   }
-  if (!health.gemini_configured) {
+  if (!health.gemini_configured && !health.llm_override_allowed) {
     llmPill.dataset.mode = "error";
     llmPill.textContent = "live · no API key";
     llmPill.title = "Set GEMINI_API_KEY in .env and restart ./socratink-loop-server";
     return;
   }
+  if (activeLlmSelection) {
+    setLlmSelection(activeLlmSelection);
+    return;
+  }
   llmPill.dataset.mode = "live";
-  llmPill.textContent = `live · ${health.llm_model || "gemini"}`;
-  llmPill.title = `Gemini via bridge (${health.llm_provider || "gemini"})`;
+  llmPill.textContent = llmPillLabel({
+    provider: health.llm_provider || "gemini",
+    model: health.llm_model || "gemini",
+  });
+  llmPill.title = `tutor via bridge (${health.llm_provider || "gemini"})`;
 }
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.23";
+  const label = health?.app_version || "v0.24";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -366,6 +492,9 @@ function appendLlmReceipt(llm) {
 }
 
 function applyTurnResponse(data) {
+  if (llmOverrideAllowed && data.llm_active?.provider && data.llm_active?.model) {
+    setLlmSelection(data.llm_active);
+  }
   setPhaseChrome(data.phase);
   appendTranscript(data.transcript);
   appendLlmReceipt(data.llm);
@@ -390,7 +519,11 @@ async function ensureSession() {
   busy = true;
   setBusy(true, "idle");
   try {
-    const data = await post("/api/session");
+    const preference = llmOverrideAllowed ? loadLlmPreference() : null;
+    const data = await post(
+      "/api/session",
+      preference ? { llm: preference } : {},
+    );
     sessionId = data.sessionId;
     setSessionChrome(sessionId);
     appendTranscript(data.transcript);
@@ -455,11 +588,14 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-refreshHealth().then(() =>
-  ensureSession().catch((error) => {
+refreshHealth().then((health) => {
+  // Picker must init before the auto-started session so the stored model
+  // preference applies to the first POST /api/session, not just the next one.
+  initLlmPicker(health);
+  return ensureSession().catch((error) => {
     busy = false;
     appendChatLine("error", error.message || "Could not start session.", { force: true });
     setBusy(false);
     setComposerEnabled(false);
-  }),
-);
+  });
+});

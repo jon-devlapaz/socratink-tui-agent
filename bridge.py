@@ -26,12 +26,12 @@ sys.path.insert(0, str(VENDOR_PYTHON_ROOT))
 sys.path.insert(0, str(WORKSPACE_ROOT))
 
 import ai_service
-import bridge_fake
+import bridge_lib.fake as bridge_fake
 from llm import StructuredLLMRequest, build_llm_client
 from llm.types import StructuredLLMResult
 from models.provisional_map import ProvisionalMap
 
-from bridge_contracts import (
+from bridge_lib.contracts import (
     RepairDialogueJudge,
     RepairScaffold,
     SocraticRepairDrill,

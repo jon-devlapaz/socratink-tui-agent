@@ -111,6 +111,61 @@ body {
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.2);
   color: var(--muted);
+  cursor: default;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.llm-picker {
+  position: relative;
+  display: inline-flex;
+}
+
+.llm-pill[data-interactive="true"] {
+  cursor: pointer;
+}
+
+.llm-pill[data-interactive="true"]:hover {
+  border-color: var(--violet-dim);
+}
+
+.llm-picker-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  min-width: 13rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.llm-picker-menu li {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  padding: 0.35rem 0.55rem;
+  border-radius: calc(var(--radius) - 0.15rem);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.llm-picker-menu li:hover {
+  background: var(--panel-inset);
+  color: var(--text);
+}
+
+.llm-picker-menu li[aria-selected="true"] {
+  color: var(--phase-redrill);
+}
+
+.llm-picker-menu li[aria-selected="true"]::before {
+  content: "✓ ";
 }
 
 .llm-pill[data-mode="live"] {

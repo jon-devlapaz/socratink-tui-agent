@@ -214,9 +214,14 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /id="phase-pill"/);
   assert.match(html, /id="version-pill"/);
   assert.match(html, /id="llm-pill"/);
+  assert.match(html, /id="llm-picker-menu"/);
   assert.match(js, /refreshHealth/);
   assert.match(js, /setVersionPillFromHealth/);
   assert.match(js, /appendLlmReceipt/);
+  assert.match(js, /initLlmPicker/);
+  assert.match(js, /socratink\.loop\.llmPreference/);
+  assert.match(js, /\[Bridge error\]/);
+  assert.match(css, /\.llm-picker-menu/);
   assert.match(js, /substrate_gate/);
   assert.match(js, /isContinueAwaiting/);
   assert.match(js, /sendContinueTurn/);
@@ -461,6 +466,7 @@ test("hosted loop malformed cold bridge output fails closed at idle", async () =
     false,
   );
   assert.doesNotMatch(text, /Model Bridge/i);
+  assert.match(text, /\[Bridge error\] evaluate-attempt:/);
 });
 
 test("loop delta scaffold returns before repair ask on separate turn", async () => {

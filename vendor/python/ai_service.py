@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypedDict, cast
@@ -11,11 +10,13 @@ from llm.types import StructuredLLMResult
 if TYPE_CHECKING:
     from learning_commons import LCStandard
 
-from google import genai
-from google.genai import types
-from google.genai.errors import APIError
 from llm import (
     LLMClient,
+    LLMClientError,
+    LLMRateLimitError,
+    LLMMissingKeyError,
+    LLMServiceError,
+    LLMValidationError,
     StructuredLLMRequest,
     build_llm_client,
 )
@@ -47,7 +48,6 @@ from models.repair_reps import (
 )
 from pydantic import BaseModel, Field
 
-MODEL = "gemini-2.5-flash"
 EXTRACT_TEMPERATURE = 0.2
 DRILL_TEMPERATURE = 0.2
 REPAIR_REPS_TEMPERATURE = 0.2
@@ -60,9 +60,6 @@ DRILL_PROMPT_VERSION = "drill-system-v1"
 REPAIR_REPS_PROMPT_VERSION = "repair-reps-system-v1"
 DRILL_SYSTEM_BASE = DRILL_PROMPT_PATH.read_text()
 REPAIR_REPS_SYSTEM_BASE = REPAIR_REPS_PROMPT_PATH.read_text()
-MAX_RETRIES = 3
-BACKOFF_BASE = 2
-RETRYABLE_CODES = {429, 503, 500}
 DRILL_SESSION_TIME_LIMIT_ENV = "DRILL_SESSION_TIME_LIMIT_SECONDS"
 DISABLED_TIME_LIMIT_VALUES = {"", "0", "off", "none", "null", "disabled", "false"}
 
@@ -182,15 +179,6 @@ class GeminiServiceError(ValueError):
     pass
 
 
-def _get_client(api_key: str | None = None) -> genai.Client:
-    key = os.environ.get("GEMINI_API_KEY") or api_key
-    if not key:
-        raise MissingAPIKeyError(
-            "No Gemini API key configured. Add one in Settings or set GEMINI_API_KEY in .env."
-        )
-    return genai.Client(api_key=key)
-
-
 def _parse_iso_timestamp(iso_string: str) -> datetime:
     sanitized = iso_string.replace("Z", "+00:00")
     try:
@@ -199,39 +187,14 @@ def _parse_iso_timestamp(iso_string: str) -> datetime:
         raise ValueError(f"Invalid timestamp: {iso_string}") from exc
 
 
-def _call_gemini_with_retry(
-    client: genai.Client,
-    *,
-    model: str,
-    contents: str,
-    config: types.GenerateContentConfig,
-    max_retries: int = MAX_RETRIES,
-) -> types.GenerateContentResponse:
-    for attempt in range(max_retries):
-        try:
-            return client.models.generate_content(
-                model=model,
-                contents=contents,
-                config=config,
-            )
-        except APIError as err:
-            if err.code in RETRYABLE_CODES and attempt < max_retries - 1:
-                time.sleep(BACKOFF_BASE ** (attempt + 1))
-                continue
-            if err.code == 429:
-                raise GeminiRateLimitError(
-                    "Gemini rate limit hit. Try again in 60s."
-                ) from err
-            if err.code in (503, 500):
-                raise GeminiServiceError(
-                    f"Gemini service unavailable (HTTP {err.code})."
-                ) from err
-            raise ValueError(
-                f"Gemini API error (HTTP {err.code}): {err.message}"
-            ) from err
-        except Exception as err:
-            raise ValueError(f"Unexpected error: {str(err)}") from err
-    raise RuntimeError("_call_gemini_with_retry exhausted retries without raising")
+def _translate_llm_error(exc: Exception) -> None:
+    if isinstance(exc, LLMMissingKeyError):
+        raise MissingAPIKeyError(str(exc)) from exc
+    if isinstance(exc, LLMRateLimitError):
+        raise GeminiRateLimitError(str(exc)) from exc
+    if isinstance(exc, (LLMClientError, LLMServiceError, LLMValidationError)):
+        raise GeminiServiceError(str(exc)) from exc
+    raise ValueError(str(exc)) from exc
 
 
 def _normalize_response_quality(evaluation: DrillEvaluation) -> None:
@@ -635,7 +598,7 @@ def generate_repair_reps(
     if count != 3:
         raise ValueError("Repair Reps MVP requires exactly 3 reps.")
 
-    client = _get_client(api_key)
+    client: LLMClient = build_llm_client(api_key=api_key)
     pruned_context = _prune_context(knowledge_map, node_id)
     prompt = (
         "Generate exactly three Repair Reps for the target node. "
@@ -649,19 +612,20 @@ def generate_repair_reps(
         f"Pruned knowledge map JSON:\n{json.dumps(pruned_context)}"
     )
 
-    response = _call_gemini_with_retry(
-        client,
-        model=MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=REPAIR_REPS_SYSTEM_BASE,
-            temperature=REPAIR_REPS_TEMPERATURE,
-            response_mime_type="application/json",
-            response_schema=RepairRepsEvaluation,
-        ),
+    request = StructuredLLMRequest(
+        system_prompt=REPAIR_REPS_SYSTEM_BASE,
+        user_prompt=prompt,
+        response_schema=RepairRepsEvaluation,
+        temperature=REPAIR_REPS_TEMPERATURE,
+        task_name="repair_reps",
+        prompt_version=REPAIR_REPS_PROMPT_VERSION,
     )
+    try:
+        result = client.generate_structured(request)
+    except Exception as exc:
+        _translate_llm_error(exc)
 
-    evaluation = _parse_repair_reps_response(response)
+    evaluation = _parse_repair_reps_response(result)
     _validate_repair_reps_result(evaluation, expected_count=count)
 
     return {
@@ -774,7 +738,7 @@ def drill_chat(
         if (
             datetime.now(timezone.utc) - session_start
         ).total_seconds() >= session_time_limit_seconds:
-            result: DrillTurnResult = {
+            time_cap_result: DrillTurnResult = {
                 "agent_response": "That's a good stopping point. Your progress is saved. Pick up where you left off next session.",
                 "generative_commitment": None,
                 "answer_mode": None,
@@ -796,9 +760,9 @@ def drill_chat(
                 "session_terminated": True,
                 "termination_reason": "time_cap",
             }
-            return result
+            return time_cap_result
 
-    client = _get_client(api_key)
+    client: LLMClient = build_llm_client(api_key=api_key)
     pruned_context = _prune_context(knowledge_map, node_id)
     system_prompt_extras = "\n\n### Target Node (ANSWER KEY — NEVER REVEAL)\n"
     system_prompt_extras += (
@@ -881,23 +845,24 @@ def drill_chat(
             f"Latest learner message:\n{latest_learner_message}"
         )
 
-    response = _call_gemini_with_retry(
-        client,
-        model=MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=DRILL_TEMPERATURE,
-            response_mime_type="application/json",
-            response_schema=DrillEvaluation,
-        ),
+    request = StructuredLLMRequest(
+        system_prompt=system_prompt,
+        user_prompt=prompt,
+        response_schema=DrillEvaluation,
+        temperature=DRILL_TEMPERATURE,
+        task_name="drill_chat",
+        prompt_version=DRILL_PROMPT_VERSION,
     )
+    try:
+        llm_result = client.generate_structured(request)
+    except Exception as exc:
+        _translate_llm_error(exc)
 
-    evaluation = response.parsed
+    evaluation = llm_result.parsed
     if not isinstance(evaluation, DrillEvaluation):
-        raise ValueError("Gemini returned an invalid structured drill response.")
+        raise ValueError("LLM returned an invalid structured drill response.")
     if not evaluation.agent_response.strip():
-        raise ValueError("Gemini returned an empty drill response.")
+        raise ValueError("LLM returned an empty drill response.")
     evaluation = _normalize_drill_evaluation(
         evaluation,
         session_phase=session_phase,

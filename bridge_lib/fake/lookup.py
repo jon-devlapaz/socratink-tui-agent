@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from bridge_fake_response import TEMPLATE_TO_ACTION, build_response_from_expect
+from bridge_lib.fake.response import TEMPLATE_TO_ACTION, build_response_from_expect
 
-WORKSPACE_ROOT = Path(__file__).resolve().parent
+WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 EVALS_ROOT = WORKSPACE_ROOT / "evals" / "prompts"
 GOLDEN_REPAIR_DIALOGUE = (
     WORKSPACE_ROOT / "fixtures" / "bridge_vcr" / "golden_repair_dialogue.json"

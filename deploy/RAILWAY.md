@@ -98,7 +98,7 @@ git push origin main
 | `SOCRATINK_FEEDBACK_SECRET` | If Apps Script uses it | Match script property |
 | `SOCRATINK_FEEDBACK_TO` | Optional | Mailto fallback only |
 | `SOCRATINK_TUI_FAKE_LLM` | Optional | `1` = no Gemini spend, templated maps |
-| `LOOP_APP_VERSION` | Optional override | Loop chrome label; Smoke CI syncs from `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` (CI bumps PR branches to `main`) |
+| `LOOP_APP_VERSION` | **Do not set on Railway** | Optional local `.env` override only; production reads `LOOP_APP_VERSION_DEFAULT` from the deployed image |
 | `SOCRATINK_LOOP_API_KEY` | **Skip for v1** | See Phase 6 — breaks browser unless wired |
 | `PORT` | Auto | Railway injects; do not hardcode in Dockerfile CMD |
 
@@ -237,10 +237,11 @@ Send to 5–10 people; ask for `/feedback` on confusion, map mismatch, repair UX
 Railway builds from `Dockerfile` + `railway.toml` on every merge.
 
 **Smoke CI** — after all Smoke jobs pass, the `Verify production loop` job in
-`.github/workflows/smoke.yml` syncs Railway variables from GitHub secrets (including
-`LOOP_APP_VERSION` from `lib/loop-server/version.mjs`) and polls until both the
-direct Railway health endpoint and `https://app.socratink.ai/health` report that
-version. CI does not run `railway up`; the GitHub-connected service owns deploys.
+`.github/workflows/smoke.yml` syncs Railway runtime secrets, removes any stale
+`LOOP_APP_VERSION` override, redeploys from `main` (`railway redeploy
+--from-source`), and polls until both the direct Railway health endpoint and
+`https://app.socratink.ai/health` report `LOOP_APP_VERSION_DEFAULT` from the
+merged commit.
 
 Required GitHub configuration:
 

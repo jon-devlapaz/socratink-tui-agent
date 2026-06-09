@@ -190,7 +190,7 @@ jobs:
           done
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-      - name: Sync Railway variables to repo version
+      - name: Sync Railway runtime variables
         run: |
           LOOP_EXPECTED_VERSION="$(node scripts/bump-loop-version.mjs --print)"
           echo "LOOP_EXPECTED_VERSION=$LOOP_EXPECTED_VERSION" >> "$GITHUB_ENV"
@@ -199,8 +199,7 @@ jobs:
             --environment "$RAILWAY_ENVIRONMENT" \
             --service "$RAILWAY_SERVICE" \
             "GEMINI_API_KEY=${GEMINI_API_KEY}" \
-            "LLM_MODEL=gemini-2.5-flash" \
-            "LOOP_APP_VERSION=${LOOP_EXPECTED_VERSION}"
+            "LLM_MODEL=gemini-2.5-flash"
           if [[ -n "${SOCRATINK_FEEDBACK_WEBHOOK_URL:-}" ]]; then
             railway variable set --skip-deploys --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
               "SOCRATINK_FEEDBACK_WEBHOOK_URL=${SOCRATINK_FEEDBACK_WEBHOOK_URL}"
@@ -213,5 +212,17 @@ jobs:
             railway variable set --skip-deploys --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
               "SOCRATINK_FEEDBACK_TO=${SOCRATINK_FEEDBACK_TO}"
           fi
+          # Stale LOOP_APP_VERSION overrides the baked-in constant without a restart.
+          railway variable delete LOOP_APP_VERSION \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT" \
+            --service "$RAILWAY_SERVICE" \
+            2>/dev/null || true
+      - name: Redeploy loop from main with synced variables
+        run: |
+          railway redeploy --from-source --yes \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT" \
+            --service "$RAILWAY_SERVICE"
       - name: Verify Railway and app.socratink.ai are on the deployed version
         run: node scripts/verify-live-loop-version.mjs

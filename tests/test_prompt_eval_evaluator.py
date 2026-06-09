@@ -91,17 +91,3 @@ def test_prompt_eval_cases_pin_template_version() -> None:
     for case in PROMPT_EVAL_CASES:
         assert case["prompt_version"] == version
 
-
-def test_fake_causal_chain_distinguishes_solid_from_fluent_shallow() -> None:
-    solid = (
-        "On the first request the server computes and stores it; when the same "
-        "request comes again it reads that stored result instead of recomputing, "
-        "so the later response is faster."
-    )
-    shallow = (
-        "Caching is a common performance optimization that stores data for "
-        "faster retrieval and improved response times in distributed web systems."
-    )
-    assert bridge._has_fake_causal_chain(solid)
-    assert bridge._is_fake_fluent_shallow(shallow)
-    assert not bridge._has_fake_causal_chain(shallow)

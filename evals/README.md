@@ -8,7 +8,7 @@ Single-hop bridge evals: fixed inputs → structured control fields after
 | Layer | Location | Gate |
 | --- | --- | --- |
 | L1 | `tests/test_prompt_template.py`, `tests/test_repair_dialogue_contract.py` | Template slots + contracts |
-| L2 | `evals/prompts/*/cases.jsonl` + `tests/test_prompt_eval_*.py` | Fake bridge output (CI) |
+| L2 | `evals/prompts/*/cases.jsonl` + `tests/test_prompt_eval_*.py` | Fake bridge VCR stub (CI) |
 | L3 | `fixtures/` + scripted TUI | Full SEDA, fake LLM |
 | L4 | `learning_cases/` + `./socratink-harness replay` | Event order + derivation |
 
@@ -32,11 +32,12 @@ Single-hop bridge evals: fixed inputs → structured control fields after
 
 Cases under `evals/prompts/evaluator/cases.jsonl` pin **solid vs fluent-shallow**
 cold attempts, help_request, misconception, deep partial, spaced re-drill, and
-gap drill. Fake bridge heuristics (`bridge._fake_evaluator_classification`)
-mirror the v5 causal rubric for CI; live Gemini snapshots are optional L3.
+gap drill. The fake bridge loads these rows via `bridge_fake_lookup.py` (VCR
+stub); live Gemini snapshots are optional L3.
 
-Fake mode (`SOCRATINK_TUI_FAKE_LLM=1`) is the default CI gate. Live snapshots
-require a pinned provider/model and are not merge-blocking in v1.
+Fake mode (`SOCRATINK_TUI_FAKE_LLM=1`) is a **bridge VCR stub** (env knobs →
+lookup → defaults), not an evaluator surrogate. Live snapshots require a pinned
+provider/model and are not merge-blocking in v1.
 
 ## Case metadata
 

@@ -1,0 +1,68 @@
+[
+  {
+    "action": "repair-dialogue",
+    "input": {
+      "node_label": "Immune memory",
+      "node_mechanism": "A vaccine safely presents antigen and memory cells remain; those cells respond faster later.",
+      "gap_id": "gap-c1_s1-1",
+      "missing_operation": "durable immune change after the preview",
+      "before": "A safe preview presents the antigen.",
+      "after": "Later response is faster.",
+      "learner_text": "The preview helps because it gives a preview.",
+      "turn_index": 1
+    },
+    "expect": {
+      "bridge_ready": false,
+      "next_action": "resume_repair",
+      "next_dialogue_action": "probe_again",
+      "graph_neutral": true,
+      "score_eligible": false,
+      "contract_version": "repair-dialogue-v2",
+      "progression_state": "no_change"
+    }
+  },
+  {
+    "action": "repair-dialogue",
+    "input": {
+      "node_label": "Immune memory",
+      "node_mechanism": "A vaccine safely presents antigen and memory cells remain; those cells respond faster later.",
+      "gap_id": "gap-c1_s1-1",
+      "missing_operation": "durable immune change after the preview",
+      "before": "A safe preview presents the antigen.",
+      "after": "Later response is faster.",
+      "learner_text": "The preview leaves memory cells behind, so a later antigen match can trigger a faster response.",
+      "turn_index": 2
+    },
+    "expect": {
+      "bridge_ready": true,
+      "next_action": "commit_repair",
+      "next_dialogue_action": "commit_repair",
+      "graph_neutral": true,
+      "score_eligible": false,
+      "contract_version": "repair-dialogue-v2",
+      "progression_state": "ready"
+    }
+  },
+  {
+    "action": "repair-dialogue",
+    "input": {
+      "node_label": "Correlation vs causation",
+      "node_mechanism": "Confounders can make two variables correlate without direct causation.",
+      "gap_id": "gap-c1_s1-1",
+      "missing_operation": "the causal step that links the before state to the after state",
+      "before": "Name what remains after the preview.",
+      "after": "The learner reconstructs how immune memory links safe exposure to faster response.",
+      "learner_text": "Hot weather is the confounder: summer heat raises swimming and ice cream demand independently, so the correlation does not imply ice cream causes drowning.",
+      "turn_index": 2
+    },
+    "expect": {
+      "bridge_ready": true,
+      "next_action": "commit_repair",
+      "next_dialogue_action": "commit_repair",
+      "graph_neutral": true,
+      "score_eligible": false,
+      "contract_version": "repair-dialogue-v2",
+      "progression_state": "ready"
+    }
+  }
+]

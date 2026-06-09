@@ -152,7 +152,7 @@ jobs:
         run: .venv/bin/pytest tests/test_workspace_smoke.py tests/test_app_contract.py -q
 
   deploy-production:
-    name: Deploy production loop
+    name: Verify production loop
     runs-on: ubuntu-latest
     needs: [lint-typecheck, prompt-templates, canon, scripted-loop]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -213,7 +213,5 @@ jobs:
             railway variable set --skip-deploys --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT" --service "$RAILWAY_SERVICE" \
               "SOCRATINK_FEEDBACK_TO=${SOCRATINK_FEEDBACK_TO}"
           fi
-      - name: Deploy to Railway
-        run: railway up --ci --service "$RAILWAY_SERVICE" --environment "$RAILWAY_ENVIRONMENT" --project "$RAILWAY_PROJECT_ID"
       - name: Verify Railway and app.socratink.ai are on the deployed version
         run: node scripts/verify-live-loop-version.mjs

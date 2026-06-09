@@ -25,13 +25,40 @@ Product vocabulary (glossary only): `CONTEXT.md`.
 One story about state — everything else is detail:
 
 ```text
-Handler turn  →  events.push(fact)       append-only, authoritative
+Handler turn  →  events.push(fact[s])    append-only, authoritative
               →  derive training          audit (canon); not a router input
               →  phase = nextPhase(events)   pure; the only control-flow owner
 ```
 
 **Handlers do lane work and append facts. They do not route.** Skipping a step
 still emits a fact (e.g. `post_bridge_transfer_skipped`).
+
+### SEDA authority boundaries
+
+Phase/lane selection is exclusively owned by `nextPhase(events)`. Handlers
+append facts; they do not choose the next phase.
+
+A handler may append multiple facts in one turn. The routing-relevant fact must
+be appended **last** because `nextPhase` reads `events.at(-1)`.
+
+Bridge output is evidence or procedural signal, not graph truth and not an
+independent lane router. Bridge may classify, scaffold, judge, generate a
+provisional map, or emit route hints, but `nextPhase` owns lane selection.
+
+Do not conflate the three “solid” concepts:
+
+- `evaluation.classification === "solid"` — evaluator evidence (routing input).
+- `repair_dialogue_turn.bridge_ready === true` — repair-exit procedural readiness.
+- `derived.nodes[].state === "solidified"` — graph truth (derivation only).
+
+Pre-map substrate, repair, help, scaffold, reveal, and model-bridge events are
+graph-neutral and not score-eligible.
+
+Graph truth is derived only from score-eligible attempts (`cold_attempt`,
+`spaced_redrill`), with spacing and strong spaced re-drill acting as derivation
+gates. A `cold_attempt` event co-locates learner `text` and bridge
+`evaluation`; treat it as “attempt as interpreted at that time,” not as graph
+truth.
 
 | Concern | Owner | Do not |
 | --- | --- | --- |
@@ -60,6 +87,9 @@ branch, or one handler lane. If you need a second state machine, stop.
   (post-map help cap) — see `CONTEXT.md`
 - Refactoring adjacent handlers while fixing an unrelated bug
 - Replacing readable `nextPhase` branches with a generic router framework
+- Appending telemetry, audit, or closure events **after** the routing fact in a
+  handler turn (breaks `nextPhase` because it reads `events.at(-1)`)
+- Treating bridge `evaluation` fields as graph truth or independent lane routing
 
 ## Closed-loop agent operating model
 
@@ -289,13 +319,13 @@ Two channels — see **Throughline**. Details:
 - For lab/persona orchestration, prefer spawning the existing CLI with file-based progress (`lab-progress.json`) over in-process runners or fork+IPC workers on loop-server.
 - After lab ship, prefer outer persona validation (substrate/repair via `novice-immune-memory`, one traceable product fix) over more lab infrastructure.
 - Use **Confirmed Substrate**, **Substrate Gate**, and related terms from `CONTEXT.md`; avoid informal **floor** in code, docs, and prompts.
+- For agent-facing doc triage, dedupe, and `docs/implementation/**` disposition, use `agent_doc_pruner_skill`; diagnose-only unless asked to apply or commit edits.
 
 ## Learned Workspace Facts
 
 - Product vocabulary and substrate-gate decisions live in `CONTEXT.md` and `docs/adr/`; pre-map substrate is graph-neutral routing only — evidence still begins at **Cold Attempt**.
 - GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs and passing Smoke CI.
-- Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; deploy via `./scripts/railway-deploy.sh` (`deploy/RAILWAY.md`). Production learner URL is `app.socratink.ai/loop` via `socratink-app` FastAPI proxy (`LOOP_BACKEND_URL` → Railway; see `deploy/LOOP-HOSTING.md`).
-- `socratink-app` proxies `/loop`, `/health`, and `/api/session/*` through `loop_backend_proxy.py`; `public/loop/loop.js` polls `/health` (not `/api/health`) for version/LLM pills. Avoid duplicate Vercel edge rewrites for the same paths.
+- Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; deploy via `./scripts/railway-deploy.sh` (`deploy/RAILWAY.md`). Production URL `app.socratink.ai/loop` via `socratink-app` FastAPI proxy (`loop_backend_proxy.py`; `LOOP_BACKEND_URL` → Railway; see `deploy/LOOP-HOSTING.md`). `public/loop/loop.js` polls `/health` (not `/api/health`); avoid duplicate Vercel rewrites for the same paths.
 - Loop server `advanceSession` may run several handler turns per HTTP request until
   `PROMPT_REQUIRED`; pacing stops (`lib/loop-server/pacing-stops.mjs`) are transport
   only — routing truth still comes from append-only events and `nextPhase`.

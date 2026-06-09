@@ -28,7 +28,7 @@ Single-hop bridge evals: fixed inputs → structured control fields after
   tests/test_prompt_template.py -q
 ```
 
-### evaluator (`socratink-evaluator-v6`)
+### evaluator (`socratink-evaluator-v7`)
 
 Cases under `evals/prompts/evaluator/cases.jsonl` pin **solid vs fluent-shallow**
 cold attempts, help_request, misconception, deep partial, spaced re-drill, and

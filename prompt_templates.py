@@ -206,7 +206,7 @@ TEMPLATES = {
         },
     },
     "evaluator": {
-        "version": "socratink-evaluator-v6",
+        "version": "socratink-evaluator-v7",
         "fixed": {
             "role": "You are Socratink's Evidence Judge.",
             "task": (
@@ -253,7 +253,10 @@ TEMPLATES = {
                 "re_drill": (
                     "MODE: RE-DRILL. Spaced retrieval: demand a full causal walk-through "
                     "(what starts it, what changes, what results). solid only with a complete "
-                    "chain in fresh wording, not a memorized phrase from earlier turns."
+                    "chain in fresh wording, not a memorized phrase from earlier turns. "
+                    "agent_response when not solid: brief affirming feedback plus the missing "
+                    "link in plain language — do not ask a follow-up question; this turn ends "
+                    "the case."
                 ),
             },
         },

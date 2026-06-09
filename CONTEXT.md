@@ -111,3 +111,56 @@ _Avoid_: router, evidence event, extra handler
 One concept run reached its terminal learning beat while the hosted session can
 remain open at idle for another concept or `/exit`.
 _Avoid_: session complete, graph solidified, bridge gate passed
+
+**Own-Words Repair**:
+Graph-neutral beat after a non-solid Cold Attempt: the learner must reconstruct
+one missing causal link in fresh wording before Model Bridge eligibility. Routing
+and telemetry only — not evidence and not graph truth.
+_Avoid_: repair turn (informal), quiz, mastery check
+
+**Repair Dialogue**:
+The learner-visible exchange during Own-Words Repair — one shaped question per
+turn. Turn 1 uses a Repair Opening; turn 2+ uses Contingent Repair Probes keyed
+to the learner's last repair text. Turn-1 learner copy is owned by tested JS
+(`buildRepairOpening` in `repair-scaffold.mjs`), not the Socratic Repair Drill
+LLM — internal slots only.
+_Avoid_: Socratic dialogue (classical elenchus), worksheet, Delta scaffold slots
+
+**Uptake Hook**:
+Learner-supplied frame in a substantive Cold Attempt that Repair Opening can
+preserve — a divergent question (`?`) or an in-domain contrast pair (e.g. first
+time vs later, delay vs immediately, compared to / versus). Signals productive
+prep even when the mechanism answer is weak.
+_Avoid_: map room labels, tutor vocabulary pasted as the hook
+
+**Ultra-thin Cold Attempt**:
+A substantive Cold Attempt with no Uptake Hook — labels, vibes, or fragments
+without a contrast or question the tutor can echo. Repair uses orient, not uptake.
+_Avoid_: evaluator `thin` classification alone (a thin answer can still carry a
+strong hook)
+
+**Repair Opening (uptake)**:
+Default turn-1 Repair Dialogue when the Cold Attempt is substantive and has an
+Uptake Hook: echo the learner's hook, then one short generative invite (e.g.
+"What's your best guess at the mechanism?") — one utterance, one `?`, ≤30 words.
+Internal hinge/contrast slots inform the tutor; they are not concatenated into
+learner copy.
+_Avoid_: verbatim re-ask only, tutor paraphrase that drifts off learner wording,
+pre-written worksheet prompts, map room labels in learner-facing text
+
+**Repair Opening (orient)**:
+Turn-1 Repair Dialogue when the Cold Attempt was blank, help_request,
+zero-schema after Cold Support Exhausted, or ultra-thin — no Uptake Hook. One
+situated question, one `?`, ≤30 words: use a sanitized evaluator gap phrase when
+it is learner-safe; otherwise a situational contrast frame plus short hinge (no
+Provisional Map room labels).
+_Avoid_: cold help turn (that is pre-repair), repeating the same stacked template
+
+**Contingent Repair Probe**:
+Turn 2+ repair prompt from the repair-dialogue judge's reading of the learner's
+last repair text — probe or reformulate, explanation-light. Judge `next_prompt`
+is primary; when absent, tested JS (`buildContingentProbe` in
+`repair-scaffold.mjs`) echoes a snippet of the last repair text and asks one
+hinge-targeted question — never re-show turn-1 opening. Escalation (analogical,
+micro-scaffold) follows existing repair policy when probes fail.
+_Avoid_: re-showing turn-1 question verbatim, tutor lecture, model bridge material

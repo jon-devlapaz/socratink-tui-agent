@@ -4,7 +4,7 @@ import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Literal, Optional, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypedDict, cast
 
 from llm.types import StructuredLLMResult
 
@@ -182,7 +182,7 @@ class GeminiServiceError(ValueError):
     pass
 
 
-def _get_client(api_key: str | None = None):
+def _get_client(api_key: str | None = None) -> genai.Client:
     key = os.environ.get("GEMINI_API_KEY") or api_key
     if not key:
         raise MissingAPIKeyError(
@@ -200,8 +200,13 @@ def _parse_iso_timestamp(iso_string: str) -> datetime:
 
 
 def _call_gemini_with_retry(
-    client, *, model, contents, config, max_retries=MAX_RETRIES
-):
+    client: genai.Client,
+    *,
+    model: str,
+    contents: str,
+    config: types.GenerateContentConfig,
+    max_retries: int = MAX_RETRIES,
+) -> types.GenerateContentResponse:
     for attempt in range(max_retries):
         try:
             return client.models.generate_content(
@@ -226,6 +231,7 @@ def _call_gemini_with_retry(
             ) from err
         except Exception as err:
             raise ValueError(f"Unexpected error: {str(err)}") from err
+    raise RuntimeError("_call_gemini_with_retry exhausted retries without raising")
 
 
 def _normalize_response_quality(evaluation: DrillEvaluation) -> None:
@@ -613,7 +619,7 @@ def generate_smallest_provisional_map(
 
 def generate_repair_reps(
     *,
-    knowledge_map: dict,
+    knowledge_map: dict[str, Any],
     concept_id: str | None = None,
     node_id: str,
     node_label: str,
@@ -674,7 +680,9 @@ def generate_repair_reps(
     }
 
 
-def _find_target_subnode_context(knowledge_map: dict, node_id: str) -> dict | None:
+def _find_target_subnode_context(
+    knowledge_map: dict[str, Any], node_id: str
+) -> dict[str, Any] | None:
     clusters = (
         knowledge_map.get("clusters") if isinstance(knowledge_map, dict) else None
     )
@@ -716,7 +724,7 @@ def _format_learner_scaffold_for_drill(scaffold: object) -> str:
 
 def drill_chat(
     *,
-    knowledge_map: dict,
+    knowledge_map: dict[str, Any],
     concept_id: str | None = None,
     node_id: str,
     node_label: str,

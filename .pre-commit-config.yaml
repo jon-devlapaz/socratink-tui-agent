@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: eslint-lib
+        name: eslint (lib/)
+        entry: npm run lint
+        language: system
+        files: ^lib/
+        pass_filenames: false
+      - id: mypy-vendor-python
+        name: mypy --strict (vendor/python/)
+        entry: poetry run mypy vendor/python
+        language: system
+        files: ^vendor/python/.*\.py$
+        pass_filenames: false

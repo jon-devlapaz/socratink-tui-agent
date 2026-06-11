@@ -46,7 +46,10 @@ test("catalog includes local section plus custom row when base url set", () => {
   });
   assert.ok(
     options.some(
-      (o) => o.provider === "openai_compatible" && o.model === "google/gemma-4-12b",
+      (o) =>
+        o.provider === "openai_compatible" &&
+        o.model === "google/gemma-4-12b" &&
+        o.label === "LM Studio · google/gemma-4-12b",
     ),
   );
   assert.ok(options.some((o) => o.custom));
@@ -62,7 +65,10 @@ test("catalog always contains the active env model", () => {
   const options = buildLlmOptions(env);
   assert.ok(
     options.some(
-      (o) => o.provider === active.provider && o.model === active.model,
+      (o) =>
+        o.provider === active.provider &&
+        o.model === active.model &&
+        o.label === "LM Studio · qwen/qwen3-8b",
     ),
   );
 });

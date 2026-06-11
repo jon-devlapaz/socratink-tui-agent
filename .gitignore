@@ -15,3 +15,5 @@ __pycache__/
 learning_cases/traces/.capture-tmp/
 learning_cases/traces/**/.capture-run/
 learning_cases/traces/*/*T*/
+
+.code-review-graph/

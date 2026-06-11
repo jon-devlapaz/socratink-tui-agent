@@ -13,3 +13,15 @@ repos:
         language: system
         files: ^vendor/python/.*\.py$
         pass_filenames: false
+      - id: mypy-bridge-core
+        name: mypy --strict (bridge runtime core)
+        entry: poetry run mypy bridge.py prompt_templates.py bridge_lib
+        language: system
+        files: ^(bridge\.py|prompt_templates\.py|bridge_lib/.*\.py)$
+        pass_filenames: false
+      - id: mypy-scripts
+        name: mypy --strict (scripts/)
+        entry: poetry run mypy scripts
+        language: system
+        files: ^scripts/.*\.py$
+        pass_filenames: false

@@ -4,10 +4,10 @@ This map is scoped to the SEDA loop and only covers external LLM interactions.
 
 ## At runtime, AI is called in one place
 
-- [lib/bridge/client.mjs](lib/bridge/client.mjs) starts `bridge.py` as a subprocess for each `action`.
-- [bridge.py](bridge.py) builds the prompt for that action and calls
+- [lib/bridge/client.mjs](../lib/bridge/client.mjs) starts `bridge.py` as a subprocess for each `action`.
+- [bridge.py](../bridge.py) builds the prompt for that action and calls
   `build_llm_client().generate_structured(...)` from the vendored AI seam.
-- [prompt_templates.py](prompt_templates.py) holds the app-owned templates for all non-route prompts.
+- [prompt_templates.py](../prompt_templates.py) holds the app-owned templates for all non-route prompts.
 - Route prompting is delegated to `ai_service.generate_smallest_provisional_map(...)` in `bridge.py`; the route template entry is a contract/version pin for parity tests.
 
 ```mermaid

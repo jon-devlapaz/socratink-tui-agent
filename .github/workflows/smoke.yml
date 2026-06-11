@@ -7,6 +7,9 @@
 # - scripted-loop: fake-LLM end-to-end SEDA session (no API key)
 
 name: Smoke
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: "22"
   PYTHON_VERSION_FILE: ".python-version"

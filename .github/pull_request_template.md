@@ -4,7 +4,7 @@
 
 ## Version
 
-- [ ] No manual `LOOP_APP_VERSION` bump — CI auto-bumps the PR branch (`bump-loop-version` job)
+- [ ] `LOOP_APP_VERSION` bumped with `npm run bump:loop` when targeting `main`; CI verifies but does not push commits
 
 ## Test plan
 

@@ -321,6 +321,9 @@ async function post(path, body) {
 }
 
 function llmPillLabel(llm) {
+  if (llm.provider === "openai_compatible") {
+    return `LM Studio · ${llm.model}`;
+  }
   const prefix = LOCAL_LLM_PROVIDERS.has(llm.provider) ? "local" : "live";
   return `${prefix} · ${llm.model}`;
 }
@@ -349,7 +352,9 @@ function setLlmSelection(llm) {
   activeLlmSelection = llm;
   llmPill.dataset.mode = "live";
   llmPill.textContent = llmPillLabel(llm);
-  llmPill.title = `tutor via bridge (${llm.provider}) — click to switch model`;
+  const sourceLabel =
+    llm.provider === "openai_compatible" ? "LM Studio" : llm.provider;
+  llmPill.title = `tutor via bridge (${sourceLabel}) — click to switch model`;
 }
 
 function closeLlmMenu() {
@@ -396,9 +401,11 @@ async function selectLlmOption(option) {
     }
     setLlmSelection(llm);
     saveLlmPreference(llm);
-    appendChatLine("meta", `[tutor] model → ${llm.provider}/${llm.model}`, {
-      force: true,
-    });
+    const modelLabel =
+      llm.provider === "openai_compatible"
+        ? `LM Studio/${llm.model}`
+        : `${llm.provider}/${llm.model}`;
+    appendChatLine("meta", `[tutor] model → ${modelLabel}`, { force: true });
   } catch (error) {
     appendChatLine("error", `Model switch failed: ${error.message}`, {
       force: true,
@@ -451,12 +458,15 @@ function setLlmPillFromHealth(health) {
     provider: health.llm_provider || "gemini",
     model: health.llm_model || "gemini",
   });
-  llmPill.title = `tutor via bridge (${health.llm_provider || "gemini"})`;
+  const healthProvider = health.llm_provider || "gemini";
+  const healthSource =
+    healthProvider === "openai_compatible" ? "LM Studio" : healthProvider;
+  llmPill.title = `tutor via bridge (${healthSource})`;
 }
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.25";
+  const label = health?.app_version || "v0.26";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }

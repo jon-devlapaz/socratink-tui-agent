@@ -12,6 +12,18 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 VENV_PYTHON = WORKSPACE_ROOT / ".venv" / "bin" / "python"
 
 
+def workspace_cmd_timeout() -> int:
+    raw = os.environ.get("SOCRATINK_WORKSPACE_SMOKE_TIMEOUT", "30")
+    try:
+        timeout = int(raw)
+    except ValueError:
+        return 30
+    return timeout if timeout > 0 else 30
+
+
+WORKSPACE_CMD_TIMEOUT = workspace_cmd_timeout()
+
+
 def run_command(args: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     merged_env = os.environ.copy()
     # Intentionally do NOT set SOCRATINK_APP_ROOT: the TUI is self-contained and
@@ -32,7 +44,7 @@ def run_command(args: list[str], *, env: dict[str, str] | None = None) -> subpro
         cwd=WORKSPACE_ROOT,
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=WORKSPACE_CMD_TIMEOUT,
         env=merged_env,
     )
 

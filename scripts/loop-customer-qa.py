@@ -20,6 +20,7 @@ import json
 import os
 import re
 import sys
+from typing import Any
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -58,36 +59,36 @@ TURNS = [
 ]
 
 
-def snap(page, name: str) -> str:
+def snap(page: Any, name: str) -> str:
     SHOT.mkdir(parents=True, exist_ok=True)
     path = SHOT / f"{name}.png"
     page.screenshot(path=str(path), full_page=True)
     return str(path)
 
 
-def transcript_text(page) -> str:
-    return page.locator("#transcript").inner_text()
+def transcript_text(page: Any) -> str:
+    return str(page.locator("#transcript").inner_text())
 
 
-def cta_state(page) -> dict:
+def cta_state(page: Any) -> dict[str, object]:
     cta = page.locator("#composer-cta")
     hidden = cta.get_attribute("hidden")
     return {
         "visible": hidden is None,
-        "label": page.locator("#composer-cta-label").inner_text().strip(),
-        "text": page.locator("#composer-cta-text").inner_text().strip(),
+        "label": str(page.locator("#composer-cta-label").inner_text()).strip(),
+        "text": str(page.locator("#composer-cta-text").inner_text()).strip(),
     }
 
 
-def llm_pill(page) -> str:
-    return page.locator("#llm-pill").inner_text().strip()
+def llm_pill(page: Any) -> str:
+    return str(page.locator("#llm-pill").inner_text()).strip()
 
 
-def phase_pill(page) -> str:
-    return page.locator("#phase-pill").inner_text().strip()
+def phase_pill(page: Any) -> str:
+    return str(page.locator("#phase-pill").inner_text()).strip()
 
 
-def send_answer(page, text: str, timeout_ms: int = 180_000) -> None:
+def send_answer(page: Any, text: str, timeout_ms: int = 180_000) -> None:
     inp = page.locator("#input")
     expect(inp).to_be_enabled(timeout=timeout_ms)
     before_len = len(transcript_text(page))
@@ -103,7 +104,7 @@ def send_answer(page, text: str, timeout_ms: int = 180_000) -> None:
 
 
 def main() -> int:
-    findings: list[dict] = []
+    findings: list[dict[str, object]] = []
     console_errors: list[str] = []
     failed_requests: list[str] = []
 
@@ -185,13 +186,14 @@ def main() -> int:
 
         cta = cta_state(page)
         snap(page, "04-composer-cta")
-        cp4_ok = cta["visible"] and len(cta["text"]) > 20
+        cp4_ok = bool(cta["visible"]) and len(str(cta["text"])) > 20
+        cta_text = str(cta["text"])
         dup_in_log = bool(
             re.search(r"\[Question\]", t_after_route)
             or (
-                cta["text"]
-                and cta["text"][:40] in t_after_route
-                and t_after_route.count(cta["text"][:30]) > 1
+                cta_text
+                and cta_text[:40] in t_after_route
+                and t_after_route.count(cta_text[:30]) > 1
             )
         )
         findings.append(

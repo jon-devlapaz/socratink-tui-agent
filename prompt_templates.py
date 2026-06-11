@@ -15,8 +15,11 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+from collections.abc import Mapping
 
 _PLACEHOLDER_ONLY = re.compile(r"^\{(\w+)\}$")
+TemplateParams = Mapping[str, Any]
+TemplateDict = dict[str, Any]
 
 # Shared learner-facing voice: plain mechanism talk (Feynman-style), not rubric voice.
 _VOICE = [
@@ -31,7 +34,7 @@ _VOICE = [
 ]
 
 
-def _resolve_slot(value: Any, params: dict) -> Any:
+def _resolve_slot(value: Any, params: TemplateParams) -> Any:
     """Resolve a single dynamic slot value against params.
 
     A slot that is exactly a single placeholder (e.g. "{knowledge_map}") and
@@ -52,7 +55,10 @@ def _resolve_slot(value: Any, params: dict) -> Any:
 
 
 def build_prompt(
-    template: dict, params: dict | None = None, *, mode: str | None = None
+    template: TemplateDict,
+    params: TemplateParams | None = None,
+    *,
+    mode: str | None = None,
 ) -> dict[str, str]:
     """Build a system + user prompt from a template and parameters.
 
@@ -67,7 +73,7 @@ def build_prompt(
     Returns:
         Dict with 'system_prompt' (str) and 'user_prompt' (str).
     """
-    params = params or {}
+    normalized_params: dict[str, Any] = dict(params or {})
 
     # Build system prompt from fixed components
     role = template["fixed"]["role"]
@@ -87,7 +93,7 @@ def build_prompt(
     # Build user prompt from dynamic component
     dynamic = template["dynamic"]
     user_prompt: dict[str, Any] = {
-        key: _resolve_slot(value, params) for key, value in dynamic.items()
+        key: _resolve_slot(value, normalized_params) for key, value in dynamic.items()
     }
 
     return {
@@ -96,7 +102,7 @@ def build_prompt(
     }
 
 
-TEMPLATES = {
+TEMPLATES: dict[str, TemplateDict] = {
     "delta": {
         "version": "socratink-delta-v5",
         "fixed": {

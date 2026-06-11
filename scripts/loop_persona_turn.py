@@ -8,6 +8,7 @@ Providers (PERSONA_LLM_PROVIDER):
 
 from __future__ import annotations
 
+from typing import Any, Callable
 import json
 import os
 import re
@@ -30,7 +31,7 @@ def build_system_prompt(persona_hint: str) -> str:
     return f"{PERSONA_SYSTEM}\n\nProfile note: {hint}"
 
 
-def build_user_prompt(payload: dict) -> str:
+def build_user_prompt(payload: dict[str, object]) -> str:
     concept = str(payload.get("concept") or "").strip()
     goal = str(payload.get("learner_goal") or "").strip()
     phase = str(payload.get("phase") or "").strip()
@@ -56,11 +57,11 @@ def _looks_like_reasoning_meta(text: str) -> bool:
     return bool(_REASONING_META_RE.search(text))
 
 
-def extract_openai_message_text(message: dict) -> str:
-    content = (message.get("content") or "").strip()
+def extract_openai_message_text(message: dict[str, object]) -> str:
+    content = str(message.get("content") or "").strip()
     if content:
         return content
-    reasoning = (message.get("reasoning_content") or "").strip()
+    reasoning = str(message.get("reasoning_content") or "").strip()
     if not reasoning:
         return ""
     sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", reasoning) if s.strip()]
@@ -80,7 +81,7 @@ def generate_openai_compatible(
     base_url: str,
     model: str,
     api_key: str,
-    opener=urllib.request.urlopen,
+    opener: Callable[..., Any] = urllib.request.urlopen,
 ) -> str:
     url = f"{base_url.rstrip('/')}/chat/completions"
     body = json.dumps(
@@ -114,7 +115,12 @@ def generate_openai_compatible(
         raise RuntimeError(f"OpenAI-compatible persona call failed: {err.reason}") from err
 
     if "error" in payload:
-        message = payload["error"].get("message") or payload["error"]
+        error = payload["error"]
+        if isinstance(error, dict):
+            message = error.get("message") or error
+        else:
+            message = error
+        message = str(message)
         raise RuntimeError(f"OpenAI-compatible persona call failed: {message}")
 
     choices = payload.get("choices") or []
@@ -146,7 +152,11 @@ def generate_gemini(*, system_prompt: str, user_prompt: str, api_key: str, model
     return text
 
 
-def generate_persona_turn(payload: dict, *, opener=urllib.request.urlopen) -> str:
+def generate_persona_turn(
+    payload: dict[str, object],
+    *,
+    opener: Callable[..., Any] = urllib.request.urlopen,
+) -> str:
     provider = os.environ.get("PERSONA_LLM_PROVIDER", "gemini").strip().lower()
     system_prompt = build_system_prompt(str(payload.get("persona_hint") or ""))
     user_prompt = build_user_prompt(payload)

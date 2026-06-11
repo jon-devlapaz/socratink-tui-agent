@@ -74,6 +74,8 @@ def canonical_payload(action: str, request: dict[str, Any]) -> dict[str, Any]:
     fields = ACTION_KEY_FIELDS.get(action)
     if fields is None:
         raise ValueError(f"unknown fake lookup action: {action}")
+    if action == "repair-dialogue":
+        fields = tuple(field for field in fields if field != "missing_operation")
     result: dict[str, Any] = {}
     for field in fields:
         if field not in request:

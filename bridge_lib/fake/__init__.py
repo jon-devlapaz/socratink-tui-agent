@@ -35,10 +35,22 @@ __all__ = [
     "fake_repair_dialogue",
 ]
 
+Template = dict[str, Any]
+
 
 @lru_cache(maxsize=1)
-def _lookup_table():
+def _lookup_table() -> dict[str, dict[str, Any]]:
     return build_lookup()
+
+
+def _pick_template_mode(template: Template, mode: str | None) -> str | None:
+    fixed = template.get("fixed")
+    if not isinstance(fixed, dict):
+        return None
+    modes = fixed.get("modes")
+    if not isinstance(modes, dict):
+        return None
+    return mode if mode in modes else None
 
 
 def fake_substrate_gate(request: dict[str, Any]) -> dict[str, Any]:
@@ -65,6 +77,7 @@ def fake_substrate_gate(request: dict[str, Any]) -> dict[str, Any]:
 def fake_evaluation(request: dict[str, Any]) -> dict[str, Any]:
     eval_tmpl = prompt_templates.TEMPLATES["evaluator"]
     fake_drill_mode = str(request.get("drill_mode") or "cold_attempt")
+    mode = _pick_template_mode(eval_tmpl, fake_drill_mode) or "re_drill"
     prompt_templates.build_prompt(
         eval_tmpl,
         {
@@ -76,11 +89,7 @@ def fake_evaluation(request: dict[str, Any]) -> dict[str, Any]:
             "repair_drill_context": request.get("repair_drill_context") or None,
             "knowledge_map": request.get("knowledge_map") or {},
         },
-        mode=(
-            fake_drill_mode
-            if fake_drill_mode in eval_tmpl["fixed"]["modes"]
-            else "re_drill"
-        ),
+        mode=mode,
     )
     if hit := evaluate_attempt_override(request):
         return hit

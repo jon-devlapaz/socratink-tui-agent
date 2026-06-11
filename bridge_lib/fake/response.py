@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal, cast
 
 from bridge_lib.contracts import (
     RepairDialogueJudge,
@@ -24,6 +24,21 @@ TEMPLATE_TO_ACTION = {
     "evaluator": "evaluate-attempt",
     "substrate_gate": "substrate-gate",
 }
+
+_RepairDialogueNextAction = Literal["commit_repair", "resume_repair", "recover_once", "abandon"]
+_RepairDialogueProgressionState = Literal["no_change", "improved", "ready"]
+
+
+def _coerce_next_action(value: Any) -> _RepairDialogueNextAction:
+    if value in {"commit_repair", "resume_repair", "recover_once", "abandon"}:
+        return cast(_RepairDialogueNextAction, value)
+    raise ValueError(f"unsupported repair_dialogue next_action: {value!r}")
+
+
+def _coerce_progression_state(value: Any) -> _RepairDialogueProgressionState:
+    if value in {"no_change", "improved", "ready"}:
+        return cast(_RepairDialogueProgressionState, value)
+    raise ValueError(f"unsupported repair_dialogue progression_state: {value!r}")
 
 
 def _evaluation_agent_response(
@@ -86,11 +101,10 @@ def _build_repair_dialogue_response(
         ),
         echo_risk=bool(expect.get("echo_risk", not bridge_ready)),
         bridge_ready=bridge_ready,
-        next_action=str(
-            expect.get("next_action")
-            or ("commit_repair" if bridge_ready else "resume_repair")
+        next_action=_coerce_next_action(
+            expect.get("next_action") or ("commit_repair" if bridge_ready else "resume_repair")
         ),
-        progression_state=str(
+        progression_state=_coerce_progression_state(
             expect.get("progression_state")
             or ("ready" if bridge_ready else "no_change")
         ),
@@ -289,7 +303,6 @@ def _build_repair_scaffold_response(
     request: dict[str, Any],
 ) -> dict[str, Any]:
     node_label = str(request.get("node_label") or "core mechanism")
-    gap_description = str(request.get("gap_description") or "").strip()
     scaffold = RepairScaffold(
         repair_target=str(
             expect.get("repair_target")

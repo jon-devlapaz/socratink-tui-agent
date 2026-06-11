@@ -14,14 +14,24 @@ pre-commit = "^4.2"
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["vendor/python"]
-mypy_path = "vendor/python"
+files = [
+  "vendor/python",
+  "bridge.py",
+  "prompt_templates.py",
+  "bridge_lib",
+  "scripts",
+]
+mypy_path = "vendor/python,."
 namespace_packages = true
 explicit_package_bases = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
 module = "learning_commons"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "playwright.*"
 ignore_missing_imports = true
 
 [build-system]

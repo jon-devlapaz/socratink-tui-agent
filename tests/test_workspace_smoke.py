@@ -10,6 +10,7 @@ from pathlib import Path
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 VENV_PYTHON = WORKSPACE_ROOT / ".venv" / "bin" / "python"
+WORKSPACE_CMD_TIMEOUT = int(os.environ.get("SOCRATINK_WORKSPACE_SMOKE_TIMEOUT", "30"))
 
 
 def run_command(args: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -32,7 +33,7 @@ def run_command(args: list[str], *, env: dict[str, str] | None = None) -> subpro
         cwd=WORKSPACE_ROOT,
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=WORKSPACE_CMD_TIMEOUT,
         env=merged_env,
     )
 

@@ -61,14 +61,25 @@ _fake_substrate_gate = bridge_fake.fake_substrate_gate
 
 def _read_request() -> dict[str, Any]:
     raw = sys.stdin.read()
-    if not raw.strip():
-        return {}
-    return json.loads(raw)
+    payload: dict[str, Any] = {}
+    if raw.strip():
+        payload = json.loads(raw)
+    return payload
 
 
 def _write_response(payload: dict[str, Any]) -> None:
     sys.stdout.write(json.dumps(payload, indent=2))
     sys.stdout.write("\n")
+
+
+def _template_mode(template: dict[str, Any], requested_mode: str, fallback: str) -> str:
+    fixed = template.get("fixed")
+    if not isinstance(fixed, dict):
+        return fallback
+    modes = fixed.get("modes")
+    if not isinstance(modes, dict):
+        return fallback
+    return requested_mode if requested_mode in modes else fallback
 
 
 def _call_metadata(result: StructuredLLMResult, *, include_raw: bool) -> dict[str, Any]:
@@ -228,7 +239,7 @@ def substrate_gate(request: dict[str, Any]) -> dict[str, Any]:
         response_schema=SubstrateGateDecision,
         temperature=0.2,
         task_name="socratink_tui_substrate_gate",
-        prompt_version=tmpl["version"],
+        prompt_version=str(tmpl["version"]),
     )
     result = build_llm_client().generate_structured(llm_request)
     decision = result.parsed
@@ -312,7 +323,7 @@ def build_repair_scaffold(request: dict[str, Any]) -> dict[str, Any]:
         response_schema=RepairScaffold,
         temperature=0.2,
         task_name="socratink_tui_repair_scaffold",
-        prompt_version=tmpl["version"],
+        prompt_version=str(tmpl["version"]),
     )
     result = build_llm_client().generate_structured(llm_request)
     scaffold = result.parsed
@@ -377,7 +388,7 @@ def build_socratic_repair_drill(request: dict[str, Any]) -> dict[str, Any]:
         response_schema=SocraticRepairDrill,
         temperature=0.2,
         task_name="socratink_tui_socratic_repair_drill",
-        prompt_version=tmpl["version"],
+        prompt_version=str(tmpl["version"]),
     )
     result = build_llm_client().generate_structured(llm_request)
     drill = result.parsed
@@ -443,7 +454,7 @@ def judge_repair_dialogue(request: dict[str, Any]) -> dict[str, Any]:
         response_schema=RepairDialogueJudge,
         temperature=0.2,
         task_name="socratink_tui_repair_dialogue",
-        prompt_version=tmpl["version"],
+        prompt_version=str(tmpl["version"]),
     )
     result = build_llm_client().generate_structured(llm_request)
     judge = result.parsed
@@ -483,7 +494,7 @@ def evaluate_attempt(request: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("learner-text-required")
 
     tmpl = prompt_templates.TEMPLATES["evaluator"]
-    mode_key = drill_mode if drill_mode in tmpl["fixed"]["modes"] else "re_drill"
+    mode_key = _template_mode(tmpl, drill_mode, "re_drill")
     prompts = prompt_templates.build_prompt(
         tmpl,
         {
@@ -506,7 +517,7 @@ def evaluate_attempt(request: dict[str, Any]) -> dict[str, Any]:
         response_schema=ai_service.DrillEvaluation,
         temperature=ai_service.DRILL_TEMPERATURE,
         task_name=f"socratink_tui_{drill_mode}",
-        prompt_version=tmpl["version"],
+        prompt_version=str(tmpl["version"]),
     )
     result = build_llm_client().generate_structured(llm_request)
     evaluation = result.parsed

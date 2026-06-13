@@ -10,6 +10,10 @@ import {
   emptyLabEventLedger,
   projectLabBatchSnapshot,
 } from "../../lib/lab/lab-event-ledger.mjs";
+import {
+  appendDialogueProgress,
+  emptyLabDialogue,
+} from "../../lib/lab/lab-dialogue.mjs";
 import { EVENT_FACT_TYPES } from "../../lib/seda/event-facts.mjs";
 
 function mockReq({ remoteAddress = "127.0.0.1", method = "GET", body = null } = {}) {
@@ -228,6 +232,7 @@ test("lab event ledger carries compact bridge timeout diagnostics", () => {
 
 test("lab batch projection preserves latest meaningful event and judgment policy", () => {
   let eventLedger = emptyLabEventLedger();
+  let dialogue = emptyLabDialogue();
   eventLedger = appendLabProgressToLedger(eventLedger, {
     activeRun: 1,
     turn: 1,
@@ -235,6 +240,18 @@ test("lab batch projection preserves latest meaningful event and judgment policy
     stage: "redrill",
     state: "turn complete",
     eventsTail: ["cold_attempt", "spaced_redrill", "idle_exit"],
+  });
+  dialogue = appendDialogueProgress(dialogue, {
+    activeRun: 1,
+    dialogueTurn: {
+      turnRecord: {
+        n: 1,
+        phase: "cold_attempt",
+        awaiting_key_before: "cold_attempt",
+        input: "I think memory B cells keep a faster blueprint.",
+      },
+      transcript_delta: [{ text: "[Cold Attempt]" }, { text: "Try that in your own words." }],
+    },
   });
   const snapshot = projectLabBatchSnapshot({
     batchId: "batch-1",
@@ -244,6 +261,7 @@ test("lab batch projection preserves latest meaningful event and judgment policy
       latestEvent: null,
     },
     eventLedger,
+    dialogue,
   });
 
   assert.equal(snapshot.timeline.length, 3);
@@ -253,6 +271,13 @@ test("lab batch projection preserves latest meaningful event and judgment policy
   assert.deepEqual(snapshot.judgment.score_eligible_types, ["cold_attempt", "spaced_redrill"]);
   assert.equal(snapshot.judgment.score_eligible_events, 2);
   assert.match(snapshot.judgment.evidence_policy, /Only cold_attempt and spaced_redrill/);
+  assert.equal(snapshot.dialogue.version, "lab-dialogue-v1");
+  assert.equal(snapshot.dialogue.runs[0].turn_count, 1);
+  assert.equal(snapshot.dialogue.runs[0].turns[0].student, "I think memory B cells keep a faster blueprint.");
+  assert.deepEqual(snapshot.dialogue.runs[0].turns[0].lines, [
+    "[Cold Attempt]",
+    "Try that in your own words.",
+  ]);
 });
 
 test("lab browser timeline renders compact bridge timeout facts", () => {
@@ -590,6 +615,18 @@ test("lab api starts and polls founder console batch", async () => {
         batchDir: "/tmp/founder-batch",
         reportPath: "/tmp/founder-batch/REPORT.md",
         eventLedger,
+        dialogue: appendDialogueProgress(emptyLabDialogue(), {
+          activeRun: 1,
+          dialogueTurn: {
+            turnRecord: {
+              n: 1,
+              phase: "cold_attempt",
+              awaiting_key_before: "cold_attempt",
+              input: "Fluency can still be wrong.",
+            },
+            transcript_delta: [{ text: "[Cold Attempt]" }],
+          },
+        }),
         monitor: {
           state: "done",
           latestEvent: null,
@@ -650,6 +687,8 @@ test("lab api starts and polls founder console batch", async () => {
   assert.equal(snapshot.latestMeaningfulEvent, "cold_attempt");
   assert.equal(snapshot.monitor.latestEvent, "cold_attempt");
   assert.equal(snapshot.judgment.score_eligible_events, 1);
+  assert.equal(snapshot.dialogue.runs[0].turns[0].student, "Fluency can still be wrong.");
+  assert.deepEqual(snapshot.dialogue.runs[0].turns[0].lines, ["[Cold Attempt]"]);
 
   process.env.SOCRATINK_LAB_ENABLED = prev;
 });

@@ -46,7 +46,7 @@ from models.repair_reps import (
 from models.repair_reps import (
     validate_repair_reps_result as _validate_repair_reps_result,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 EXTRACT_TEMPERATURE = 0.2
 DRILL_TEMPERATURE = 0.2
@@ -142,6 +142,15 @@ class DrillEvaluation(BaseModel):
         default=None,
         description="Short explanation of why the response earned its transient tier.",
     )
+
+    @field_validator("answer_mode", mode="before")
+    @classmethod
+    def normalize_answer_mode(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if value == "classification":
+            return "attempt"
+        return value
 
 
 class DrillTurnResult(TypedDict):

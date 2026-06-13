@@ -172,6 +172,9 @@ def generate_openai_compatible(
                 continue
             raise last_contract_error
         return text
+    if last_contract_error is not None:
+        raise last_contract_error
+    raise RuntimeError("OpenAI-compatible persona call did not produce text.")
 
 
 def generate_gemini(*, system_prompt: str, user_prompt: str, api_key: str, model: str) -> str:

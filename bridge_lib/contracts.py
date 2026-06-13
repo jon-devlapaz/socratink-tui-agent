@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class RepairScaffold(BaseModel):
@@ -117,6 +117,28 @@ class SubstrateGateDecision(BaseModel):
         default=False,
         description="Always false; launch/refinement text is routing context, not evidence.",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def infer_legacy_classification(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or data.get("classification") is not None:
+            return data
+        return {
+            **data,
+            "classification": "fast" if data.get("substrate_adequate") is True else "minimal",
+        }
+
+    @field_validator("classification", mode="before")
+    @classmethod
+    def normalize_classification(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+        normalized = value.strip().lower()
+        if normalized in {"route", "launch", "provisional"}:
+            return "fast"
+        if normalized in {"refine", "refinement", "seed"}:
+            return "slow"
+        return normalized
 
 
 class RepairDialogueJudge(BaseModel):

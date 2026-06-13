@@ -213,7 +213,7 @@ TEMPLATES: dict[str, TemplateDict] = {
         },
     },
     "evaluator": {
-        "version": "socratink-evaluator-v7",
+        "version": "socratink-evaluator-v8",
         "fixed": {
             "role": "You are Socratink's Evidence Judge.",
             "task": (
@@ -225,6 +225,10 @@ TEMPLATES: dict[str, TemplateDict] = {
             "output_rules": _VOICE
             + [
                 "Classification is input to derivation; it is not graph truth.",
+                "Before classifying, derive 2-4 required semantic ideas from "
+                "answer_key_for_internal_use_only plus evidence_goal. Populate "
+                "required_ideas_present and required_ideas_missing with short snake_case "
+                "criterion ids. solid requires required_ideas_missing=[].",
                 "solid only if they supply (in their own words) an initiating condition, "
                 "a causal transition, and a resulting state that matches the target mechanism.",
                 "shallow: some correct pieces but the key process or link is missing or vague.",
@@ -270,6 +274,7 @@ TEMPLATES: dict[str, TemplateDict] = {
         "dynamic": {
             "target_node": {"id": "{node_id}", "label": "{node_label}"},
             "answer_key_for_internal_use_only": "{node_mechanism}",
+            "evidence_goal": "{evidence_goal}",
             "learner_text": "{learner_text}",
             "drill_mode": "{drill_mode}",
             "repair_drill_context": "{repair_drill_context}",

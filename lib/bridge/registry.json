@@ -123,12 +123,13 @@
     "evaluate-attempt": {
       "bridge_function": "evaluate_attempt",
       "template_key": "evaluator",
-      "template_version": "socratink-evaluator-v7",
+      "template_version": "socratink-evaluator-v8",
       "response_schema": "ai_service.DrillEvaluation",
       "request": {
         "required": ["node_id", "node_label", "node_mechanism", "learner_text"],
         "optional": [
           "drill_mode",
+          "evidence_goal",
           "knowledge_map",
           "repair_drill_context",
           "log_raw_llm"
@@ -152,7 +153,9 @@
           "routing",
           "response_tier",
           "response_band",
-          "tier_reason"
+          "tier_reason",
+          "required_ideas_present",
+          "required_ideas_missing"
         ]
       },
       "modes": {

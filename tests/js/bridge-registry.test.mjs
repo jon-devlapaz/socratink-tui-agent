@@ -110,6 +110,9 @@ test("socratic-repair-drill request accepts hinge and contrast slots", () => {
 
 test("evaluate-attempt modes define per-drill contracts", () => {
   const action = getBridgeAction("evaluate-attempt");
+  assert.ok(action.request.optional.includes("evidence_goal"));
+  assert.ok(action.response.evaluation_fields.includes("required_ideas_present"));
+  assert.ok(action.response.evaluation_fields.includes("required_ideas_missing"));
   assert.ok(action.modes);
   assert.deepEqual(Object.keys(action.modes).sort(), [
     "cold_attempt",

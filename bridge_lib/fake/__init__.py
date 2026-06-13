@@ -84,6 +84,7 @@ def fake_evaluation(request: dict[str, Any]) -> dict[str, Any]:
             "node_id": str(request.get("node_id") or ""),
             "node_label": str(request.get("node_label") or ""),
             "node_mechanism": str(request.get("node_mechanism") or ""),
+            "evidence_goal": str(request.get("evidence_goal") or ""),
             "learner_text": str(request.get("learner_text") or ""),
             "drill_mode": fake_drill_mode,
             "repair_drill_context": request.get("repair_drill_context") or None,

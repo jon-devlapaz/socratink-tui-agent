@@ -102,6 +102,61 @@ def test_drill_evaluation_normalizes_router_answer_mode_synonym() -> None:
     assert evaluation.classification == "solid"
 
 
+def test_solid_with_missing_required_ideas_downgrades_to_shallow() -> None:
+    evaluation = ai_service.DrillEvaluation(
+        agent_response="Good start.",
+        generative_commitment=True,
+        answer_mode="attempt",
+        score_eligible=True,
+        classification="solid",
+        routing="NEXT",
+        required_ideas_present=["predicts_likely_next_tokens"],
+        required_ideas_missing=["learns_patterns_from_text_data"],
+    )
+
+    normalized = ai_service._normalize_drill_evaluation(
+        evaluation,
+        session_phase="drill",
+        drill_mode="cold_attempt",
+        probe_count=0,
+        latest_learner_message=(
+            "It guesses the next word from context, so it can sound right "
+            "without understanding."
+        ),
+    )
+
+    assert normalized.classification == "shallow"
+    assert normalized.routing == "NEXT"
+    assert normalized.gap_description == "learns patterns from text data"
+    assert normalized.required_ideas_missing == ["learns_patterns_from_text_data"]
+
+
+def test_spaced_solid_with_missing_required_ideas_downgrades_to_shallow() -> None:
+    evaluation = ai_service.DrillEvaluation(
+        agent_response="Good start.",
+        generative_commitment=True,
+        answer_mode="attempt",
+        score_eligible=True,
+        classification="solid",
+        routing="NEXT",
+        required_ideas_present=["stores_first_result"],
+        required_ideas_missing=["reads_cached_result_later"],
+    )
+
+    normalized = ai_service._normalize_drill_evaluation(
+        evaluation,
+        session_phase="drill",
+        drill_mode="spaced_redrill",
+        probe_count=0,
+        latest_learner_message="It is faster next time because the result was saved.",
+    )
+
+    assert normalized.classification == "shallow"
+    assert normalized.routing == "NEXT"
+    assert normalized.gap_description == "reads cached result later"
+    assert normalized.required_ideas_missing == ["reads_cached_result_later"]
+
+
 def test_non_substantive_cold_stays_unscored_help() -> None:
     evaluation = ai_service.DrillEvaluation(
         agent_response="Try one rough causal guess in your own words.",

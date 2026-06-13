@@ -142,6 +142,14 @@ class DrillEvaluation(BaseModel):
         default=None,
         description="Short explanation of why the response earned its transient tier.",
     )
+    required_ideas_present: list[str] = Field(
+        default_factory=list,
+        description="Internal criterion ids semantically present in the learner attempt.",
+    )
+    required_ideas_missing: list[str] = Field(
+        default_factory=list,
+        description="Internal criterion ids still missing from the learner attempt.",
+    )
 
     @field_validator("answer_mode", mode="before")
     @classmethod
@@ -165,6 +173,8 @@ class DrillTurnResult(TypedDict):
     response_tier: int | None
     response_band: str | None
     tier_reason: str | None
+    required_ideas_present: list[str]
+    required_ideas_missing: list[str]
     node_id: str
     probe_count: int
     nodes_drilled: int
@@ -255,6 +265,23 @@ def _normalize_response_quality(evaluation: DrillEvaluation) -> None:
     evaluation.response_band = band_by_tier[tier]
 
 
+def _gap_from_missing_required_idea(evaluation: DrillEvaluation) -> str:
+    first_missing = next(
+        (item for item in evaluation.required_ideas_missing if str(item).strip()),
+        "",
+    )
+    if not first_missing:
+        return "The learner has some correct pieces, but the causal mechanism is still incomplete."
+    return str(first_missing).replace("_", " ")
+
+
+def _normalize_required_idea_gate(evaluation: DrillEvaluation) -> None:
+    if evaluation.classification != "solid" or not evaluation.required_ideas_missing:
+        return
+    evaluation.classification = "shallow"
+    evaluation.gap_description = _gap_from_missing_required_idea(evaluation)
+
+
 def _normalize_drill_evaluation(
     evaluation: DrillEvaluation,
     *,
@@ -311,6 +338,7 @@ def _normalize_drill_evaluation(
                 # cold is "unscored" in the learner-facing UX copy.
                 evaluation.classification = "shallow"
                 has_classification = True
+            _normalize_required_idea_gate(evaluation)
             evaluation.score_eligible = True
             evaluation.generative_commitment = True
             evaluation.answer_mode = "attempt"
@@ -351,6 +379,8 @@ def _normalize_drill_evaluation(
         # Graceful fallback: if Gemini missed the classification but marked it eligible,
         # we treat it as unscored rather than crashing the whole drill.
         evaluation.score_eligible = False
+
+    _normalize_required_idea_gate(evaluation)
 
     if evaluation.classification == "solid":
         evaluation.routing = "NEXT"
@@ -759,6 +789,8 @@ def drill_chat(
                 "response_tier": None,
                 "response_band": None,
                 "tier_reason": None,
+                "required_ideas_present": [],
+                "required_ideas_missing": [],
                 "node_id": node_id,
                 "probe_count": probe_count,
                 "nodes_drilled": nodes_drilled,

@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { createBridgeClient } from "../../lib/bridge/client.mjs";
+import { resultToBridgeError } from "../../lib/seda/bridge-fail-closed.mjs";
 import { handleColdAttempt } from "../../lib/seda/handlers/cold-attempt.mjs";
 import { handleModelBridge } from "../../lib/seda/handlers/model-bridge.mjs";
 import { handleRepairDialogue } from "../../lib/seda/handlers/repair-dialogue.mjs";
@@ -63,6 +64,7 @@ function makeEvidenceCtx() {
 
 test("bridge client reports typed invalid-json and nonzero errors without raw stdout", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "socratink-bridge-"));
+  const diagnosticsDir = path.join(dir, "bridge-diagnostics");
   const bridgePath = path.join(dir, "fake-bridge.mjs");
   writeFileSync(
     bridgePath,
@@ -83,13 +85,19 @@ process.stdout.write(JSON.stringify({ ok: true }));
     workspaceRoot: dir,
     bridgePath,
     python: process.execPath,
+    diagnosticsDir,
   });
 
   const badJson = client.callBridgeResult("bad-json", {});
   assert.equal(badJson.ok, false);
   assert.equal(badJson.error, "BridgeNonJson");
   assert.equal(badJson.message, "bridge returned non-json output");
+  assert.ok(badJson.diagnostic?.path);
   assert.doesNotMatch(badJson.message, /RAW MODEL BRIDGE/);
+  assert.match(
+    readFileSync(badJson.diagnostic.path, "utf8"),
+    /RAW MODEL BRIDGE: do not reveal this mechanism/,
+  );
 
   assert.throws(
     () => client.callBridge("bad-json", {}),
@@ -100,6 +108,54 @@ process.stdout.write(JSON.stringify({ ok: true }));
   assert.equal(nonzero.ok, false);
   assert.equal(nonzero.error, "FixtureExit");
   assert.equal(nonzero.message, "fixture failed");
+  assert.ok(nonzero.diagnostic?.path);
+  assert.match(readFileSync(nonzero.diagnostic.path, "utf8"), /FixtureExit/);
+});
+
+test("bridge client times out hung subprocesses with diagnostics", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "socratink-bridge-timeout-"));
+  const diagnosticsDir = path.join(dir, "bridge-diagnostics");
+  const bridgePath = path.join(dir, "slow-bridge.mjs");
+  writeFileSync(
+    bridgePath,
+    `
+setTimeout(() => {
+  process.stdout.write(JSON.stringify({ ok: true }));
+}, 300);
+`,
+  );
+  const client = createBridgeClient({
+    workspaceRoot: dir,
+    bridgePath,
+    python: process.execPath,
+    diagnosticsDir,
+    timeoutMs: 50,
+  });
+
+  const started = Date.now();
+  const timeout = client.callBridgeResult("slow-action", {});
+  const elapsed = Date.now() - started;
+
+  assert.equal(timeout.ok, false);
+  assert.equal(timeout.error, "BridgeTimeout");
+  assert.match(timeout.message, /timed out after 50ms/);
+  assert.ok(Math.abs(timeout.duration_ms - 50) <= 35);
+  assert.ok(elapsed < 250);
+  assert.ok(timeout.diagnostic?.path);
+  const diagnostic = JSON.parse(readFileSync(timeout.diagnostic.path, "utf8"));
+  assert.equal(diagnostic.error, "BridgeTimeout");
+  assert.equal(diagnostic.timeout_ms, 50);
+  assert.equal(diagnostic.action, "slow-action");
+
+  const event = resultToBridgeError({
+    result: timeout,
+    action: "slow-action",
+    phase: "repair_dialogue",
+  });
+  assert.equal(event.type, "bridge_error");
+  assert.equal(event.error, "BridgeTimeout");
+  assert.equal(event.duration_ms, timeout.duration_ms);
+  assert.equal(event.timeout_ms, 50);
 });
 
 test("route retry exhaustion fails closed without route_generated or cold_attempt advance", async () => {

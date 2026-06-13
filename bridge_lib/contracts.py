@@ -82,6 +82,39 @@ class SocraticRepairDrill(BaseModel):
 
 
 class SubstrateGateDecision(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_router_synonyms(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        normalized = dict(data)
+        classification = str(normalized.get("classification") or "").strip().lower()
+        if classification == "provisional":
+            classification = ""
+        classification_aliases = {
+            "route": "fast",
+            "launch": "fast",
+            "adequate": "fast",
+            "pass": "fast",
+            "needs_seed": "slow",
+            "seed": "slow",
+            "refine": "slow",
+            "needs_refinement": "slow",
+            "fallback": "minimal",
+            "conservative": "minimal",
+        }
+        if classification in classification_aliases:
+            normalized["classification"] = classification_aliases[classification]
+        elif not classification:
+            substrate_adequate = normalized.get("substrate_adequate")
+            if substrate_adequate is True or str(substrate_adequate).lower() == "true":
+                normalized["classification"] = "fast"
+            elif normalized.get("seed_text") or normalized.get("refinement_prompt"):
+                normalized["classification"] = "slow"
+            elif substrate_adequate is False or str(substrate_adequate).lower() == "false":
+                normalized["classification"] = "minimal"
+        return normalized
+
     contract_version: str = Field(
         default="substrate-gate-v1",
         description="Substrate gate contract version for routing/replay compatibility.",

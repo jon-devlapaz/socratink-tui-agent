@@ -28,6 +28,7 @@ sys.path.insert(0, str(WORKSPACE_ROOT))
 import ai_service
 import bridge_lib.fake as bridge_fake
 from llm import StructuredLLMRequest, build_llm_client
+from llm.errors import LLMValidationError
 from llm.types import StructuredLLMResult
 from models.provisional_map import ProvisionalMap
 
@@ -70,6 +71,21 @@ def _read_request() -> dict[str, Any]:
 def _write_response(payload: dict[str, Any]) -> None:
     sys.stdout.write(json.dumps(payload, indent=2))
     sys.stdout.write("\n")
+
+
+def _exception_payload(exc: Exception) -> dict[str, Any]:
+    payload: dict[str, Any] = {"error": type(exc).__name__, "message": str(exc)}
+    if isinstance(exc, LLMValidationError) and exc.raw_text:
+        cause = exc.__cause__
+        validation_errors = cause.errors() if cause is not None and hasattr(cause, "errors") else None
+        payload["diagnostic"] = {
+            "kind": "llm_validation",
+            "raw_text": exc.raw_text,
+            "cause_type": type(cause).__name__ if cause else None,
+            "cause_message": str(cause) if cause else None,
+            "validation_errors": validation_errors,
+        }
+    return payload
 
 
 def _template_mode(template: dict[str, Any], requested_mode: str, fallback: str) -> str:
@@ -578,7 +594,7 @@ def main() -> int:
             return 0
         raise ValueError(f"unknown-action:{sys.argv[1]}")
     except Exception as exc:  # pragma: no cover - exercised through subprocess
-        _write_response({"error": type(exc).__name__, "message": str(exc)})
+        _write_response(_exception_payload(exc))
         return 1
 
 

@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-tui-runtime
-      - name: Verify vendored canon matches committed checksums
+      - name: Verify graph canon and Python seam checksums
         run: ./scripts/check-canon-drift.sh
       - run: python -m pip install --upgrade pip pytest
       - name: Ported training-store / training-derive tests

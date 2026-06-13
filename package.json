@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint lib/",
     "test:py": "./scripts/run-python-tests.sh",
+    "ci:local": "./scripts/run-ci-local.sh",
     "bump:loop": "node scripts/bump-loop-version.mjs",
     "version:check": "node scripts/bump-loop-version.mjs --check"
   },

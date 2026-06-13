@@ -486,6 +486,7 @@ def evaluate_attempt(request: dict[str, Any]) -> dict[str, Any]:
     node_id = str(request.get("node_id") or "").strip()
     node_label = str(request.get("node_label") or "").strip()
     node_mechanism = str(request.get("node_mechanism") or "").strip()
+    evidence_goal = str(request.get("evidence_goal") or "").strip()
     learner_text = str(request.get("learner_text") or "").strip()
     drill_mode = str(request.get("drill_mode") or "cold_attempt").strip()
     if not node_id or not node_label or not node_mechanism:
@@ -501,6 +502,7 @@ def evaluate_attempt(request: dict[str, Any]) -> dict[str, Any]:
             "node_id": node_id,
             "node_label": node_label,
             "node_mechanism": node_mechanism,
+            "evidence_goal": evidence_goal,
             "learner_text": learner_text,
             "drill_mode": drill_mode,
             "repair_drill_context": request.get("repair_drill_context") or None,

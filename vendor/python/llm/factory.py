@@ -24,6 +24,13 @@ _DEFAULT_MODELS = {
 }
 
 
+def _resolve_model(provider: str) -> str:
+    model = os.environ.get("LLM_MODEL")
+    if model is None and provider == "openai_compatible":
+        model = os.environ.get("LLM_OPENAI_COMPAT_MODEL")
+    return (model or _DEFAULT_MODELS[provider]).strip()
+
+
 def build_llm_client(*, api_key: str | None = None) -> LLMClient:
     """Construct the configured LLMClient.
 
@@ -37,7 +44,7 @@ def build_llm_client(*, api_key: str | None = None) -> LLMClient:
             f"LLM provider {provider!r} not implemented. "
             "Currently supported: 'gemini', 'openai_compatible'."
         )
-    model = os.environ.get("LLM_MODEL", _DEFAULT_MODELS[provider]).strip()
+    model = _resolve_model(provider)
     if not model:
         raise ValueError(f"LLM_MODEL must be non-empty for provider {provider!r}.")
 

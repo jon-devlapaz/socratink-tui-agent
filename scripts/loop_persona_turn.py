@@ -2,8 +2,8 @@
 """Generate one in-character learner line for loop-persona-live.mjs.
 
 Providers (PERSONA_LLM_PROVIDER):
-  gemini            — default; uses GEMINI_API_KEY + LLM_MODEL
-  openai_compatible — LM Studio / any OpenAI-compatible server (PERSONA_LLM_* env)
+  gemini            — default; uses GEMINI_API_KEY + PERSONA_GEMINI_MODEL
+  openai_compatible — any OpenAI-compatible server (PERSONA_LLM_* or LLM_* env)
 """
 
 from __future__ import annotations
@@ -57,8 +57,28 @@ def _looks_like_reasoning_meta(text: str) -> bool:
     return bool(_REASONING_META_RE.search(text))
 
 
+def normalize_persona_text(text: str) -> str:
+    candidate = text.strip()
+    if not candidate:
+        return ""
+    if not candidate.startswith("{"):
+        return candidate
+    try:
+        parsed = json.loads(candidate)
+    except json.JSONDecodeError:
+        return candidate
+    if not isinstance(parsed, dict):
+        return candidate
+    content = str(parsed.get("content") or "").strip()
+    if content:
+        return content
+    if "thought" in parsed:
+        raise RuntimeError("Persona model returned thought JSON instead of learner text.")
+    return candidate
+
+
 def extract_openai_message_text(message: dict[str, object]) -> str:
-    content = str(message.get("content") or "").strip()
+    content = normalize_persona_text(str(message.get("content") or ""))
     if content:
         return content
     reasoning = str(message.get("reasoning_content") or "").strip()
@@ -84,53 +104,77 @@ def generate_openai_compatible(
     opener: Callable[..., Any] = urllib.request.urlopen,
 ) -> str:
     url = f"{base_url.rstrip('/')}/chat/completions"
-    body = json.dumps(
-        {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "temperature": 0.65,
-            "max_tokens": 300,
-            "reasoning_effort": "none",
-        }
-    ).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
-        method="POST",
-    )
-    try:
-        with opener(request, timeout=120) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as err:
-        detail = err.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"OpenAI-compatible persona call failed ({err.code}): {detail}") from err
-    except urllib.error.URLError as err:
-        raise RuntimeError(f"OpenAI-compatible persona call failed: {err.reason}") from err
+    prompts = [
+        user_prompt,
+        (
+            f"{user_prompt}\n\nPrevious output was not accepted because it was "
+            "reasoning or JSON metadata. Return only the learner message that "
+            "would be typed into the app."
+        ),
+    ]
+    last_contract_error: RuntimeError | None = None
+    for attempt, prompt_text in enumerate(prompts):
+        body = json.dumps(
+            {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt_text},
+                ],
+                "temperature": 0.65,
+                "max_tokens": 300,
+                "reasoning_effort": "none",
+            }
+        ).encode("utf-8")
+        request = urllib.request.Request(
+            url,
+            data=body,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            method="POST",
+        )
+        try:
+            with opener(request, timeout=120) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as err:
+            detail = err.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"OpenAI-compatible persona call failed ({err.code}): {detail}"
+            ) from err
+        except urllib.error.URLError as err:
+            raise RuntimeError(f"OpenAI-compatible persona call failed: {err.reason}") from err
 
-    if "error" in payload:
-        error = payload["error"]
-        if isinstance(error, dict):
-            message = error.get("message") or error
-        else:
-            message = error
-        message = str(message)
-        raise RuntimeError(f"OpenAI-compatible persona call failed: {message}")
+        if "error" in payload:
+            error = payload["error"]
+            if isinstance(error, dict):
+                message = error.get("message") or error
+            else:
+                message = error
+            message = str(message)
+            raise RuntimeError(f"OpenAI-compatible persona call failed: {message}")
 
-    choices = payload.get("choices") or []
-    if not choices:
-        raise RuntimeError("OpenAI-compatible persona call returned no choices.")
-    message = choices[0].get("message") or {}
-    text = extract_openai_message_text(message)
-    if not text:
-        raise RuntimeError("Persona model returned empty text.")
-    return text
+        choices = payload.get("choices") or []
+        if not choices:
+            raise RuntimeError("OpenAI-compatible persona call returned no choices.")
+        message = choices[0].get("message") or {}
+        try:
+            text = extract_openai_message_text(message)
+        except RuntimeError as err:
+            last_contract_error = err
+            if attempt + 1 < len(prompts):
+                continue
+            raise
+        if not text:
+            last_contract_error = RuntimeError("Persona model returned empty text.")
+            if attempt + 1 < len(prompts):
+                continue
+            raise last_contract_error
+        return text
+    if last_contract_error is not None:
+        raise last_contract_error
+    raise RuntimeError("OpenAI-compatible persona call did not produce text.")
 
 
 def generate_gemini(*, system_prompt: str, user_prompt: str, api_key: str, model: str) -> str:
@@ -162,9 +206,43 @@ def generate_persona_turn(
     user_prompt = build_user_prompt(payload)
 
     if provider == "openai_compatible":
-        base_url = os.environ.get("PERSONA_LLM_BASE_URL", "http://127.0.0.1:1234/v1").strip()
-        model = os.environ.get("PERSONA_LLM_MODEL", "google/gemma-4-12b").strip()
-        api_key = os.environ.get("PERSONA_LLM_API_KEY", "lm-studio").strip()
+        target = os.environ.get("PERSONA_LLM_TARGET", "router").strip().lower()
+        default_base_url = (
+            os.environ.get("LM_STUDIO_BASE_URL", "http://127.0.0.1:1234/v1")
+            if target == "lmstudio"
+            else os.environ.get(
+                "LLM_ROUTER_BASE_URL",
+                os.environ.get("LLM_BASE_URL", ""),
+            )
+        )
+        default_model = (
+            os.environ.get(
+                "LM_STUDIO_MODEL",
+                os.environ.get("LLM_LOCAL_DEFAULT_MODEL", "google/gemma-4-12b"),
+            )
+            if target == "lmstudio"
+            else os.environ.get(
+                "LLM_OPENAI_COMPAT_MODEL",
+                os.environ.get("LLM_LOCAL_DEFAULT_MODEL", "auto"),
+            )
+        )
+        default_api_key = (
+            os.environ.get("LM_STUDIO_API_KEY", "lm-studio")
+            if target == "lmstudio"
+            else os.environ.get("LLM_ROUTER_API_KEY", os.environ.get("LLM_API_KEY", ""))
+        )
+        base_url = os.environ.get(
+            "PERSONA_LLM_BASE_URL",
+            default_base_url,
+        ).strip()
+        model = os.environ.get(
+            "PERSONA_LLM_MODEL",
+            default_model,
+        ).strip()
+        api_key = os.environ.get(
+            "PERSONA_LLM_API_KEY",
+            default_api_key,
+        ).strip()
         if not base_url or not model:
             raise RuntimeError("PERSONA_LLM_BASE_URL and PERSONA_LLM_MODEL are required.")
         return generate_openai_compatible(
@@ -184,7 +262,7 @@ def generate_persona_turn(
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY is required for persona turns.")
-    model = os.environ.get("LLM_MODEL", "gemini-2.5-flash").strip()
+    model = os.environ.get("PERSONA_GEMINI_MODEL", "gemini-2.5-flash").strip()
     return generate_gemini(
         system_prompt=system_prompt,
         user_prompt=user_prompt,

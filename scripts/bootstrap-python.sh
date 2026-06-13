@@ -22,6 +22,7 @@ if [ ! -d ".venv" ]; then
 fi
 
 . ".venv/bin/activate"
+python -m pip --version >/dev/null 2>&1 || python -m ensurepip --upgrade
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
 

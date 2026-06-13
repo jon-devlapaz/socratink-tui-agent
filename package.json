@@ -1,10 +1,12 @@
 {
   "name": "socratink-tui-agent",
-  "version": "0.26.0",
+  "version": "0.27.0",
   "private": true,
   "type": "module",
   "scripts": {
     "lint": "eslint lib/",
+    "test:py": "./scripts/run-python-tests.sh",
+    "ci:local": "./scripts/run-ci-local.sh",
     "bump:loop": "node scripts/bump-loop-version.mjs",
     "version:check": "node scripts/bump-loop-version.mjs --check"
   },

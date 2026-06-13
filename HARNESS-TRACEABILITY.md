@@ -64,14 +64,7 @@ Includes `architecture-fitness`, `next-phase`, `event-facts`, `loop-pacing-stops
 ### Tier 2 — Default merge (canon, JS, Python, harness, scripted smoke)
 
 ```bash
-npm run lint
-poetry run mypy vendor/python
-./scripts/check-canon-drift.sh
-find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
-.venv/bin/pytest tests -q
-./socratink-harness replay
-SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-  ./socratink-tui --scripted fixtures/source_less_script.json --color=never
+npm run ci:local
 ```
 
 Tier 2 includes Tier 1 when the change touches routing, event append, or hosted

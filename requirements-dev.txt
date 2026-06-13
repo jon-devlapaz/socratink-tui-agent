@@ -1,3 +1,4 @@
 # Optional dev / exploration deps (not used by bridge or Docker loop image).
 -r requirements.txt
+pytest==9.0.3
 playwright==1.60.0

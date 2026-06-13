@@ -133,6 +133,7 @@ class TestPromptBuilder:
                 "node_id": "n1",
                 "node_label": "Homeostasis",
                 "node_mechanism": "Feedback maintains stability.",
+                "evidence_goal": "explain feedback stability",
                 "learner_text": "The body adjusts.",
                 "drill_mode": "cold_attempt",
                 "repair_drill_context": None,
@@ -142,8 +143,10 @@ class TestPromptBuilder:
         )
         assert "Evidence Judge" in result["system_prompt"]
         assert "MODE: COLD ATTEMPT" in result["system_prompt"]
+        assert "required_ideas_present" in result["system_prompt"]
         user_prompt = json.loads(result["user_prompt"])
         assert user_prompt["target_node"]["id"] == "n1"
+        assert user_prompt["evidence_goal"] == "explain feedback stability"
         # Structured/optional slots pass through unchanged (dict, None).
         assert user_prompt["knowledge_map"] == {}
         assert user_prompt["repair_drill_context"] is None

@@ -4,19 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#141210">
-  <title>socratink founder lab</title>
+  <title>socratink founder console</title>
+  <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/loop/loop.css">
   <link rel="stylesheet" href="/lab/lab.css">
+  <link rel="stylesheet" href="/lab/monitor-prototype.css">
 </head>
 <body>
   <main class="shell lab-shell">
     <header class="chrome">
       <div class="brand">
         <span class="brand-name">socratink</span>
-        <span class="brand-loop">founder lab</span>
+        <span class="brand-loop">founder console</span>
       </div>
       <div class="chrome-meta lab-pills">
         <span id="loop-pill" class="llm-pill" data-mode="checking">loop…</span>
@@ -25,50 +27,200 @@
       </div>
     </header>
 
-    <p class="lab-hint">Start loop-server in another terminal: <code>SOCRATINK_LAB_ENABLED=1 ./socratink-loop-server</code></p>
+    <nav class="lab-tabs" role="tablist" aria-label="Founder console views">
+      <button id="tab-run" class="lab-tab" type="button" role="tab" aria-selected="true" aria-controls="panel-run" data-tab-target="run">Run</button>
+      <button id="tab-gates" class="lab-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-gates" data-tab-target="gates">Gates</button>
+    </nav>
 
-    <section class="lab-bay" aria-label="Cartridge bay">
-      <div class="lab-controls">
-        <label class="lab-field">
-          <span>Cartridge</span>
-          <select id="cartridge-select"></select>
-        </label>
-        <label class="lab-field">
-          <span>Student brain</span>
-          <select id="student-select">
-            <option value="local">Local (LM Studio)</option>
-            <option value="cloud">Cloud (Gemini)</option>
-          </select>
-        </label>
-        <label class="lab-field lab-field-narrow">
-          <span>Max turns</span>
-          <input id="max-turns" type="number" min="1" max="48" value="24">
-        </label>
-        <label class="lab-check">
-          <input id="allow-fake" type="checkbox">
-          Allow sandbox tutor stubs
-        </label>
-        <div class="lab-actions">
-          <button id="run-btn" type="button" class="lab-btn lab-btn-primary">Run</button>
-          <button id="cancel-btn" type="button" class="lab-btn" disabled>Cancel</button>
+    <section id="panel-run" class="lab-tab-panel" role="tabpanel" aria-labelledby="tab-run" data-tab-panel="run">
+      <section class="lab-bay" aria-label="Run setup">
+        <div class="lab-controls">
+          <div class="control-group control-group-scenario">
+            <h2>Scenario</h2>
+            <label class="lab-field">
+              <span>Cartridge</span>
+              <select id="cartridge-select"></select>
+            </label>
+            <label class="lab-field">
+              <span>Concept</span>
+              <input id="concept-input" type="text" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="lab-field">
+              <span>Goal</span>
+              <textarea id="goal-input" rows="3" autocomplete="off" spellcheck="true"></textarea>
+            </label>
+            <article id="cartridge-preview" class="cartridge-preview" hidden></article>
+          </div>
+
+          <div class="control-group control-group-models">
+            <h2>Models</h2>
+            <div class="model-sections">
+              <section class="model-section" aria-labelledby="tutor-section-title">
+                <h3 id="tutor-section-title">Tutor</h3>
+                <label class="lab-field">
+                  <span>Provider</span>
+                  <select id="tutor-select">
+                    <option value="gemini">Cloud (Gemini)</option>
+                    <option value="lmstudio">LM Studio</option>
+                    <option value="router">FreeLLMAPI</option>
+                  </select>
+                </label>
+                <div class="lab-field">
+                  <span>Model</span>
+                  <div class="model-test-row">
+                    <input id="tutor-model" type="text" autocomplete="off" spellcheck="false">
+                    <button id="test-tutor-btn" type="button" class="lab-btn lab-btn-compact">Test</button>
+                  </div>
+                  <small id="tutor-endpoint-status" class="model-endpoint-status" aria-live="polite"></small>
+                  <small id="test-tutor-status" class="model-test-status" aria-live="polite"></small>
+                </div>
+              </section>
+
+              <section class="model-section" aria-labelledby="student-section-title">
+                <h3 id="student-section-title">Student</h3>
+                <label class="lab-field">
+                  <span>Brain</span>
+                  <select id="student-select">
+                    <option value="cloud">Cloud (Gemini)</option>
+                    <option value="lmstudio">LM Studio</option>
+                    <option value="router">FreeLLMAPI</option>
+                  </select>
+                </label>
+                <div class="lab-field">
+                  <span>Model</span>
+                  <div class="model-test-row">
+                    <input id="student-model" type="text" autocomplete="off" spellcheck="false">
+                    <button id="test-student-btn" type="button" class="lab-btn lab-btn-compact">Test</button>
+                  </div>
+                  <small id="student-endpoint-status" class="model-endpoint-status" aria-live="polite"></small>
+                  <small id="test-student-status" class="model-test-status" aria-live="polite"></small>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div class="control-group control-group-run">
+            <h2>Run</h2>
+            <div class="run-fields">
+              <label class="lab-field lab-field-narrow">
+                <span>Runs</span>
+                <input id="run-count" type="number" min="1" max="25" value="3">
+              </label>
+              <label class="lab-field lab-field-narrow">
+                <span>Max turns</span>
+                <input id="max-turns" type="number" min="1" max="48" value="24">
+              </label>
+            </div>
+            <button id="run-btn" type="button" class="lab-btn lab-btn-primary">Run batch</button>
+          </div>
         </div>
-      </div>
-      <article id="cartridge-preview" class="cartridge-preview" hidden></article>
+      </section>
+
+      <section id="theater" class="terminal lab-theater" aria-label="Founder report output" aria-busy="false">
+        <div id="run-header" class="run-header" hidden></div>
+        <div id="busy-bar" class="busy-bar" hidden>
+          <span class="braille-spinner" aria-hidden="true"></span>
+          <span id="busy-label">working…</span>
+        </div>
+        <div id="banner" class="run-banner" hidden></div>
+        <div id="transcript" class="transcript" aria-live="polite"></div>
+        <div class="lab-footer">
+          <button id="open-folder-btn" type="button" class="lab-btn" hidden disabled>Open report folder</button>
+        </div>
+      </section>
     </section>
 
-    <section id="theater" class="terminal lab-theater" aria-label="Persona run output" aria-busy="false">
-      <div id="run-header" class="run-header" hidden></div>
-      <div id="busy-bar" class="busy-bar" hidden>
-        <span class="braille-spinner" aria-hidden="true"></span>
-        <span id="busy-label">working…</span>
-      </div>
-      <div id="banner" class="run-banner" hidden></div>
-      <div id="transcript" class="transcript" aria-live="polite"></div>
-      <div class="lab-footer">
-        <button id="open-folder-btn" type="button" class="lab-btn" hidden disabled>Open run folder</button>
-      </div>
+    <section id="panel-gates" class="lab-tab-panel" role="tabpanel" aria-labelledby="tab-gates" data-tab-panel="gates" hidden>
+      <section id="canonical-gates" class="canonical-gates" aria-label="Canonical SEDA gates">
+        <div class="canonical-gates-header">
+          <div>
+            <h2>Canonical gates</h2>
+            <p>handlers → events.append(...) → nextPhase(events)</p>
+          </div>
+          <span id="canonical-gates-count" class="canonical-gates-count">loading…</span>
+        </div>
+        <div id="gate-live" class="gate-live" data-state="idle">
+          <div>
+            <h3 id="gate-live-title">Breakage watch</h3>
+            <p id="gate-live-summary">Start a batch to watch the latest event move through the gate map.</p>
+          </div>
+          <dl>
+            <dt>Run state</dt>
+            <dd id="gate-live-state">idle</dd>
+            <dt>Latest event</dt>
+            <dd id="gate-live-event">none</dd>
+            <dt>Authority</dt>
+            <dd id="gate-live-authority">n/a</dd>
+            <dt>Next</dt>
+            <dd id="gate-live-next">n/a</dd>
+          </dl>
+        </div>
+        <section id="gate-status-strip" class="gate-status-strip" aria-label="Current run status">
+          <div>
+            <span>Stage</span>
+            <strong id="gate-status-stage">idle</strong>
+          </div>
+          <div>
+            <span>Latest routing fact</span>
+            <strong id="gate-status-routing">none</strong>
+          </div>
+          <div>
+            <span>Next expected</span>
+            <strong id="gate-status-next">n/a</strong>
+          </div>
+          <div>
+            <span>Evidence status</span>
+            <strong id="gate-status-evidence">no evidence yet</strong>
+          </div>
+        </section>
+        <section id="gate-pipeline" class="gate-pipeline" aria-labelledby="gate-pipeline-title">
+          <div class="gate-section-heading">
+            <h3 id="gate-pipeline-title">SEDA pipeline</h3>
+            <p>Substrate → route → cold → repair → bridge → transfer → redrill → report</p>
+          </div>
+          <div id="gate-pipeline-stages" class="gate-pipeline-stages"></div>
+        </section>
+        <section id="gate-timeline" class="gate-timeline" aria-labelledby="gate-timeline-title">
+          <div class="gate-timeline-header">
+            <div>
+              <h3 id="gate-timeline-title">Live timeline</h3>
+              <p id="gate-timeline-summary">Run a batch to see ordered events by role.</p>
+            </div>
+            <span id="gate-timeline-count" class="gate-timeline-count">0 events</span>
+          </div>
+          <div id="gate-timeline-lanes" class="gate-timeline-lanes" aria-label="Timeline lane counts"></div>
+          <ol id="gate-timeline-events" class="gate-timeline-events" aria-label="Ordered SEDA event timeline"></ol>
+        </section>
+        <section id="gate-inspector" class="gate-inspector" aria-labelledby="gate-inspector-title">
+          <div class="gate-section-heading">
+            <h3 id="gate-inspector-title">Event inspector</h3>
+            <p id="gate-inspector-summary">Latest meaningful event details will appear here.</p>
+          </div>
+          <dl id="gate-inspector-details" class="gate-inspector-details"></dl>
+        </section>
+        <section id="gate-judgment" class="gate-judgment" aria-labelledby="gate-judgment-title">
+          <div class="gate-section-heading">
+            <h3 id="gate-judgment-title">Founder judgment</h3>
+            <p>Fast signals for gate churn, evidence starvation, routing load, and provider failures.</p>
+          </div>
+          <div id="gate-judgment-metrics" class="gate-judgment-metrics"></div>
+        </section>
+        <section id="gate-comparison" class="gate-comparison" aria-labelledby="gate-comparison-title">
+          <div class="gate-section-heading">
+            <h3 id="gate-comparison-title">Run comparison</h3>
+            <p id="gate-comparison-summary">Run signatures appear after a batch report is ready.</p>
+          </div>
+          <div id="gate-comparison-metrics" class="gate-comparison-metrics"></div>
+          <div id="gate-comparison-runs" class="gate-comparison-runs"></div>
+        </section>
+        <div id="canonical-gates-doctrine" class="canonical-gates-doctrine"></div>
+        <div id="canonical-gates-body" class="canonical-gates-body">
+          <p class="canonical-gates-loading">Loading canonical event map…</p>
+        </div>
+      </section>
     </section>
   </main>
-  <script type="module" src="/lab/lab.js?v=0.14"></script>
+  <script type="module" src="/lab/lab.js?v=0.19"></script>
+  <script type="module" src="/lab/monitor-prototype.js?v=0.1"></script>
 </body>
 </html>

@@ -787,7 +787,9 @@ test("HTTP /lab static loads when lab enabled on loopback", async () => {
     assert.match(html, /Canonical gates/i);
     assert.match(html, /role="tablist"/i);
     assert.match(html, /id="tab-run"/i);
+    assert.match(html, /id="tab-dialogue"/i);
     assert.match(html, /id="tab-gates"/i);
+    assert.match(html, /id="panel-dialogue"[^>]+hidden/i);
     assert.match(html, /id="panel-gates"[^>]+hidden/i);
     assert.match(html, /id="tutor-endpoint-status"/i);
     assert.match(html, /id="student-endpoint-status"/i);

@@ -24,6 +24,8 @@ const busyBar = document.getElementById("busy-bar");
 const busyLabel = document.getElementById("busy-label");
 const banner = document.getElementById("banner");
 const transcriptEl = document.getElementById("transcript");
+const dialogueSummary = document.getElementById("dialogue-summary");
+const dialogueRuns = document.getElementById("dialogue-runs");
 const openFolderBtn = document.getElementById("open-folder-btn");
 const tabButtons = [...document.querySelectorAll("[data-tab-target]")];
 const tabPanels = [...document.querySelectorAll("[data-tab-panel]")];
@@ -775,6 +777,67 @@ function renderReport(report) {
   transcriptEl.appendChild(summary);
 }
 
+function renderDialogue(snapshot = activeBatchSnapshot) {
+  if (!dialogueRuns) return;
+  const runs = Array.isArray(snapshot?.dialogue?.runs) ? snapshot.dialogue.runs : [];
+  const turnCount = runs.reduce((sum, run) => sum + Number(run.turn_count || run.turns?.length || 0), 0);
+  if (dialogueSummary) {
+    dialogueSummary.textContent = runs.length
+      ? `${runs.length} run${runs.length === 1 ? "" : "s"} · ${turnCount} turn${turnCount === 1 ? "" : "s"}`
+      : snapshot?.status === "running"
+        ? "dialogue appears after completed turns"
+        : "no dialogue available";
+  }
+  dialogueRuns.replaceChildren();
+  if (!runs.length) {
+    dialogueRuns.append(
+      node(
+        "p",
+        "dialogue-empty",
+        snapshot?.status === "running"
+          ? "The batch is running. Dialogue appears after each completed turn."
+          : "Run a batch to inspect the actual exchange.",
+      ),
+    );
+    return;
+  }
+
+  for (const run of runs) {
+    const article = node("article", "dialogue-run");
+    const header = node("div", "dialogue-run-header");
+    header.append(
+      node("h3", "", `Run ${run.index ?? "?"}`),
+      node("span", "", `${Number(run.turn_count || run.turns?.length || 0)} turns`),
+    );
+    article.append(header);
+
+    const turns = node("ol", "dialogue-turns");
+    for (const turn of run.turns || []) {
+      const item = node("li", "dialogue-turn");
+      const meta = node(
+        "div",
+        "dialogue-turn-meta",
+        `Turn ${turn.n ?? "?"} · ${turn.phase || "unknown"} · ${turn.awaiting || "n/a"}`,
+      );
+      item.append(meta);
+      if (turn.student) {
+        const student = node("p", "dialogue-student");
+        student.append(node("strong", "", "Student"), document.createTextNode(` ${turn.student}`));
+        item.append(student);
+      }
+      const lines = Array.isArray(turn.lines) ? turn.lines : [];
+      if (lines.length) {
+        const transcript = node("div", "dialogue-transcript");
+        for (const line of lines) transcript.append(node("p", "", line));
+        item.append(transcript);
+      }
+      turns.append(item);
+    }
+    article.append(turns);
+    dialogueRuns.append(article);
+  }
+}
+
 function renderLoopStage(stage, currentStage) {
   const currentIndex = LOOP_STAGES.findIndex(([name]) => name === currentStage);
   const index = LOOP_STAGES.findIndex(([name]) => name === stage[0]);
@@ -846,6 +909,7 @@ function renderLoopMonitor(snapshot) {
 
 function renderIdleMonitor() {
   if (activeBatchId || transcriptEl.children.length > 0) return;
+  renderDialogue(null);
   renderLoopMonitor({
     runs: Number(runCountInput.value) || 1,
     monitor: {
@@ -876,6 +940,7 @@ function renderBatchSnapshot(snapshot) {
     renderGateLive(snapshot);
     renderGateTimeline(snapshot);
     renderGateObservatory(snapshot);
+    renderDialogue(snapshot);
     renderLoopMonitor(snapshot);
   } else {
     busyBar.hidden = true;
@@ -883,6 +948,7 @@ function renderBatchSnapshot(snapshot) {
     renderGateLive(snapshot);
     renderGateTimeline(snapshot);
     renderGateObservatory(snapshot);
+    renderDialogue(snapshot);
   }
 
   if (snapshot.status === "done") {
@@ -895,6 +961,7 @@ function renderBatchSnapshot(snapshot) {
     }
     stopPoll();
   } else if (snapshot.status === "error") {
+    renderDialogue(snapshot);
     showBanner(snapshot.error || "batch failed", "error");
     setRunning(false);
     stopPoll();
@@ -966,6 +1033,7 @@ async function startBatch() {
   renderGateLive(activeBatchSnapshot);
   renderGateTimeline(activeBatchSnapshot);
   renderGateObservatory(activeBatchSnapshot);
+  renderDialogue(activeBatchSnapshot);
 
   setRunning(true);
   const body = {

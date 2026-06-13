@@ -29,6 +29,7 @@
 
     <nav class="lab-tabs" role="tablist" aria-label="Founder console views">
       <button id="tab-run" class="lab-tab" type="button" role="tab" aria-selected="true" aria-controls="panel-run" data-tab-target="run">Run</button>
+      <button id="tab-dialogue" class="lab-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-dialogue" data-tab-target="dialogue">Dialogue</button>
       <button id="tab-gates" class="lab-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-gates" data-tab-target="gates">Gates</button>
     </nav>
 
@@ -126,6 +127,21 @@
         <div id="transcript" class="transcript" aria-live="polite"></div>
         <div class="lab-footer">
           <button id="open-folder-btn" type="button" class="lab-btn" hidden disabled>Open report folder</button>
+        </div>
+      </section>
+    </section>
+
+    <section id="panel-dialogue" class="lab-tab-panel" role="tabpanel" aria-labelledby="tab-dialogue" data-tab-panel="dialogue" hidden>
+      <section class="dialogue-panel" aria-label="Lab run dialogue">
+        <div class="dialogue-header">
+          <div>
+            <h2>Dialogue</h2>
+            <p>Read-only tutor and student turns from founder runs.</p>
+          </div>
+          <span id="dialogue-summary" class="dialogue-summary">no batch selected</span>
+        </div>
+        <div id="dialogue-runs" class="dialogue-runs">
+          <p class="dialogue-empty">Run a batch to inspect the actual exchange.</p>
         </div>
       </section>
     </section>

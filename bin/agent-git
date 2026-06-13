@@ -13,9 +13,13 @@ function hasFlag(args, flag) {
 }
 
 function flagValue(args, flag) {
+  const inline = args.find((arg) => arg.startsWith(`${flag}=`));
+  if (inline) return inline.slice(flag.length + 1) || null;
   const index = args.indexOf(flag);
   if (index === -1) return null;
-  return args[index + 1] || null;
+  const next = args[index + 1];
+  if (!next || next.startsWith("-")) return null;
+  return next;
 }
 
 function printJson(payload) {

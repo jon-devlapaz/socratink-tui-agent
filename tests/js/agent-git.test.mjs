@@ -15,6 +15,10 @@ test("agent git parses GitHub remotes", () => {
     "jon-devlapaz/socratink-tui-agent",
   );
   assert.equal(
+    parseRemoteOwnerRepo("https://github.com/acme/repo.name.git"),
+    "acme/repo.name",
+  );
+  assert.equal(
     parseRemoteOwnerRepo("git@github.com:jon-devlapaz/socratink-tui-agent.git"),
     "jon-devlapaz/socratink-tui-agent",
   );
@@ -36,6 +40,18 @@ test("agent git blocks destructive command pass-through", () => {
   );
   assert.throws(
     () => assertSafeRequestedCommand(["git", "push", "origin", "--delete", "feat/old"]),
+    /blocked dangerous command/,
+  );
+  assert.throws(
+    () => assertSafeRequestedCommand(["git", "push", "--delete", "origin", "feat/old"]),
+    /blocked dangerous command/,
+  );
+  assert.throws(
+    () => assertSafeRequestedCommand(["git", "push", "--force-with-lease=refs/heads/main"]),
+    /blocked dangerous command/,
+  );
+  assert.throws(
+    () => assertSafeRequestedCommand(["git", "clean", "-fxd"]),
     /blocked dangerous command/,
   );
   assert.doesNotThrow(() => assertSafeRequestedCommand(["status"]));

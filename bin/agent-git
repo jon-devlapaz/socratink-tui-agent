@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+import {
+  CommandError,
+  assertSafeRequestedCommand,
+  cleanupDryRun,
+  collectStatus,
+  doctor,
+  rescue,
+} from "../lib/agent-git/core.mjs";
+
+function hasFlag(args, flag) {
+  return args.includes(flag);
+}
+
+function flagValue(args, flag) {
+  const index = args.indexOf(flag);
+  if (index === -1) return null;
+  return args[index + 1] || null;
+}
+
+function printJson(payload) {
+  console.log(JSON.stringify(payload, null, 2));
+}
+
+function printDoctor(result) {
+  console.log(`agent-git doctor`);
+  console.log(`repo: ${result.root}`);
+  console.log(`branch: ${result.branch}`);
+  console.log(`default: ${result.base || "unknown"}`);
+  if (result.ownerRepo) console.log(`github: ${result.ownerRepo}`);
+  console.log("");
+  for (const check of result.checks) {
+    const mark = check.ok ? "OK" : check.severity === "warn" ? "WARN" : "FAIL";
+    console.log(`${mark.padEnd(4)} ${check.name}: ${check.detail || ""}`);
+  }
+}
+
+function printStatus(status) {
+  console.log(status.shortBranch);
+  console.log(`repo: ${status.root}`);
+  console.log(`branch: ${status.branch}`);
+  console.log(`default: ${status.base || "unknown"}`);
+  console.log(`dirty: ${status.dirty ? "yes" : "no"}`);
+  if (status.aheadBehind) {
+    const [behind, ahead] = status.aheadBehind.split(/\s+/);
+    console.log(`origin/${status.base}: behind ${behind}, ahead ${ahead}`);
+  }
+  if (status.pr) {
+    console.log(
+      `pr: #${status.pr.number} ${status.pr.state}${status.pr.isDraft ? " draft" : ""} ${status.pr.url}`,
+    );
+    if (status.pr.reviewDecision) console.log(`review: ${status.pr.reviewDecision}`);
+  } else {
+    console.log("pr: none linked to current branch");
+  }
+  if (status.checks) {
+    const buckets = status.checks.reduce((acc, check) => {
+      acc[check.bucket] = (acc[check.bucket] || 0) + 1;
+      return acc;
+    }, {});
+    console.log(`checks: ${Object.entries(buckets).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+  }
+}
+
+function printCleanup(result) {
+  console.log(`agent-git cleanup --dry-run`);
+  console.log(`repo: ${result.root}`);
+  console.log(`current: ${result.current}`);
+  console.log(`base: origin/${result.base}`);
+  if (!result.ghAvailable) {
+    console.log("WARN gh PR metadata unavailable; closed/open PR classification is incomplete");
+  }
+  console.log("");
+  for (const item of result.branches) {
+    console.log(`${item.action.padEnd(13)} ${item.branch} - ${item.reason}`);
+  }
+  console.log("");
+  console.log("No branches were deleted. Phase 1 cleanup is dry-run only.");
+}
+
+function printRescue(result) {
+  console.log(`agent-git rescue`);
+  console.log(`archive: ${result.rescueDir}`);
+  console.log(`stash: ${result.stashed ? result.stashMessage : "not created; no local changes"}`);
+  if (result.stashOutput) console.log(result.stashOutput);
+  console.log("");
+  console.log("Restore with: git stash list && git stash apply <stash>");
+}
+
+function usage() {
+  console.log(`Usage: agent-git <command>
+
+Commands:
+  doctor [--json]          Verify repo, GitHub, and worktree prerequisites
+  status [--json]          Show current branch, dirty state, PR, and checks
+  cleanup --dry-run [--json]
+                           Classify branches without deleting anything
+  rescue [--message TEXT] [--json]
+                           Save patches and stash dirty/untracked work
+
+Phase 1 intentionally refuses destructive cleanup, merge, reset, force-push, and remote-delete actions.
+`);
+}
+
+function main(argv) {
+  const [command, ...args] = argv;
+  assertSafeRequestedCommand(argv);
+
+  if (!command || command === "help" || command === "--help" || command === "-h") {
+    usage();
+    return;
+  }
+
+  const json = hasFlag(args, "--json");
+  if (command === "doctor") {
+    const result = doctor();
+    json ? printJson(result) : printDoctor(result);
+    return;
+  }
+  if (command === "status") {
+    const result = collectStatus();
+    json ? printJson(result) : printStatus(result);
+    return;
+  }
+  if (command === "cleanup") {
+    if (!hasFlag(args, "--dry-run")) {
+      throw new CommandError("cleanup is dry-run only in Phase 1. Re-run with: agent-git cleanup --dry-run", {
+        code: 2,
+      });
+    }
+    const result = cleanupDryRun();
+    json ? printJson(result) : printCleanup(result);
+    return;
+  }
+  if (command === "rescue") {
+    const result = rescue(process.cwd(), { message: flagValue(args, "--message") || "" });
+    json ? printJson(result) : printRescue(result);
+    return;
+  }
+
+  throw new CommandError(`unknown command: ${command}. Run agent-git help.`, { code: 2 });
+}
+
+try {
+  main(process.argv.slice(2));
+} catch (error) {
+  if (error instanceof CommandError) {
+    console.error(error.message);
+    if (error.stderr) console.error(error.stderr);
+    process.exit(error.code);
+  }
+  throw error;
+}

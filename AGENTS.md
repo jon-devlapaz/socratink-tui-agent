@@ -281,6 +281,29 @@ Two channels — see **Throughline**. Details:
 
 ## Common Tasks
 
+### Git/PR hygiene for agents
+
+Git state is controlled by the deterministic wrapper, not by free-form agent
+reasoning. Use the `socratink-agent-git-control-plane` skill when available,
+and see `docs/adr/0002-agent-git-control-plane.md`.
+
+Use these before touching branch/PR state:
+
+```bash
+npm run agent:git -- doctor
+npm run agent:git -- status
+npm run agent:git -- cleanup --dry-run
+```
+
+Use `npm run agent:git -- rescue --message "<why>"` before risky cleanup or
+when an agent run leaves dirty/untracked work.
+
+Agents may write code and make ordinary commits inside a prepared branch or
+worktree. Agents must not own hard resets, force pushes, branch deletion,
+remote branch deletion, PR close, merge, or admin merge. `cleanup` is dry-run
+only in Phase 1; treat `archive-first` as "preserve before delete," not as a
+delete instruction.
+
 ### Adding a new phase handler
 1. Add the event type to `DIRECT_PHASE` and/or a fine branch in `nextPhase`
 2. Add `eventBuilders.*` in `lib/seda/event-facts.mjs` if the fact is new
@@ -329,7 +352,7 @@ branches.
 ## Learned Workspace Facts
 
 - Product vocabulary and substrate-gate decisions live in `CONTEXT.md` and `docs/adr/`; pre-map substrate is graph-neutral routing only — evidence still begins at **Cold Attempt**.
-- GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs, passing Smoke CI, and strict up-to-date. CodeRabbit `CHANGES_REQUESTED` can block merge despite green CI — use `gh pr merge --admin` when appropriate.
+- GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs, passing Smoke CI, and strict up-to-date. CodeRabbit `CHANGES_REQUESTED` can block merge despite green CI. Do not use `gh pr merge --admin` unless the user explicitly requests an administrative bypass.
 - Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; production deploy automatic on merge to `main` (Railway — `deploy/RAILWAY.md`). URL `app.socratink.ai/loop` via socratink-app proxy (`LOOP_BACKEND_URL`; `deploy/LOOP-HOSTING.md`). `loop.js` polls `/health` (not `/api/health`). `advanceSession` may run multiple handler turns per HTTP request until `PROMPT_REQUIRED` (pacing stops transport-only).
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
 - `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). Agents bump it with `npm run bump:loop` before PR; CI verifies but does not mutate PR branches. Production uses the baked-in constant from the deployed image — do not set `LOOP_APP_VERSION` on Railway (stale override without restart). Optional `LOOP_APP_VERSION` in `.env` overrides locally.

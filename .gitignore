@@ -12,6 +12,7 @@ __pycache__/
 .cursor/
 .poolside/
 .supergoal/
+.agent/
 learning_cases/traces/.capture-tmp/
 learning_cases/traces/**/.capture-run/
 learning_cases/traces/*/*T*/

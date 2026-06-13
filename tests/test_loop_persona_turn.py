@@ -52,11 +52,46 @@ def _mock_opener(response_body: dict, *, status: int = 200):
     return opener
 
 
+def _sequence_opener(response_bodies: list[dict]):
+    calls = []
+    bodies = list(response_bodies)
+
+    def opener(request, timeout=120):
+        calls.append(json.loads(request.data.decode("utf-8")))
+        if not bodies:
+            raise AssertionError("unexpected extra persona request")
+        return _mock_opener(bodies.pop(0))(request, timeout=timeout)
+
+    opener.calls = calls
+    return opener
+
+
 def test_extract_openai_message_text_prefers_content() -> None:
     text = persona.extract_openai_message_text(
         {"content": "Vaccines train memory cells.", "reasoning_content": "ignore me"}
     )
     assert text == "Vaccines train memory cells."
+
+
+def test_extract_openai_message_text_unwraps_json_content_field() -> None:
+    text = persona.extract_openai_message_text(
+        {
+            "content": json.dumps(
+                {
+                    "thought": "I should answer like a student.",
+                    "content": "It predicts words from patterns, not checked facts.",
+                }
+            )
+        }
+    )
+    assert text == "It predicts words from patterns, not checked facts."
+
+
+def test_extract_openai_message_text_rejects_thought_only_json() -> None:
+    with pytest.raises(RuntimeError, match="thought"):
+        persona.extract_openai_message_text(
+            {"content": json.dumps({"thought": "I should answer like a student."})}
+        )
 
 
 def test_extract_openai_message_text_falls_back_to_reasoning() -> None:
@@ -95,6 +130,46 @@ def test_generate_openai_compatible_uses_mocked_http() -> None:
         ),
     )
     assert text == "A vaccine is a safe preview for the immune system."
+
+
+def test_generate_openai_compatible_retries_thought_only_json() -> None:
+    opener = _sequence_opener(
+        [
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps(
+                                {"thought": "I should answer like a learner."}
+                            )
+                        }
+                    }
+                ]
+            },
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": "It predicts likely words, not whether they are true."
+                        }
+                    }
+                ]
+            },
+        ]
+    )
+
+    text = persona.generate_openai_compatible(
+        system_prompt="system",
+        user_prompt="user",
+        base_url="http://127.0.0.1:1234/v1",
+        model="google/gemma-4-12b",
+        api_key="lm-studio",
+        opener=opener,
+    )
+
+    assert text == "It predicts likely words, not whether they are true."
+    assert len(opener.calls) == 2
+    assert "not accepted" in opener.calls[1]["messages"][1]["content"]
 
 
 def test_extract_openai_message_text_rejects_reasoning_meta() -> None:
@@ -136,3 +211,69 @@ def test_generate_persona_turn_openai_compatible(monkeypatch: pytest.MonkeyPatch
         ),
     )
     assert text == "Memory cells stay after exposure."
+
+
+def test_openai_compatible_persona_inherits_unified_router_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PERSONA_LLM_PROVIDER", "openai_compatible")
+    monkeypatch.setenv("PERSONA_LLM_TARGET", "router")
+    monkeypatch.delenv("PERSONA_LLM_BASE_URL", raising=False)
+    monkeypatch.delenv("PERSONA_LLM_MODEL", raising=False)
+    monkeypatch.delenv("PERSONA_LLM_API_KEY", raising=False)
+    monkeypatch.setenv("LLM_ROUTER_BASE_URL", "http://openai-router.test/v1")
+    monkeypatch.setenv("LLM_ROUTER_API_KEY", "router-key")
+    monkeypatch.setenv("LLM_OPENAI_COMPAT_MODEL", "auto")
+
+    text = persona.generate_persona_turn(
+        {
+            "concept": "Immune memory",
+            "learner_goal": "Explain vaccines",
+            "phase": "cold_attempt",
+            "awaiting_label": "cold attempt",
+            "transcript_text": "Map shown.",
+            "persona_hint": "You are Sam, grade 7.",
+        },
+        opener=_mock_opener(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": "Memory cells respond faster after a safe preview.",
+                        }
+                    }
+                ]
+            }
+        ),
+    )
+    assert text == "Memory cells respond faster after a safe preview."
+
+
+def test_cloud_persona_uses_persona_model_not_tutor_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured = {}
+
+    def fake_generate_gemini(**kwargs):
+        captured.update(kwargs)
+        return "Cloud student reply."
+
+    monkeypatch.delenv("PERSONA_LLM_PROVIDER", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setenv("LLM_MODEL", "local-tutor-model")
+    monkeypatch.setenv("PERSONA_GEMINI_MODEL", "gemini-student-model")
+    monkeypatch.setattr(persona, "generate_gemini", fake_generate_gemini)
+
+    text = persona.generate_persona_turn(
+        {
+            "concept": "Immune memory",
+            "learner_goal": "Explain vaccines",
+            "phase": "cold_attempt",
+            "awaiting_label": "cold attempt",
+            "transcript_text": "Map shown.",
+            "persona_hint": "You are Sam.",
+        }
+    )
+
+    assert text == "Cloud student reply."
+    assert captured["model"] == "gemini-student-model"

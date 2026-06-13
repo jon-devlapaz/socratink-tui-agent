@@ -75,6 +75,22 @@ def _strip_json_fences(text: str) -> str:
     return candidate
 
 
+def _schema_name(schema: type[BaseModel]) -> str:
+    name = "".join(ch for ch in schema.__name__.lstrip("_") if ch.isalnum() or ch in "_-")
+    return name or "structured_response"
+
+
+def _response_format_for_schema(schema: type[BaseModel]) -> dict[str, Any]:
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": _schema_name(schema),
+            "strict": True,
+            "schema": schema.model_json_schema(),
+        },
+    }
+
+
 def _resolve_env(name: str, *fallbacks: str) -> str:
     for key in (name, *fallbacks):
         if key and (value := os.environ.get(key, "").strip()):
@@ -135,6 +151,7 @@ class OpenAICompatibleAdapter:
                 {"role": "system", "content": request.system_prompt},
                 {"role": "user", "content": request.user_prompt},
             ],
+            "response_format": _response_format_for_schema(request.response_schema),
             "temperature": request.temperature,
         }
         payload = json.dumps(body).encode("utf-8")
@@ -283,4 +300,3 @@ def _extract_usage(response: dict[str, Any]) -> TokenUsage:
         input_tokens=int(usage.get("prompt_tokens", 0) or 0),
         output_tokens=int(usage.get("completion_tokens", 0) or 0),
     )
-

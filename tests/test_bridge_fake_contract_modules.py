@@ -86,6 +86,27 @@ def test_fake_substrate_gate_helper_covers_fast_slow_and_minimal() -> None:
     assert minimal["score_eligible"] is False
 
 
+def test_substrate_gate_contract_normalizes_router_classification_synonyms() -> None:
+    from bridge_lib.contracts import SubstrateGateDecision
+
+    for synonym in ("route", "launch", "provisional"):
+        decision = SubstrateGateDecision.model_validate(
+            {
+                "contract_version": "substrate-gate-v1",
+                "classification": synonym,
+                "substrate_adequate": True,
+                "seed_text": None,
+                "refinement_prompt": None,
+                "judge_reason": "The learner supplied enough substrate to route.",
+                "graph_neutral": True,
+                "score_eligible": False,
+            }
+        )
+
+        assert decision.classification == "fast"
+        assert decision.substrate_adequate is True
+
+
 def test_fake_evaluation_direct_helper_keeps_template_slot_validation() -> None:
     from bridge_lib.fake import fake_evaluation
 

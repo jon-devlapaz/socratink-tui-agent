@@ -71,6 +71,20 @@ def test_factory_builds_openai_compatible_adapter(
     assert isinstance(client.adapter, OpenAICompatibleAdapter)
 
 
+def test_factory_uses_openai_compatible_model_alias(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "openai_compatible")
+    monkeypatch.setenv("LLM_BASE_URL", "http://openai-router.test/v1")
+    monkeypatch.setenv("LLM_API_KEY", "router-key")
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    monkeypatch.setenv("LLM_OPENAI_COMPAT_MODEL", "auto")
+
+    client = build_llm_client()
+    assert isinstance(client.adapter, OpenAICompatibleAdapter)
+    assert client.adapter._config.model == "auto"
+
+
 def test_adapter_parses_json_message(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_BASE_URL", "http://127.0.0.1:1234/v1")
     adapter = OpenAICompatibleAdapter(
@@ -101,6 +115,40 @@ def test_adapter_parses_json_message(monkeypatch: pytest.MonkeyPatch) -> None:
     assert result.provider == "openai_compatible"
     assert result.usage.input_tokens == 3
     assert result.usage.output_tokens == 5
+
+
+def test_adapter_sends_json_schema_response_format(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_BASE_URL", "http://127.0.0.1:1234/v1")
+    adapter = OpenAICompatibleAdapter(
+        api_key="lm-studio",
+        model="google/gemma-4-12b",
+        provider="openai_compatible",
+    )
+    request = StructuredLLMRequest(
+        system_prompt="system",
+        user_prompt="user",
+        response_schema=_EchoPayload,
+        temperature=0.2,
+        task_name="echo",
+        prompt_version="v1",
+    )
+
+    def opener(request, timeout=120):
+        sent = json.loads(request.data.decode("utf-8"))
+        assert sent["response_format"]["type"] == "json_schema"
+        json_schema = sent["response_format"]["json_schema"]
+        assert json_schema["name"] == "EchoPayload"
+        assert json_schema["schema"]["properties"]["message"]["type"] == "string"
+        return _mock_urlopen(
+            {"choices": [{"message": {"content": '{"message":"schema ok"}'}}]}
+        )(request, timeout)
+
+    with patch("llm.openai_compatible_adapter.urllib_request.urlopen", opener):
+        result = adapter.call_once(request)
+
+    assert result.parsed.message == "schema ok"
 
 
 def test_adapter_honors_llm_request_timeout_env(

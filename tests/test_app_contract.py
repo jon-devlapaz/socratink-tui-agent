@@ -86,6 +86,22 @@ def test_substantive_cold_attempt_scores_despite_llm_unscored_flags() -> None:
     assert normalized.generative_commitment is True
 
 
+def test_drill_evaluation_normalizes_router_answer_mode_synonym() -> None:
+    evaluation = ai_service.DrillEvaluation.model_validate(
+        {
+            "agent_response": "Good start — keep going.",
+            "generative_commitment": True,
+            "answer_mode": "classification",
+            "score_eligible": True,
+            "classification": "solid",
+            "routing": "NEXT",
+        }
+    )
+
+    assert evaluation.answer_mode == "attempt"
+    assert evaluation.classification == "solid"
+
+
 def test_non_substantive_cold_stays_unscored_help() -> None:
     evaluation = ai_service.DrillEvaluation(
         agent_response="Try one rough causal guess in your own words.",

@@ -57,6 +57,44 @@ test("file session store creates metadata and append-only event journal", async 
   assert.deepEqual(files.sort(), ["events.jsonl", "metadata.json"]);
 });
 
+test("file session store lists recent journals by updated time", async () => {
+  let now = "2026-06-11T10:00:00.000Z";
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "socratink-store-test-"));
+  const store = createFileSessionStore({ rootDir: root, now: () => now });
+  const older = uuid("101");
+  const newer = uuid("102");
+
+  await store.create(older, { status: "awaiting_input", phase: "ignition" });
+  now = "2026-06-11T10:01:00.000Z";
+  await store.create(newer, { status: "awaiting_input", phase: "ignition" });
+  now = "2026-06-11T10:02:00.000Z";
+  await store.appendEvents(older, [{ type: "launch_attempt", concept: "Caching" }], {
+    status: "awaiting_input",
+    phase: "route",
+  });
+
+  const recent = await store.listRecent({ limit: 2 });
+  assert.deepEqual(
+    recent.map((session) => session.sessionId),
+    [older, newer],
+  );
+  assert.equal(recent[0].events[0].type, "launch_attempt");
+});
+
+test("file session store clears only saved session reports", async () => {
+  const { root, store } = await tempStore();
+  const first = uuid("201");
+  const second = uuid("202");
+  await store.create(first, { status: "awaiting_input", phase: "idle" });
+  await store.create(second, { status: "awaiting_input", phase: "idle" });
+  await fs.mkdir(path.join(root, "not-a-session"));
+
+  const result = await store.clearReports();
+  assert.deepEqual(result, { deleted_count: 2 });
+  assert.deepEqual(await store.listRecent(), []);
+  assert.deepEqual((await fs.readdir(root)).sort(), ["not-a-session"]);
+});
+
 test("file session store rejects malformed ids and missing sessions", async () => {
   const { store } = await tempStore();
 
@@ -71,6 +109,78 @@ test("file session store rejects malformed ids and missing sessions", async () =
     assert.equal(error.code, "SessionNotFound");
     return true;
   });
+});
+
+test("HTTP dashboard report clear deletes live reports and preserves promoted payload", async () => {
+  const { store } = await tempStore();
+  const sessionId = uuid("901");
+  await store.create(sessionId, {
+    status: "awaiting_input",
+    phase: "idle",
+  });
+
+  const { createLoopServerWithStore } = await import(
+    "../../lib/loop-server/http-server.mjs"
+  );
+  const server = createLoopServerWithStore({ sessionStore: store });
+  const baseUrl = await listen(server);
+  try {
+    const deleted = await fetch(`${baseUrl}/api/dashboard/reports`, {
+      method: "DELETE",
+    });
+    assert.equal(deleted.status, 200);
+    assert.deepEqual(await deleted.json(), { deleted_count: 1 });
+    assert.deepEqual(await store.listRecent(), []);
+
+    const dashboard = await fetch(`${baseUrl}/api/dashboard`);
+    assert.equal(dashboard.status, 200);
+    const payload = await dashboard.json();
+    assert.equal(payload.case_summary.total, 8);
+    assert.equal(payload.live_runtime.total_recent_sessions, 0);
+  } finally {
+    await close(server);
+  }
+});
+
+test("HTTP dashboard includes live runtime from session store", async () => {
+  const { store } = await tempStore();
+  const sessionId = uuid("900");
+  await store.create(sessionId, {
+    status: "awaiting_input",
+    phase: "cold_attempt",
+  });
+  await store.appendEvents(
+    sessionId,
+    [
+      { type: "launch_attempt", concept: "Immune memory" },
+      { type: "bridge_error", graph_neutral: true },
+    ],
+    {
+      status: "awaiting_input",
+      phase: "cold_attempt",
+      awaiting: { key: "cold_attempt" },
+    },
+  );
+
+  const { createLoopServerWithStore } = await import(
+    "../../lib/loop-server/http-server.mjs"
+  );
+  const server = createLoopServerWithStore({ sessionStore: store });
+  const baseUrl = await listen(server);
+  try {
+    const response = await fetch(`${baseUrl}/api/dashboard`);
+    assert.equal(response.status, 200);
+    const payload = await response.json();
+    assert.equal(payload.live_runtime.payload_version, "live-runtime-v1");
+    assert.equal(payload.live_runtime.total_recent_sessions, 1);
+    assert.equal(payload.live_runtime.active_sessions, 1);
+    assert.equal(payload.live_runtime.waiting_sessions, 1);
+    assert.equal(payload.live_runtime.bridge_error_sessions, 1);
+    assert.equal(payload.live_runtime.recent_sessions[0].concept, "Immune memory");
+    assert.equal(payload.live_runtime.recent_sessions[0].last_event_type, "bridge_error");
+  } finally {
+    await close(server);
+  }
 });
 
 test("HTTP session API persists create, load, and turn through store", async () => {
@@ -88,9 +198,11 @@ test("HTTP session API persists create, load, and turn through store", async () 
     const created = await create.json();
     assertSessionResponseShape(created);
     assert.equal(created.awaiting.key, "cmd");
+    assert.match(created.bridge_diagnostics_dir, /bridge-diagnostics$/);
 
     let stored = await store.load(created.sessionId);
     assert.equal(stored.events.length, 0);
+    assert.equal(stored.metadata.bridge_diagnostics_dir, created.bridge_diagnostics_dir);
 
     const conceptTurn = await postTurn(baseUrl, created.sessionId, "Immune memory");
     assert.equal(conceptTurn.awaiting.key, "learner_goal");
@@ -361,6 +473,7 @@ function assertSessionResponseShape(body) {
     "events",
     "llm",
     "llm_active",
+    "bridge_diagnostics_dir",
     "complete",
     "caseComplete",
   ]) {

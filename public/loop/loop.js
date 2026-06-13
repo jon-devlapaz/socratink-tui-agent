@@ -322,7 +322,7 @@ async function post(path, body) {
 
 function llmPillLabel(llm) {
   if (llm.provider === "openai_compatible") {
-    return `LM Studio · ${llm.model}`;
+    return `${llm.target === "lmstudio" ? "LM Studio" : "FreeLLMAPI"} · ${llm.model}`;
   }
   const prefix = LOCAL_LLM_PROVIDERS.has(llm.provider) ? "local" : "live";
   return `${prefix} · ${llm.model}`;
@@ -353,7 +353,11 @@ function setLlmSelection(llm) {
   llmPill.dataset.mode = "live";
   llmPill.textContent = llmPillLabel(llm);
   const sourceLabel =
-    llm.provider === "openai_compatible" ? "LM Studio" : llm.provider;
+    llm.provider === "openai_compatible"
+      ? llm.target === "lmstudio"
+        ? "LM Studio"
+        : "FreeLLMAPI"
+      : llm.provider;
   llmPill.title = `tutor via bridge (${sourceLabel}) — click to switch model`;
 }
 
@@ -385,10 +389,11 @@ async function selectLlmOption(option) {
   closeLlmMenu();
   let model = option.model;
   if (option.custom) {
-    model = (window.prompt("Model id (as loaded in LM Studio):") || "").trim();
+    const label = option.target === "lmstudio" ? "LM Studio" : "FreeLLMAPI";
+    model = (window.prompt(`Model id for ${label}:`) || "").trim();
     if (!model || model.length > 128) return;
   }
-  const llm = { provider: option.provider, model };
+  const llm = { provider: option.provider, target: option.target, model };
   try {
     if (sessionId) {
       const res = await fetch(`/api/session/${sessionId}/llm`, {
@@ -403,7 +408,7 @@ async function selectLlmOption(option) {
     saveLlmPreference(llm);
     const modelLabel =
       llm.provider === "openai_compatible"
-        ? `LM Studio/${llm.model}`
+        ? `${llm.target === "lmstudio" ? "LM Studio" : "FreeLLMAPI"}/${llm.model}`
         : `${llm.provider}/${llm.model}`;
     appendChatLine("meta", `[tutor] model → ${modelLabel}`, { force: true });
   } catch (error) {
@@ -460,7 +465,11 @@ function setLlmPillFromHealth(health) {
   });
   const healthProvider = health.llm_provider || "gemini";
   const healthSource =
-    healthProvider === "openai_compatible" ? "LM Studio" : healthProvider;
+    healthProvider === "openai_compatible"
+      ? health.llm_target === "lmstudio"
+        ? "LM Studio"
+        : "FreeLLMAPI"
+      : healthProvider;
   llmPill.title = `tutor via bridge (${healthSource})`;
 }
 

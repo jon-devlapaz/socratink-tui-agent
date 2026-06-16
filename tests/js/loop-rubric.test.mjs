@@ -1,9 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   evaluateLoopRubric,
   renderLoopRubricMarkdown,
 } from "../../lib/lab/loop-rubric.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "../..");
 
 function baseLog(overrides = {}) {
   return {
@@ -84,4 +90,18 @@ test("loop rubric flags OpenAI-compatible tutor mode as explicit opt-in watch ev
   assert.equal(rubric.overall, "watch");
   assert.equal(rubric.axes.model_reliability.score, "watch");
   assert.match(rubric.axes.model_reliability.evidence.join("\n"), /OpenAI-compatible/);
+});
+
+test("loop rubric schema artifact is valid JSON with required axes", () => {
+  const schemaPath = path.join(ROOT, "evals/founder-lab/loop-v1.schema.json");
+  const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
+  assert.equal(schema.properties.rubric_version.const, "loop-v1");
+  assert.deepEqual(schema.properties.axes.required, [
+    "substrate_viability",
+    "generation_before_recognition",
+    "repair_load",
+    "evidence_progression",
+    "model_reliability",
+    "prompt_adjustment_signal",
+  ]);
 });

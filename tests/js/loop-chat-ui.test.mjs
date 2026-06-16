@@ -238,10 +238,15 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.doesNotMatch(html, /\/meta/);
   assert.doesNotMatch(js, /\/meta ·/);
   assert.match(html, /id="composer-busy"/);
+  assert.match(html, /role="status"/);
+  assert.match(html, /aria-live="polite"/);
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
   assert.match(html, /class="terminal"/);
   assert.match(js, /THINKING_COPY/);
+  assert.match(js, /LONG_RUNNING_AFTER_MS/);
+  assert.match(js, /still working/);
+  assert.match(js, /Generating Smallest actionable route/);
   assert.match(js, /isRecentDuplicate/);
   assert.doesNotMatch(js, /showThinkingLine/);
   assert.match(css, /braille-spin/);

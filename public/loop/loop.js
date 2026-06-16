@@ -26,9 +26,11 @@ let currentAwaiting = null;
 let llmOverrideAllowed = false;
 let llmOptions = [];
 let activeLlmSelection = null;
+let busyNoticeTimer = null;
 
 const LLM_PREF_KEY = "socratink.loop.llmPreference";
 const LOCAL_LLM_PROVIDERS = new Set(["openai_compatible"]);
+const LONG_RUNNING_AFTER_MS = 15_000;
 
 const THINKING_COPY = {
   idle: "starting session",
@@ -158,6 +160,7 @@ function isSkippedTranscriptLine(text) {
   if (!t) return true;
   if (t.startsWith("[Question]")) return true;
   if (/^First question:\s*$/i.test(t)) return true;
+  if (/^Generating Smallest actionable route\.\.\.$/i.test(t)) return true;
   return false;
 }
 
@@ -263,13 +266,26 @@ function setComposerLoading(isLoading, phase) {
   sendButton.disabled = isLoading;
 }
 
+function clearBusyNotice() {
+  if (busyNoticeTimer) {
+    clearTimeout(busyNoticeTimer);
+    busyNoticeTimer = null;
+  }
+}
+
 function setBusy(isBusy, phase) {
+  clearBusyNotice();
   terminalEl.classList.toggle("is-busy", isBusy);
   terminalEl.setAttribute("aria-busy", String(isBusy));
   if (isBusy) {
     const message = thinkingMessage(phase);
     srStatus.textContent = `Loop is running: ${message}`;
     setComposerLoading(true, phase);
+    busyNoticeTimer = setTimeout(() => {
+      if (!busy) return;
+      composerBusyLabel.textContent = `${message} - still working`;
+      srStatus.textContent = `Loop is still running: ${message}`;
+    }, LONG_RUNNING_AFTER_MS);
     return;
   }
   srStatus.textContent = "";

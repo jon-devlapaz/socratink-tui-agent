@@ -238,8 +238,10 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.doesNotMatch(html, /\/meta/);
   assert.doesNotMatch(js, /\/meta ·/);
   assert.match(html, /id="composer-busy"/);
-  assert.match(html, /role="status"/);
-  assert.match(html, /aria-live="polite"/);
+  assert.match(
+    html,
+    /<div[^>]*id="composer-busy"[^>]*role="status"[^>]*aria-live="polite"[^>]*>/,
+  );
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
   assert.match(html, /class="terminal"/);

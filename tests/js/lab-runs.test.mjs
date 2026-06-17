@@ -138,6 +138,7 @@ test("listLabRuns summarizes recent disk artifacts", () => {
     fs.writeFileSync(founderReport, JSON.stringify({
       run_count: 1,
       evidence_status: "caveated",
+      recommendation: "Compare this watch batch with another run before changing prompts.",
       runs: [{ out_dir: founderRun }],
     }));
 
@@ -167,6 +168,7 @@ test("listLabRuns summarizes recent disk artifacts", () => {
     assert.deepEqual(rows.map((row) => row.source), ["founder-batch", "persona", "tui"]);
     assert.equal(rows[0].runs, 1);
     assert.equal(rows[0].evidence, "caveated");
+    assert.match(rows[0].recommendation, /Compare this watch batch/);
     assert.equal(rows[0].concept, "Immune memory");
     assert.equal(rows[1].status, "done");
     assert.equal(rows[2].evidence, "idle_exit");

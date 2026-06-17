@@ -294,9 +294,12 @@ test("lab browser runs view stays decision-oriented", () => {
   const script = readFileSync(new URL("../../public/lab/lab.js", import.meta.url), "utf8");
   assert.match(script, /function runDecision/);
   assert.match(script, /Patch candidate/);
+  assert.match(script, /Rerun live tutor/);
+  assert.match(script, /run\.evidence === "accepted"/);
   assert.match(script, /Compare runs/);
   assert.match(script, /function renderRunsSummary/);
   assert.match(script, /function runSortScore/);
+  assert.match(script, /row\.tabIndex = run\.dialogueId \? 0 : -1/);
 });
 
 test("lab browser selected run renders Thurman workbench", () => {

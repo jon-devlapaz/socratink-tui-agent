@@ -871,9 +871,12 @@ function runPrimaryText(run) {
 
 function runDecision(run) {
   if (run.source === "founder-batch") {
+    const recommendation = String(run.recommendation || "").toLowerCase();
+    if (run.evidence === "rejected" && recommendation.includes("rerun")) return ["Rerun live tutor", "warn"];
+    if (run.evidence === "rejected" && recommendation.includes("complete rubric")) return ["Collect trace", "warn"];
     if (run.evidence === "rejected") return ["Patch candidate", "bad"];
     if (run.evidence === "caveated") return ["Compare runs", "warn"];
-    if (run.evidence === "solid") return ["Keep signal", "good"];
+    if (run.evidence === "accepted") return ["Keep signal", "good"];
     return ["Review report", "warn"];
   }
   if (run.status === "error") return ["Debug run", "bad"];
@@ -1013,10 +1016,10 @@ function renderRuns(runs) {
   for (const run of sortedRuns) {
     const [decision, tone] = runDecision(run);
     const row = document.createElement("tr");
-    row.tabIndex = 0;
     row.dataset.source = run.source || "run";
     row.dataset.dialogueId = run.dialogueId || "";
     row.dataset.clickable = run.dialogueId ? "true" : "false";
+    row.tabIndex = run.dialogueId ? 0 : -1;
     row.dataset.selected = selectedLabRun?.id === run.id ? "true" : "false";
     row.append(
       node("td", "", formatRunDate(run.updatedAtIso)),

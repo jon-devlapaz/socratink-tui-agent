@@ -290,6 +290,48 @@ test("lab browser timeline renders compact bridge timeout facts", () => {
   assert.match(script, /formatDurationMs/);
 });
 
+test("lab browser runs view stays decision-oriented", () => {
+  const script = readFileSync(new URL("../../public/lab/lab.js", import.meta.url), "utf8");
+  assert.match(script, /function runDecision/);
+  assert.match(script, /Patch candidate/);
+  assert.match(script, /Compare runs/);
+  assert.match(script, /function renderRunsSummary/);
+  assert.match(script, /function runSortScore/);
+});
+
+test("lab browser selected run renders Thurman workbench", () => {
+  const html = readFileSync(new URL("../../public/lab/index.html", import.meta.url), "utf8");
+  const script = readFileSync(new URL("../../public/lab/lab.js", import.meta.url), "utf8");
+  assert.match(html, /id="thurman-workbench"/);
+  assert.match(script, /function thurmanDeliverable/);
+  assert.match(script, /Prompt\/output patch proposal/);
+  assert.match(script, /Comparison recommendation/);
+  assert.match(script, /Preserve SEDA graph-truth boundaries/);
+  assert.match(script, /Do not apply patches/);
+});
+
+test("lab browser does not create patch prompts from debug runs", () => {
+  const script = readFileSync(new URL("../../public/lab/lab.js", import.meta.url), "utf8");
+  assert.match(script, /run\.source !== "founder-batch"/);
+  assert.match(script, /No patch prompt/);
+  assert.match(script, /debug\/persona run/);
+});
+
+test("lab browser gates view stays decision-oriented", () => {
+  const script = readFileSync(new URL("../../public/lab/lab.js", import.meta.url), "utf8");
+  assert.match(script, /function gateDecision/);
+  assert.match(script, /Prepare patch/);
+  assert.match(script, /Compare runs/);
+  assert.match(script, /function renderGateDecision/);
+});
+
+test("lab browser run view stays decision-oriented", () => {
+  const script = readFileSync(new URL("../../public/lab/lab.js", import.meta.url), "utf8");
+  assert.match(script, /function renderRunDecision/);
+  assert.match(script, /Report \+ comparison/);
+  assert.match(script, /Model endpoint missing/);
+});
+
 test("canonical gate map links bridge-owned events to registry actions", async () => {
   const res = mockRes();
   await handleLabApi(mockReq(), res, "/api/lab/gates", { skipGate: true });
@@ -574,6 +616,42 @@ test("lab api run lifecycle with mocked runner", async () => {
   process.env.SOCRATINK_LAB_ENABLED = prev;
 });
 
+test("lab api returns dialogue for a listed run", async () => {
+  const runStore = {
+    listLabRuns() {
+      return [{ dialogueId: "dialogue-1", source: "persona" }];
+    },
+    getLabRunDialogue(dialogueId) {
+      if (dialogueId !== "dialogue-1") return null;
+      return {
+        id: dialogueId,
+        source: "persona",
+        dialogue: {
+          version: "lab-dialogue-v1",
+          runs: [
+            {
+              index: 1,
+              turn_count: 1,
+              turns: [{ n: 1, student: "Learner answer", lines: ["Teacher response"] }],
+            },
+          ],
+        },
+      };
+    },
+  };
+
+  const res = mockRes();
+  await handleLabApi(mockReq(), res, "/api/lab/runs/dialogue-1/dialogue", {
+    runStore,
+    skipGate: true,
+  });
+
+  assert.equal(res.status, 200);
+  const payload = JSON.parse(res.body);
+  assert.equal(payload.dialogue.runs[0].turns[0].student, "Learner answer");
+  assert.deepEqual(payload.dialogue.runs[0].turns[0].lines, ["Teacher response"]);
+});
+
 test("lab api starts and polls founder console batch", async () => {
   const prev = process.env.SOCRATINK_LAB_ENABLED;
   process.env.SOCRATINK_LAB_ENABLED = "1";
@@ -784,7 +862,7 @@ test("HTTP /lab static loads when lab enabled on loopback", async () => {
     assert.equal(res.status, 200);
     const html = await res.text();
     assert.match(html, /founder console/i);
-    assert.match(html, /Canonical gates/i);
+    assert.match(html, /Founder signal first/i);
     assert.match(html, /role="tablist"/i);
     assert.match(html, /id="tab-run"/i);
     assert.match(html, /id="tab-dialogue"/i);

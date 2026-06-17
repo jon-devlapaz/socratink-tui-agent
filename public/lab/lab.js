@@ -18,6 +18,11 @@ const runCountInput = document.getElementById("run-count");
 const maxTurnsInput = document.getElementById("max-turns");
 const runBtn = document.getElementById("run-btn");
 const cartridgePreview = document.getElementById("cartridge-preview");
+const runDecisionShape = document.getElementById("run-decision-shape");
+const runDecisionDeliverable = document.getElementById("run-decision-deliverable");
+const runDecisionRisk = document.getElementById("run-decision-risk");
+const refreshRunsBtn = document.getElementById("refresh-runs-btn");
+const runsList = document.getElementById("runs-list");
 const theater = document.getElementById("theater");
 const runHeader = document.getElementById("run-header");
 const busyBar = document.getElementById("busy-bar");
@@ -26,6 +31,14 @@ const banner = document.getElementById("banner");
 const transcriptEl = document.getElementById("transcript");
 const dialogueSummary = document.getElementById("dialogue-summary");
 const dialogueRuns = document.getElementById("dialogue-runs");
+const thurmanWorkbench = document.getElementById("thurman-workbench");
+const thurmanTitle = document.getElementById("thurman-title");
+const thurmanState = document.getElementById("thurman-state");
+const thurmanBody = document.getElementById("thurman-body");
+const thurmanEvidencePath = document.getElementById("thurman-evidence-path");
+const thurmanDecision = document.getElementById("thurman-decision");
+const thurmanPrompt = document.getElementById("thurman-prompt");
+const copyThurmanPromptBtn = document.getElementById("copy-thurman-prompt-btn");
 const openFolderBtn = document.getElementById("open-folder-btn");
 const tabButtons = [...document.querySelectorAll("[data-tab-target]")];
 const tabPanels = [...document.querySelectorAll("[data-tab-panel]")];
@@ -38,6 +51,9 @@ const gateLiveState = document.getElementById("gate-live-state");
 const gateLiveEvent = document.getElementById("gate-live-event");
 const gateLiveAuthority = document.getElementById("gate-live-authority");
 const gateLiveNext = document.getElementById("gate-live-next");
+const gateDecisionNext = document.getElementById("gate-decision-next");
+const gateDecisionSignal = document.getElementById("gate-decision-signal");
+const gateDecisionReason = document.getElementById("gate-decision-reason");
 const gateStatusStage = document.getElementById("gate-status-stage");
 const gateStatusRouting = document.getElementById("gate-status-routing");
 const gateStatusNext = document.getElementById("gate-status-next");
@@ -60,6 +76,9 @@ let canonicalGates = null;
 let latestGateEvent = null;
 let activeBatchSnapshot = null;
 let activeBatchId = null;
+let selectedRunDialogue = null;
+let selectedLabRun = null;
+let recentLabRuns = [];
 let pollTimer = null;
 let pollFailures = 0;
 
@@ -151,6 +170,23 @@ function refreshRolePills(status = latestStatus) {
   );
   setEndpointStatus(tutorEndpointStatus, tutorProvider, status);
   setEndpointStatus(studentEndpointStatus, studentProvider, status);
+  renderRunDecision();
+}
+
+function renderRunDecision() {
+  if (!runDecisionShape || !runDecisionDeliverable || !runDecisionRisk) return;
+  const count = Math.max(1, Number(runCountInput.value) || 1);
+  const tutor = tutorSelect.value === "gemini" ? "Gemini" : sourceLabel(tutorSelect.value);
+  const student = studentSelect.value === "cloud" ? "Cloud Gemini" : sourceLabel(studentSelect.value);
+  const cart = cartridges.find((entry) => entry.id === cartridgeSelect.value);
+  runDecisionShape.textContent = `${count} ${count === 1 ? "run" : "runs"} · ${cart?.label || "scenario"}`;
+  runDecisionDeliverable.textContent = count > 1 ? "Report + comparison" : "Report + dialogue";
+  const tutorMode = rolePillMode(tutorSelect.value, latestStatus);
+  const studentMode = rolePillMode(studentSelect.value, latestStatus);
+  runDecisionRisk.textContent =
+    tutorMode === "error" || studentMode === "error"
+      ? "Model endpoint missing"
+      : `${tutor} tutor vs ${student} student`;
 }
 
 async function fetchJson(url, init) {
@@ -215,6 +251,44 @@ function evidenceStatus(snapshot = activeBatchSnapshot) {
   const count = Number(snapshot?.judgment?.score_eligible_events || 0);
   if (count === 0) return "starved";
   return `${count} candidate${count === 1 ? "" : "s"}`;
+}
+
+function gateDecision(snapshot = activeBatchSnapshot) {
+  const latest = latestTimelineEntry(snapshot);
+  const latestEvent = latest?.type || latestSnapshotEvent(snapshot);
+  const evidence = evidenceStatus(snapshot);
+  const failures = Number(snapshot?.judgment?.failure_events || 0);
+  const divergent = Boolean(snapshot?.comparison?.divergent || snapshot?.report?.comparison?.divergent);
+  if (!snapshot || (!latestEvent && !snapshot.status)) {
+    return ["Run a batch", "idle", "No gate evidence yet."];
+  }
+  if (snapshot.status === "running" || snapshot.busy) {
+    return ["Watch latest gate", latestEvent || "running", "Wait for the routing fact before judging quality."];
+  }
+  if (latestEvent === "bridge_error" || failures) {
+    return ["Fix provider/schema", "failure", `${failures || 1} failure event${failures === 1 ? "" : "s"} observed.`];
+  }
+  if (evidence === "rejected") {
+    return ["Prepare patch", "rejected", "Evidence failed; use the report and dialogue to propose a prompt/output patch."];
+  }
+  if (divergent || evidence === "caveated") {
+    return ["Compare runs", evidence, "Signals diverged; compare signatures before changing prompts."];
+  }
+  if (evidence === "solid") {
+    return ["Keep as baseline", "solid", "Gate path produced usable evidence."];
+  }
+  if (evidence === "starved") {
+    return ["Find missing attempt", "starved", "No score-eligible learner evidence reached the graph path."];
+  }
+  return ["Inspect gate path", evidence, "Check whether routing and evidence candidates match the intended loop stage."];
+}
+
+function renderGateDecision(snapshot = activeBatchSnapshot) {
+  if (!gateDecisionNext || !gateDecisionSignal || !gateDecisionReason) return;
+  const [next, signal, reason] = gateDecision(snapshot);
+  gateDecisionNext.textContent = next;
+  gateDecisionSignal.textContent = signal;
+  gateDecisionReason.textContent = reason;
 }
 
 function renderGateStatus(snapshot = activeBatchSnapshot) {
@@ -341,6 +415,7 @@ function renderGateComparison(snapshot = activeBatchSnapshot) {
 }
 
 function renderGateObservatory(snapshot = activeBatchSnapshot) {
+  renderGateDecision(snapshot);
   renderGateStatus(snapshot);
   renderGatePipeline(snapshot);
   renderGateInspector(snapshot);
@@ -667,6 +742,7 @@ function renderCartridgePreview(id) {
   const hint = document.createElement("span");
   hint.textContent = `Persona: ${cart.persona_hint || "(none)"}`;
   cartridgePreview.append(title, hint);
+  renderRunDecision();
 }
 
 async function loadCartridges() {
@@ -777,13 +853,231 @@ function renderReport(report) {
   transcriptEl.appendChild(summary);
 }
 
+function formatRunDate(value) {
+  if (!value) return "unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "unknown";
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function runPrimaryText(run) {
+  return [run.concept, run.cartridgeId || run.label].filter(Boolean).join(" · ") || run.id;
+}
+
+function runDecision(run) {
+  if (run.source === "founder-batch") {
+    if (run.evidence === "rejected") return ["Patch candidate", "bad"];
+    if (run.evidence === "caveated") return ["Compare runs", "warn"];
+    if (run.evidence === "solid") return ["Keep signal", "good"];
+    return ["Review report", "warn"];
+  }
+  if (run.status === "error") return ["Debug run", "bad"];
+  if (run.status === "cancelled") return ["Ignore", "quiet"];
+  return ["Inspect dialogue", "quiet"];
+}
+
+function runEvidencePath(run) {
+  return run?.reportPath || run?.outDir || run?.id || "n/a";
+}
+
+function thurmanDeliverable(run, payload = selectedRunDialogue) {
+  const [decision] = runDecision(run || {});
+  const path = runEvidencePath(run);
+  const turnCount = (payload?.dialogue?.runs || []).reduce(
+    (sum, entry) => sum + Number(entry.turn_count || entry.turns?.length || 0),
+    0,
+  );
+  if (!run) {
+    return {
+      title: "Select founder evidence",
+      state: "idle",
+      body: "Choose a founder run to prepare one bounded Thurman deliverable.",
+      prompt: "",
+    };
+  }
+  if (run.source !== "founder-batch") {
+    return {
+      title: "No patch prompt",
+      state: "read-only",
+      body: "This is a debug/persona run. Use it to inspect runner behavior, not to propose product or prompt patches.",
+      prompt: "",
+    };
+  }
+  if (decision === "Patch candidate") {
+    return {
+      title: "Prompt/output patch proposal",
+      state: "copy-ready",
+      body: `Evidence was rejected. Ask for the smallest copy/prompt/output patch, then rerun this same cartridge before treating it as a product fix.`,
+      prompt: [
+        "Inspect this Socratink founder run and propose the smallest copy/prompt/output patch only.",
+        `Evidence path: ${path}`,
+        `Dialogue endpoint: /api/lab/runs/${encodeURIComponent(run.dialogueId || run.id)}/dialogue`,
+        `Observed decision: ${decision}; evidence=${run.evidence || "n/a"}; turns=${turnCount}.`,
+        "Preserve SEDA graph-truth boundaries. Do not apply patches. Recommend exactly one rerun/comparison check.",
+      ].join("\n"),
+    };
+  }
+  if (decision === "Compare runs") {
+    return {
+      title: "Comparison recommendation",
+      state: "copy-ready",
+      body: "Evidence is caveated. Compare another run against this signature before changing prompts.",
+      prompt: [
+        "Compare this Socratink founder run before proposing any prompt change.",
+        `Evidence path: ${path}`,
+        `Dialogue endpoint: /api/lab/runs/${encodeURIComponent(run.dialogueId || run.id)}/dialogue`,
+        `Observed decision: ${decision}; evidence=${run.evidence || "n/a"}; turns=${turnCount}.`,
+        "Return the smallest next experiment and only propose a patch if both runs show the same failure.",
+      ].join("\n"),
+    };
+  }
+  return {
+    title: "No patch indicated",
+    state: "baseline",
+    body: "This founder run is not asking for a Thurman patch prompt. Keep it as evidence or compare it manually.",
+    prompt: "",
+  };
+}
+
+function renderThurmanWorkbench(run = selectedLabRun, payload = selectedRunDialogue) {
+  if (!thurmanWorkbench) return;
+  const deliverable = thurmanDeliverable(run, payload);
+  thurmanWorkbench.hidden = false;
+  thurmanTitle.textContent = deliverable.title;
+  thurmanState.textContent = deliverable.state;
+  thurmanBody.textContent = deliverable.body;
+  thurmanEvidencePath.textContent = runEvidencePath(run);
+  thurmanDecision.textContent = run ? runDecision(run)[0] : "n/a";
+  thurmanPrompt.value = deliverable.prompt;
+  thurmanPrompt.hidden = !deliverable.prompt;
+  copyThurmanPromptBtn.hidden = !deliverable.prompt;
+}
+
+function runSortScore(run) {
+  const [decision] = runDecision(run);
+  if (decision === "Patch candidate") return 0;
+  if (decision === "Compare runs") return 1;
+  if (run.source === "founder-batch") return 2;
+  if (decision === "Debug run") return 3;
+  return 4;
+}
+
+function renderRunsSummary(runs) {
+  const founder = runs.filter((run) => run.source === "founder-batch");
+  const needsAction = runs.filter((run) => {
+    const [label] = runDecision(run);
+    return label === "Patch candidate" || label === "Compare runs" || label === "Debug run";
+  });
+  const latest = runs[0];
+  const strip = node("div", "runs-summary");
+  for (const [label, value] of [
+    ["Founder reports", founder.length],
+    ["Needs action", needsAction.length],
+    ["Latest", latest ? formatRunDate(latest.updatedAtIso) : "none"],
+  ]) {
+    const item = node("div", "runs-summary-item");
+    item.append(node("span", "", label), node("strong", "", String(value)));
+    strip.append(item);
+  }
+  return strip;
+}
+
+function renderRuns(runs) {
+  if (!runsList) return;
+  recentLabRuns = runs;
+  runsList.replaceChildren();
+  if (!runs.length) {
+    runsList.append(node("p", "runs-empty", "No run artifacts found yet."));
+    renderThurmanWorkbench(null);
+    return;
+  }
+  runsList.append(renderRunsSummary(runs));
+  const sortedRuns = [...runs].sort((a, b) => {
+    const score = runSortScore(a) - runSortScore(b);
+    if (score) return score;
+    return Number(b.updatedAt || 0) - Number(a.updatedAt || 0);
+  });
+  const table = node("table", "runs-table");
+  const head = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  for (const label of ["Updated", "Source", "Run", "Decision", "Evidence", "Report"]) {
+    headRow.append(node("th", "", label));
+  }
+  head.append(headRow);
+  const body = document.createElement("tbody");
+  for (const run of sortedRuns) {
+    const [decision, tone] = runDecision(run);
+    const row = document.createElement("tr");
+    row.tabIndex = 0;
+    row.dataset.source = run.source || "run";
+    row.dataset.dialogueId = run.dialogueId || "";
+    row.dataset.clickable = run.dialogueId ? "true" : "false";
+    row.dataset.selected = selectedLabRun?.id === run.id ? "true" : "false";
+    row.append(
+      node("td", "", formatRunDate(run.updatedAtIso)),
+      node("td", "", run.source || "run"),
+      node("td", "", runPrimaryText(run)),
+      node("td", "runs-decision", decision),
+      node("td", "", run.evidence || "n/a"),
+      node("td", "runs-path", run.reportPath || run.outDir || ""),
+    );
+    row.querySelector(".runs-decision").dataset.tone = tone;
+    if (run.dialogueId) {
+      row.addEventListener("click", () => loadRunDialogue(run));
+      row.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          loadRunDialogue(run);
+        }
+      });
+    }
+    body.append(row);
+  }
+  table.append(head, body);
+  runsList.append(table);
+}
+
+async function loadRuns() {
+  if (!runsList) return;
+  runsList.replaceChildren(node("p", "runs-empty", "Loading runs…"));
+  try {
+    const data = await fetchJson("/api/lab/runs");
+    renderRuns(data.runs || []);
+  } catch (err) {
+    runsList.replaceChildren(node("p", "runs-empty", String(err.message || err)));
+  }
+}
+
+async function loadRunDialogue(run) {
+  const dialogueId = typeof run === "string" ? run : run.dialogueId;
+  const payload = await fetchJson(`/api/lab/runs/${encodeURIComponent(dialogueId)}/dialogue`);
+  selectedRunDialogue = payload;
+  selectedLabRun = typeof run === "string"
+    ? recentLabRuns.find((entry) => entry.dialogueId === run) || null
+    : run;
+  activeBatchSnapshot = {
+    status: "done",
+    dialogue: payload.dialogue,
+  };
+  renderRuns(recentLabRuns);
+  renderThurmanWorkbench(selectedLabRun, payload);
+  renderDialogue(activeBatchSnapshot);
+  setActiveTab("dialogue");
+}
+
 function renderDialogue(snapshot = activeBatchSnapshot) {
   if (!dialogueRuns) return;
+  renderThurmanWorkbench(selectedLabRun, selectedRunDialogue);
   const runs = Array.isArray(snapshot?.dialogue?.runs) ? snapshot.dialogue.runs : [];
   const turnCount = runs.reduce((sum, run) => sum + Number(run.turn_count || run.turns?.length || 0), 0);
   if (dialogueSummary) {
     dialogueSummary.textContent = runs.length
-      ? `${runs.length} run${runs.length === 1 ? "" : "s"} · ${turnCount} turn${turnCount === 1 ? "" : "s"}`
+      ? `${selectedRunDialogue?.source || runs.length} · ${turnCount} turn${turnCount === 1 ? "" : "s"}`
       : snapshot?.status === "running"
         ? "dialogue appears after completed turns"
         : "no dialogue available";
@@ -924,6 +1218,8 @@ function renderIdleMonitor() {
 }
 
 function renderBatchSnapshot(snapshot) {
+  selectedRunDialogue = null;
+  selectedLabRun = null;
   activeBatchSnapshot = snapshot;
   runHeader.hidden = false;
   runHeader.textContent = [
@@ -954,6 +1250,7 @@ function renderBatchSnapshot(snapshot) {
   if (snapshot.status === "done") {
     renderReport(snapshot.report || {});
     showBanner(`report ready: ${snapshot.reportPath || snapshot.batchDir}`, "done");
+    loadRuns();
     setRunning(false);
     if (snapshot.batchDir || snapshot.outRoot) {
       openFolderBtn.hidden = false;
@@ -1019,6 +1316,8 @@ async function startBatch() {
   validateLocalChoices();
 
   transcriptEl.replaceChildren();
+  selectedRunDialogue = null;
+  selectedLabRun = null;
   activeBatchSnapshot = {
     status: "running",
     busy: true,
@@ -1033,6 +1332,7 @@ async function startBatch() {
   renderGateLive(activeBatchSnapshot);
   renderGateTimeline(activeBatchSnapshot);
   renderGateObservatory(activeBatchSnapshot);
+  renderThurmanWorkbench(null);
   renderDialogue(activeBatchSnapshot);
 
   setRunning(true);
@@ -1065,22 +1365,42 @@ tutorSelect.addEventListener("change", () => {
   clearModelTestStatus("tutor");
   setModelDefaults(latestStatus);
   refreshRolePills(latestStatus);
+  renderRunDecision();
 });
 studentSelect.addEventListener("change", () => {
   studentModelInput.value = "";
   clearModelTestStatus("student");
   refreshStatus();
+  renderRunDecision();
 });
 tutorModelInput.addEventListener("input", () => {
   clearModelTestStatus("tutor");
   refreshRolePills(latestStatus);
+  renderRunDecision();
 });
 studentModelInput.addEventListener("input", () => {
   clearModelTestStatus("student");
   refreshRolePills(latestStatus);
+  renderRunDecision();
 });
+runCountInput.addEventListener("input", renderRunDecision);
+maxTurnsInput.addEventListener("input", renderRunDecision);
 testTutorBtn.addEventListener("click", () => testModel("tutor"));
 testStudentBtn.addEventListener("click", () => testModel("student"));
+refreshRunsBtn?.addEventListener("click", () => loadRuns());
+copyThurmanPromptBtn?.addEventListener("click", async () => {
+  const value = thurmanPrompt?.value || "";
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+    copyThurmanPromptBtn.textContent = "Copied";
+    setTimeout(() => {
+      copyThurmanPromptBtn.textContent = "Copy prompt";
+    }, 1200);
+  } catch {
+    thurmanPrompt.select();
+  }
+});
 for (const button of tabButtons) {
   button.addEventListener("click", () => setActiveTab(button.dataset.tabTarget));
 }
@@ -1103,8 +1423,10 @@ openFolderBtn.addEventListener("click", async () => {
 
 refreshStatus();
 loadCartridges().catch((err) => showBanner(String(err.message || err), "error"));
+loadRuns();
 loadCanonicalGates();
 renderGateTimeline();
 renderGateObservatory();
+renderRunDecision();
 renderIdleMonitor();
 setInterval(refreshStatus, 15_000);

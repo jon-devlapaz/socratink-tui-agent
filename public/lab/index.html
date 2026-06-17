@@ -29,12 +29,27 @@
 
     <nav class="lab-tabs" role="tablist" aria-label="Founder console views">
       <button id="tab-run" class="lab-tab" type="button" role="tab" aria-selected="true" aria-controls="panel-run" data-tab-target="run">Run</button>
+      <button id="tab-runs" class="lab-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-runs" data-tab-target="runs">Runs</button>
       <button id="tab-dialogue" class="lab-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-dialogue" data-tab-target="dialogue">Dialogue</button>
       <button id="tab-gates" class="lab-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-gates" data-tab-target="gates">Gates</button>
     </nav>
 
     <section id="panel-run" class="lab-tab-panel" role="tabpanel" aria-labelledby="tab-run" data-tab-panel="run">
       <section class="lab-bay" aria-label="Run setup">
+        <section class="run-decision-strip" aria-label="Run decision summary">
+          <div>
+            <span>Test shape</span>
+            <strong id="run-decision-shape">loading…</strong>
+          </div>
+          <div>
+            <span>Deliverable</span>
+            <strong id="run-decision-deliverable">Founder report</strong>
+          </div>
+          <div>
+            <span>Risk</span>
+            <strong id="run-decision-risk">checking models…</strong>
+          </div>
+        </section>
         <div class="lab-controls">
           <div class="control-group control-group-scenario">
             <h2>Scenario</h2>
@@ -131,6 +146,21 @@
       </section>
     </section>
 
+    <section id="panel-runs" class="lab-tab-panel" role="tabpanel" aria-labelledby="tab-runs" data-tab-panel="runs" hidden>
+      <section class="runs-panel" aria-label="Recent lab runs">
+        <div class="runs-header">
+          <div>
+            <h2>Runs</h2>
+            <p>Recent lab evidence, sorted for the next founder decision.</p>
+          </div>
+          <button id="refresh-runs-btn" type="button" class="lab-btn lab-btn-compact">Refresh</button>
+        </div>
+        <div id="runs-list" class="runs-list">
+          <p class="runs-empty">Loading runs…</p>
+        </div>
+      </section>
+    </section>
+
     <section id="panel-dialogue" class="lab-tab-panel" role="tabpanel" aria-labelledby="tab-dialogue" data-tab-panel="dialogue" hidden>
       <section class="dialogue-panel" aria-label="Lab run dialogue">
         <div class="dialogue-header">
@@ -140,6 +170,29 @@
           </div>
           <span id="dialogue-summary" class="dialogue-summary">no batch selected</span>
         </div>
+        <section id="thurman-workbench" class="thurman-workbench" aria-label="Thurman workbench" hidden>
+          <div class="thurman-workbench-header">
+            <div>
+              <p class="thurman-eyebrow">Thurman deliverable</p>
+              <h3 id="thurman-title">No run selected</h3>
+            </div>
+            <span id="thurman-state" class="thurman-state">idle</span>
+          </div>
+          <p id="thurman-body" class="thurman-body"></p>
+          <dl class="thurman-evidence">
+            <div>
+              <dt>Evidence path</dt>
+              <dd id="thurman-evidence-path">n/a</dd>
+            </div>
+            <div>
+              <dt>Decision</dt>
+              <dd id="thurman-decision">n/a</dd>
+            </div>
+          </dl>
+          <label class="thurman-prompt-label" for="thurman-prompt">Copy prompt</label>
+          <textarea id="thurman-prompt" class="thurman-prompt" rows="5" readonly></textarea>
+          <button id="copy-thurman-prompt-btn" type="button" class="lab-btn lab-btn-compact">Copy prompt</button>
+        </section>
         <div id="dialogue-runs" class="dialogue-runs">
           <p class="dialogue-empty">Run a batch to inspect the actual exchange.</p>
         </div>
@@ -150,11 +203,25 @@
       <section id="canonical-gates" class="canonical-gates" aria-label="Canonical SEDA gates">
         <div class="canonical-gates-header">
           <div>
-            <h2>Canonical gates</h2>
-            <p>handlers → events.append(...) → nextPhase(events)</p>
+            <h2>Gates</h2>
+            <p>Founder signal first; canonical event map below.</p>
           </div>
           <span id="canonical-gates-count" class="canonical-gates-count">loading…</span>
         </div>
+        <section id="gate-decision-strip" class="gate-decision-strip" aria-label="Gate decision summary">
+          <div>
+            <span>Next move</span>
+            <strong id="gate-decision-next">Run a batch</strong>
+          </div>
+          <div>
+            <span>Signal</span>
+            <strong id="gate-decision-signal">idle</strong>
+          </div>
+          <div>
+            <span>Reason</span>
+            <strong id="gate-decision-reason">No run selected.</strong>
+          </div>
+        </section>
         <div id="gate-live" class="gate-live" data-state="idle">
           <div>
             <h3 id="gate-live-title">Breakage watch</h3>
@@ -236,7 +303,7 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/lab/lab.js?v=0.19"></script>
+  <script type="module" src="/lab/lab.js?v=0.22"></script>
   <script type="module" src="/lab/monitor-prototype.js?v=0.1"></script>
 </body>
 </html>

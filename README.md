@@ -33,6 +33,28 @@ pre-commit install            # optional: lint hooks before commit
 Full merge ladder (canon, JS, Python, harness replay, scripted smoke, hosted UI):
 [`HARNESS-TRACEABILITY.md` § Release ladder](HARNESS-TRACEABILITY.md#release-ladder).
 
+## Local test
+
+```bash
+npm test
+```
+
+`npm test` runs the fast SEDA architecture/router gate. Use `npm run ci:local`
+for the full local CI mirror in `scripts/run-ci-local.sh`.
+
+## AgentLint
+
+```bash
+npm run agentlint
+```
+
+Runs AgentLint with Socratink-specific calibration. Use the report to find
+agent-workability friction; do not treat every generic fix-plan item as a repo
+requirement.
+
+CI runs `npm run agentlint:gate` with `AGENTLINT_MIN_SCORE=75`, so AgentLint is
+a regression gate without making every generic recommendation mandatory.
+
 For a quick human smoke without the full ladder:
 
 ```bash

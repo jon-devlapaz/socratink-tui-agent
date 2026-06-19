@@ -225,6 +225,11 @@ Tiered commands live in **`HARNESS-TRACEABILITY.md` § Release ladder** (spine �
 merge → prompt evals → hosted UI). Use `./scripts/check-seda-spine.sh` for
 architecture/router/event-fact changes; run the full ladder before release.
 
+## Local test
+
+Run `npm test` for the fast SEDA architecture/router gate. Use
+`npm run ci:local` when you need the full local CI mirror before release.
+
 Prompt eval cases: `evals/prompts/` (`evals/README.md`). Key suites:
 `test_prompt_template.py` (13 template tests), `test_workspace_smoke.py`
 (end-to-end scripted TUI + harness/dashboard).

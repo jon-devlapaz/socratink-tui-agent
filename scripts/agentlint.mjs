@@ -50,7 +50,8 @@ process.stdout.write(output);
 process.stdout.write(calibration);
 
 if (gate) {
-  const match = output.match(/Score[:\s.]+(\d+)\/100/i);
+  const plainOutput = output.replace(/\u001b\[[0-9;]*m/g, "");
+  const match = plainOutput.match(/(?:Overall\s+)?Score\D+(\d+)\/100/i);
   if (!match) {
     console.error("[agentlint] could not parse AgentLint score for gate mode");
     process.exit(1);

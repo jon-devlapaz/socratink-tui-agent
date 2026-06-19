@@ -16,6 +16,11 @@ pytest = "9.0.3"
 minversion = "9.0"
 addopts = ["-ra"]
 testpaths = ["tests"]
+markers = [
+  "unit: fast deterministic unit tests",
+  "smoke: integration smoke tests that exercise local runtime surfaces",
+  "live: tests requiring live external services or model providers",
+]
 
 [tool.mypy]
 python_version = "3.12"

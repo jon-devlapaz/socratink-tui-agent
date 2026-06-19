@@ -20,6 +20,19 @@ on:
   pull_request:
 
 jobs:
+  agentlint:
+    name: AgentLint gate
+    runs-on: ubuntu-latest
+    env:
+      AGENTLINT_MIN_SCORE: "75"
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+      - run: npm run agentlint:gate
+
   lint-typecheck:
     name: Lint + typecheck
     runs-on: ubuntu-latest
@@ -53,6 +66,8 @@ jobs:
           python-version-file: ${{ env.PYTHON_VERSION_FILE }}
       - run: python -m pip install --upgrade pip poetry
       - run: poetry install --no-root
+      - name: Secret scan
+        run: poetry run pre-commit run gitleaks --all-files
       - run: poetry run pip install -r requirements.txt
       - run: poetry run mypy vendor/python
       - run: poetry run mypy bridge.py prompt_templates.py bridge_lib

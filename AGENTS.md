@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Socratink TUI — founder-facing terminal product lab for evidence-weighted
-adaptive learning. SEDA (Staged Event-Driven Architecture) pattern with an
-append-only event log as the state machine.
+Socratink TUI (terminal user interface) — founder-facing terminal product lab
+for evidence-weighted adaptive learning. SEDA (Staged Event-Driven
+Architecture) pattern with an append-only event log as the state machine.
 
-Harness substrate contract (layers, invariants, Moss mapping): `HARNESS.md`.
-V-model traceability map for agents (requirements ↔ verification tiers): `HARNESS-TRACEABILITY.md`.
-Product vocabulary (glossary only): `CONTEXT.md`.
+Harness substrate contract (layers, invariants, Moss mapping): [HARNESS.md](HARNESS.md).
+V-model traceability map for agents: [HARNESS-TRACEABILITY.md](HARNESS-TRACEABILITY.md).
+Product vocabulary (glossary only): [CONTEXT.md](CONTEXT.md).
 
 ## Doc map (one owner per concern)
 
@@ -18,7 +18,23 @@ Product vocabulary (glossary only): `CONTEXT.md`.
 | V-model tiers, release ladder, merge checklist | `HARNESS-TRACEABILITY.md` | Executable gates only — not pedagogy or graph-honesty lists |
 | Human onboarding | `README.md` | Point to spine + release ladder; no architecture depth |
 
-**Fast spine gate:** `./scripts/check-seda-spine.sh`. **Full release ladder:** `HARNESS-TRACEABILITY.md` § Release ladder.
+**Fast spine gate:** `./scripts/check-seda-spine.sh`. **Full release ladder:**
+[HARNESS-TRACEABILITY.md § Release ladder](HARNESS-TRACEABILITY.md#release-ladder).
+
+## Identity
+
+Act as a Socratink engineering agent: correctness-first, terse, evidence-backed,
+and protective of graph honesty. Prefer small verified changes over sweeping
+cleanup. When repo rules conflict with generic advice, follow the repo rules.
+
+## Tools
+
+- Use `rtk` before shell commands in this workspace to keep command output small.
+- Use `npm run agent:git -- status` before branch, PR, merge, or cleanup work.
+- Use `npm run agent:git -- rescue --message "<why>"` before risky cleanup when
+  useful dirty work could be lost.
+- Use `./scripts/check-seda-spine.sh` as the fast architecture gate.
+- Use `npm run ci:local` when a release-grade local CI mirror is needed.
 
 ## Throughline (read before editing)
 
@@ -64,7 +80,7 @@ truth.
 | --- | --- | --- |
 | Control flow | `lib/seda/next-phase.mjs` | Pick the next phase in handlers; add imports to `nextPhase` |
 | Runtime facts | `lib/seda/event-facts.mjs` (`eventBuilders`) | Hand-author event shapes in handlers |
-| Working scratch | `ctx` — see `lib/seda/ctx.d.ts` | Leave unreconstructable routing state only in `ctx` |
+| Working scratch | `ctx` — see [lib/seda/ctx.d.ts](lib/seda/ctx.d.ts) | Leave unreconstructable routing state only in `ctx` |
 | Dashboard vocabulary | `lib/seda/event-taxonomy.mjs` | Use taxonomy for routing or append sites |
 | Product metrics | `lib/observability/dashboard-metrics.mjs` | Duplicate routing state or drive `nextPhase` |
 | LLM I/O | `bridge.py` + `prompt_templates.py` | Inline prompts in Node |
@@ -153,7 +169,8 @@ See **Throughline** above. Implementation map:
 
 Six actions dispatched from Node via subprocess. Full function catalog (template
 versions, I/O schemas, emitted events, `nextPhase` routing fields):
-`HARNESS-BRIDGE-REGISTRY.md` / `lib/bridge/registry.json`.
+[HARNESS-BRIDGE-REGISTRY.md](HARNESS-BRIDGE-REGISTRY.md) and
+[lib/bridge/registry.json](lib/bridge/registry.json).
 
 | CLI arg | Function | Template |
 |---|---|---|
@@ -166,7 +183,7 @@ versions, I/O schemas, emitted events, `nextPhase` routing fields):
 
 ## Prompt Engineering
 
-**All LLM prompts MUST go through `prompt_templates.py`.** Never add inline
+**All LLM prompts must go through `prompt_templates.py`.** Never add inline
 prompt strings to `bridge.py`. Each template has:
 
 - `version` — track changes (e.g. `socratink-delta-v1`)
@@ -186,14 +203,14 @@ To add or modify a prompt:
   `cold_support_exhausted`, `gap_identified`, `repair_dialogue_turn`,
   `repair_abandoned`, `repair`, `model_bridge`, `post_bridge_transfer_check`,
   `repair_state_bucketed`, `repair_cap_selected`, `repair_recovery_started`,
-  `repair_recovery_turn`, `repair_recovery_closed` — do NOT mutate evidence.
+  `repair_recovery_turn`, `repair_recovery_closed` — must not mutate evidence.
 - **Cold help turns**: non-substantive cold text (`answer_mode: help_request`)
   emits `cold_help_turn` only — no `appendAttempt`, no derived evidence change.
   After `MAX_COLD_HELP_TURNS` (2), `cold_support_exhausted` may enter Delta with
   zero-schema framing.
   Do not confuse this with `substrate_support_exhausted`: that is the pre-map
   Substrate Seed/Refinement cap defined in `CONTEXT.md`.
-- **KC ID tracking**: `kc_id` must be present on `cold_attempt`,
+- **KC (knowledge component) ID tracking**: `kc_id` must be present on `cold_attempt`,
   `repair_dialogue_turn`, `repair`, `spaced_redrill`, `strong_cold_path`,
   and `post_bridge_transfer_check`.
 - **Evidence derivation**: only spaced strong reconstruction may derive
@@ -234,7 +251,7 @@ Prompt eval cases: `evals/prompts/` (`evals/README.md`). Key suites:
 `test_prompt_template.py` (13 template tests), `test_workspace_smoke.py`
 (end-to-end scripted TUI + harness/dashboard).
 
-Fake mode env vars (bridge **VCR stub**: knobs → lookup → defaults):
+Fake mode env vars (bridge **VCR-style record/replay stub**: knobs → lookup → defaults):
 - `SOCRATINK_TUI_FAKE_LLM=1` — use VCR stub instead of real LLM subprocess calls
 - `SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=solid|shallow|thin|misconception|deep`
 - `SOCRATINK_TUI_FAKE_SPACED_CLASSIFICATION=solid|shallow|…` — override spaced re-drill evaluator (recapture fixtures)
@@ -264,11 +281,11 @@ Two channels — see **Throughline**. Details:
 
 - **`events[]`** — append-only fact chain. `nextPhase`, derivation, replay, and
   dashboard read it. If routing or truth depends on it, it lives here.
-- **Append via `eventBuilders`** in `lib/seda/event-facts.mjs` only — static
+- **Append via `eventBuilders`** in [lib/seda/event-facts.mjs](lib/seda/event-facts.mjs) only — static
   invariants (`graph_neutral`, `score_eligible`, `required_fields`), not routing
   or product-metric formulas. Canonical dashboard projection lives separately in
-  `lib/seda/event-taxonomy.mjs` (read model; never an append site).
-- **`ctx`** — in-flight blackboard documented in `lib/seda/ctx.d.ts`. Safe
+  [lib/seda/event-taxonomy.mjs](lib/seda/event-taxonomy.mjs) (read model; never an append site).
+- **`ctx`** — in-flight blackboard documented in [lib/seda/ctx.d.ts](lib/seda/ctx.d.ts). Safe
   ctx-only fields are infra/telemetry or fully reconstructable from `events[]`.
   Phase-critical state that is not reconstructable must be mirrored into the log
   (example: `repairStateSnapshot()` on each `repair_dialogue_turn`).
@@ -290,7 +307,7 @@ Two channels — see **Throughline**. Details:
 
 Git state is controlled by the deterministic wrapper, not by free-form agent
 reasoning. Use the `socratink-agent-git-control-plane` skill when available,
-and see `docs/adr/0002-agent-git-control-plane.md`.
+and see [docs/adr/0002-agent-git-control-plane.md](docs/adr/0002-agent-git-control-plane.md).
 
 Use these before touching branch/PR state:
 
@@ -356,15 +373,56 @@ branches.
 
 ## Learned Workspace Facts
 
-- Product vocabulary and substrate-gate decisions live in `CONTEXT.md` and `docs/adr/`; pre-map substrate is graph-neutral routing only — evidence still begins at **Cold Attempt**.
-- GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`; branch protection requires PRs, passing Smoke CI, and strict up-to-date. CodeRabbit `CHANGES_REQUESTED` can block merge despite green CI. Do not use `gh pr merge --admin` unless the user explicitly requests an administrative bypass.
-- Hosted loop: `loop-server.mjs` serves `/loop`, `/dashboard`, and `/api/session/*`; production deploy automatic on merge to `main` (Railway — `deploy/RAILWAY.md`). URL `app.socratink.ai/loop` via socratink-app proxy (`LOOP_BACKEND_URL`; `deploy/LOOP-HOSTING.md`). `loop.js` polls `/health` (not `/api/health`). `advanceSession` may run multiple handler turns per HTTP request until `PROMPT_REQUIRED` (pacing stops transport-only).
+- Product vocabulary and substrate-gate decisions live in [CONTEXT.md](CONTEXT.md)
+  and [docs/adr/](docs/adr/).
+- Pre-map substrate is graph-neutral routing only.
+- Evidence still begins at **Cold Attempt**.
+- GitHub remote is `jon-devlapaz/socratink-tui-agent` on `main`.
+- Branch protection requires PRs, passing Smoke CI, and strict up-to-date.
+- CodeRabbit `CHANGES_REQUESTED` can block merge despite green CI.
+- Do not use `gh pr merge --admin` unless the user explicitly requests an
+  administrative bypass.
+- Hosted loop serves `/loop`, `/dashboard`, and `/api/session/*` from
+  `loop-server.mjs`.
+- Production deploys automatically on merge to `main` through Railway. See
+  [deploy/RAILWAY.md](deploy/RAILWAY.md).
+- `app.socratink.ai/loop` reaches the loop through the sibling
+  `socratink-app` proxy. See [deploy/LOOP-HOSTING.md](deploy/LOOP-HOSTING.md).
+- `loop.js` polls `/health`, not `/api/health`.
+- `advanceSession` may run multiple handler turns per HTTP request until
+  `PROMPT_REQUIRED`. Pacing stops are transport-only.
 - Dogfood deploy default: live Gemini on Railway with no browser `SOCRATINK_LOOP_API_KEY` (fine for obscure URLs; add auth before main-app nav).
-- `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` is the canonical loop chrome label (`/health` → `app_version`). Agents bump it with `npm run bump:loop` before PR; CI verifies but does not mutate PR branches. Production uses the baked-in constant from the deployed image — do not set `LOOP_APP_VERSION` on Railway (stale override without restart). Optional `LOOP_APP_VERSION` in `.env` overrides locally.
+- `LOOP_APP_VERSION_DEFAULT` in [lib/loop-server/version.mjs](lib/loop-server/version.mjs)
+  is the canonical loop chrome label (`/health` → `app_version`).
+- Agents bump the loop version with `npm run bump:loop` before PR.
+- CI verifies loop version agreement but does not mutate PR branches.
+- Production uses the baked-in constant from the deployed image.
+- Do not set `LOOP_APP_VERSION` on Railway; it can become a stale override
+  without a restart.
+- Optional `LOOP_APP_VERSION` in `.env` overrides locally.
 - Vendored canon may be intentionally ahead of `socratink-app`; if drift CI fails after in-tree edits, regenerate `lib/canon/checksums.sha256` instead of blind `sync-canon-from-app.sh` (sync can regress local contract tests).
 - Smoke CI syncs Railway secrets with `railway variable set --skip-deploys --project …`, deletes stale `LOOP_APP_VERSION`, then `railway redeploy --from-source` before health verify (no `railway link`).
-- **Founder Lab + persona runs:** `/lab` at `http://127.0.0.1:8787/lab` when `SOCRATINK_LAB_ENABLED=1` (loopback-only); lab spawns `loop-persona-live.mjs` and reads `lab-progress.json`. Persona `--out` dirs get `session.json` (full event log) on `caseComplete`. Runner `lib/lab/persona-runner.mjs`, cartridges `pedagogical_agents/cartridges/`, CLI `./socratink-persona-lab`. **Tutor** bridge uses `LLM_PROVIDER`/`LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL` (only `gemini` or `openai_compatible`); **`PERSONA_LLM_*` is mock-student only** — not the loop tutor.
-- Fast doc gate: `./scripts/check-seda-spine.sh`; full release ladder `HARNESS-TRACEABILITY.md`. Persona cartridges: `jordan-ai` = lab smoke; `novice-immune-memory` validates substrate/repair.
+- **Founder Lab + persona runs:** `/lab` is available at
+  `http://127.0.0.1:8787/lab` when `SOCRATINK_LAB_ENABLED=1`.
+- Lab access is loopback-only.
+- The lab spawns `loop-persona-live.mjs` and reads `lab-progress.json`.
+- Persona `--out` dirs get `session.json` on `caseComplete`.
+- Lab runner: [lib/lab/persona-runner.mjs](lib/lab/persona-runner.mjs).
+- Persona cartridges: [pedagogical_agents/cartridges/](pedagogical_agents/cartridges/).
+- Persona CLI: `./socratink-persona-lab`.
+- Tutor bridge config uses `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_API_KEY`, and
+  `LLM_MODEL`.
+- Tutor providers are limited to `gemini` and `openai_compatible`.
+- `PERSONA_LLM_*` config is mock-student only, not the loop tutor.
+- Fast doc gate: `./scripts/check-seda-spine.sh`.
+- Full release ladder: [HARNESS-TRACEABILITY.md](HARNESS-TRACEABILITY.md).
+- Persona cartridge `jordan-ai` is the lab smoke.
+- Persona cartridge `novice-immune-memory` validates substrate/repair.
 - Loop **llm pill** model picker: `SOCRATINK_LOOP_ALLOW_MODEL_OVERRIDE=1` plus loopback-only gate; server catalog on `/health` (`llm_options`); per-session override in `metadata.llm`; init picker before auto-start session.
-- Local tutor via `openai_compatible` (LM Studio): set `LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL`; slow models need `LLM_REQUEST_TIMEOUT_SECONDS` (default 120). Schema omissions (e.g. Gemma `judge_reason` on substrate-gate) → `bridge_error` → idle; loop UI shows `[Bridge error] {action}: {message}` in transcript.
+- Local tutor via `openai_compatible` and LM Studio: set `LLM_BASE_URL`,
+  `LLM_API_KEY`, and `LLM_MODEL`.
+- Slow local models need `LLM_REQUEST_TIMEOUT_SECONDS` (default 120).
+- Schema omissions, such as Gemma missing `judge_reason` on substrate-gate, route
+  to `bridge_error` and then idle.
+- Loop UI shows `[Bridge error] {action}: {message}` in the transcript.
 - Separate from sibling `../socratink-tui`: own git history; do not copy remotes or history from the old lab checkout.

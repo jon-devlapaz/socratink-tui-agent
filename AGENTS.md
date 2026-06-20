@@ -59,6 +59,7 @@ not a router input.
 - Fast SEDA gate: `./scripts/check-seda-spine.sh`.
 - Default local test: `npm test`.
 - Python prompt/template tests: `pytest tests/test_prompt_template.py`.
+- Doc spine report-only check: `npm run check:doc-spine`.
 - Full local CI mirror before release: `npm run ci:local`.
 - Agent/config validation: `scripts/run-checks.sh`.
 - Live Gemini loop proof: prefer `scripts/verify-loop-gemini.mjs` over

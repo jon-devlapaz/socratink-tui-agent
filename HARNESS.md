@@ -2,23 +2,24 @@
 
 This document maps the TUI’s **SEDA** (staged event-driven) loop to closed-loop harness
 ideas used in substrates like [Moss Harness](https://github.com/cybernetix-lab/moss-harness).
-It is the substrate contract; product pedagogy lives in `AGENTS.md` and
-`pedagogical_agents/contracts.json`. For the V-model decomposition ↔ verification
-map (what to gate at each tier), see [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md).
+It is the substrate contract; product vocabulary lives in [`CONTEXT.md`](CONTEXT.md),
+and pedagogical boundaries live in `pedagogical_agents/contracts.json`. For the
+V-model decomposition ↔ verification map (what to gate at each tier), see
+[`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md).
 
 **Throughline:** [`AGENTS.md`](AGENTS.md) — *facts in, phase out, handlers don’t route.*
 Everything below expands that contract; if a change violates the throughline, it is wrong
 even when tests pass.
 
 **Agent workflow:** V-model tiers, merge checklist, and release ladder live in
-[`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md). Closed-loop operating model:
-[`AGENTS.md`](AGENTS.md) § Closed-loop agent operating model.
+[`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md). The compact agent operating
+card is [`AGENTS.md`](AGENTS.md).
 
 ## Layers
 
 | Layer | Responsibility | Artifacts |
 | --- | --- | --- |
-| **Strategy** | Graph honesty, phase catalog, canon boundaries | `AGENTS.md`, `pedagogical_agents/contracts.json`, prompt versions in `prompt_templates.py` |
+| **Strategy** | Graph honesty, phase catalog, canon boundaries | `AGENTS.md`, `CONTEXT.md`, `pedagogical_agents/contracts.json`, prompt versions in `prompt_templates.py` |
 | **Substrate** | Orchestration, event log, routing, bridge calls | `app.mjs` (`HANDLERS`), `lib/seda/run-loop.mjs`, `lib/seda/next-phase.mjs`, `lib/seda/handlers/`, `lib/bridge/client.mjs`, `lib/bridge/registry.json`, `bridge.py` |
 | **App** | Founder-facing session UX | `./socratink-tui`, scripted fixtures under `fixtures/` |
 | **Observability** | Read-only truth over runs | `session.json`, `./socratink-harness replay`, `./socratink-dashboard`, `lib/observability/dashboard-metrics.mjs`, `DOGFOODING.md` |
@@ -105,7 +106,7 @@ handlers without emitting an event that `nextPhase` understands.
 | Role | Meaning | Examples |
 | --- | --- | --- |
 | **Routing facts** | Drive `nextPhase` via type + payload | `cold_attempt`, `repair_dialogue_turn`, `strong_cold_path` |
-| **Graph-neutral** | Telemetry / routing only; no evidence mutation | `cold_help_turn`, `repair_dialogue_turn`, `post_bridge_transfer_check`, recovery events — see `AGENTS.md` |
+| **Graph-neutral** | Telemetry / routing only; no evidence mutation | `cold_help_turn`, `repair_dialogue_turn`, `post_bridge_transfer_check`, recovery events — see graph-honesty rules in `AGENTS.md` |
 | **Evidence candidates** | Learner text that may affect derivation | `cold_attempt` (scored), `spaced_redrill` |
 | **Context** | Not evidence | source, goal, route, scaffolds, `/help`, `/hint` |
 
@@ -238,7 +239,8 @@ Merge checklist and tiered gates: [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILI
 3. Teach **fine** policy in `nextPhase` if fields on `last` decide the branch.
 4. Add a **handler** only when a new phase needs distinct UX/work.
 
-Graph-honesty rules and fixture format: [`AGENTS.md`](AGENTS.md).
+Graph-honesty rules: [`AGENTS.md`](AGENTS.md). Scripted fixture examples:
+[`README.md`](README.md) and `fixtures/`.
 
 ## Bridge function catalog
 
@@ -253,4 +255,4 @@ Machine-readable: `lib/bridge/registry.json`. Summary table is generated from
 - [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md) — V-model map, verification vs validation, agent checklist
 - [Moss README](https://github.com/cybernetix-lab/moss-harness) — closed-loop orchestrator, two-stage routing
 - [Moss ARCHITECTURE.md](https://github.com/cybernetix-lab/moss-harness/blob/main/ARCHITECTURE.md) — invariants and runtime layout
-- `AGENTS.md` — SEDA loop and testing commands in this repo
+- `AGENTS.md` — compact operating card and SEDA throughline

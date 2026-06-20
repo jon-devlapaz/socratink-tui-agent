@@ -209,4 +209,4 @@ Drift tests: `tests/js/policy-gates-registry.test.mjs`, `tests/test_bridge_post_
 5. Run `node --test tests/js/bridge-registry.test.mjs`
 6. Update handler event payloads if new routing fields are needed; teach `nextPhase`.
 
-See also [`HARNESS.md`](HARNESS.md) (substrate invariants) and [`AGENTS.md`](AGENTS.md) (prompt rules).
+See also [`HARNESS.md`](HARNESS.md) (substrate invariants) and [`AGENTS.md`](AGENTS.md) (operating rules).

@@ -6,13 +6,14 @@ Minimum runnable Socratink terminal lab, trimmed for **agents and automation** f
 
 **Throughline:** handlers append facts → `nextPhase(events)` routes. See `AGENTS.md`.
 
-1. **`AGENTS.md`** — throughline, architecture, graph honesty, testing commands
+1. **`AGENTS.md`** — operating card, SEDA throughline, graph-honesty rules
 2. **`CONTEXT.md`** — product vocabulary (glossary only; no implementation)
 3. **`HARNESS.md`** — substrate invariants, event-module roles, replay contract
-4. **`HARNESS-TRACEABILITY.md`** — V-model tiers and merge checklist
-5. **`pedagogical_agents/contracts.json`** — agent boundaries and failure modes
-6. **`prompt_templates.py`** — versioned LLM prompts (edit here, bump `version`, run tests)
-7. **`bridge.py`** — six bridge actions; subprocess LLM seam only
+4. **`HARNESS-TRACEABILITY.md`** — V-model tiers, release ladder, merge checklist
+5. **`HARNESS-BRIDGE-REGISTRY.md`** — bridge wire contracts and drift gates
+6. **`pedagogical_agents/contracts.json`** — agent boundaries and failure modes
+7. **`prompt_templates.py`** — versioned LLM prompts (edit here, bump `version`, run tests)
+8. **`bridge.py`** — six bridge actions; subprocess LLM seam only
 
 ## Setup
 
@@ -113,6 +114,8 @@ Railway step-by-step plan: **`deploy/RAILWAY.md`**.
 AGENTS.md              ← read first (throughline)
 CONTEXT.md             ← vocabulary
 HARNESS.md             ← substrate contract
+HARNESS-TRACEABILITY.md ← release ladder
+HARNESS-BRIDGE-REGISTRY.md ← bridge wire contracts
 app.mjs                ← session entry
 bridge.py              ← LLM subprocess
 prompt_templates.py    ← prompts

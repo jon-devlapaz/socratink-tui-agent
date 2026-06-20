@@ -8,7 +8,8 @@ contract) and [`AGENTS.md`](AGENTS.md) (throughline + SEDA loop).
 Requirements belong on events and invariants, not handler `if` chains.
 
 **Doc map:** vocabulary → [`CONTEXT.md`](CONTEXT.md); substrate contract →
-[`HARNESS.md`](HARNESS.md); throughline + agent tasks → [`AGENTS.md`](AGENTS.md);
+[`HARNESS.md`](HARNESS.md); throughline + operating card → [`AGENTS.md`](AGENTS.md);
+bridge wire contracts → [`HARNESS-BRIDGE-REGISTRY.md`](HARNESS-BRIDGE-REGISTRY.md);
 human onboarding → [`README.md`](README.md).
 
 ```text
@@ -96,7 +97,9 @@ SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
 SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
 ```
 
-Fake-mode env vars and fixture format: [`AGENTS.md`](AGENTS.md) § Testing.
+Fake-mode env vars are shown above. Scripted fixture examples live in
+[`README.md`](README.md) and `fixtures/`; promoted case rules live in
+[`learning_cases/README.md`](learning_cases/README.md).
 
 ## Where to apply V-model hard vs light
 
@@ -148,5 +151,5 @@ Observability tools are **read-only**: `./socratink-harness replay`, `./socratin
 ## Related docs
 
 - [`HARNESS.md`](HARNESS.md) — SEDA invariants, Moss map, observability surfaces
-- [`AGENTS.md`](AGENTS.md) — throughline, graph honesty, fake-mode env vars, fixtures
+- [`AGENTS.md`](AGENTS.md) — throughline, graph honesty, operating commands
 - [`learning_cases/README.md`](learning_cases/README.md) — case types and promotion

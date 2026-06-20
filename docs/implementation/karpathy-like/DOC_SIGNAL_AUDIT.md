@@ -69,3 +69,18 @@ lives under `tests/`.
    directly serve product correctness.
 4. Do not use `.qa-runs/`, `.supergoal/`, `.workflow/`, `.code-review-graph/`, or
    local caches as canonical truth.
+
+## Agent Context Load Follow-Up
+
+Created: 2026-06-20
+
+Root `AGENTS.md` is now a compact operating card. The linked docs should not point
+back to it for detailed testing, fixture, or product-pedagogy ownership.
+
+| Concern | Canonical owner | Duplicate or stale location | Action |
+| --- | --- | --- | --- |
+| Agent operating rules and SEDA throughline | `AGENTS.md` | `HARNESS.md`, `HARNESS-TRACEABILITY.md`, `README.md` | Keep pointers only; no deep restatement. |
+| Product vocabulary | `CONTEXT.md` | `HARNESS.md` described product pedagogy as living in `AGENTS.md` | Point vocabulary to `CONTEXT.md`; keep pedagogy boundary in `pedagogical_agents/contracts.json`. |
+| Verification tiers and release ladder | `HARNESS-TRACEABILITY.md` | Root `AGENTS.md` | Keep only command pointers in `AGENTS.md`. |
+| Fake-mode and scripted fixture examples | `README.md`, `fixtures/`, `learning_cases/README.md` | `HARNESS-TRACEABILITY.md` pointed to removed `AGENTS.md` testing section | Replace broken section link with concrete owners. |
+| Bridge wire contracts | `HARNESS-BRIDGE-REGISTRY.md`, generated from `lib/bridge/registry.json` | `README.md` start list omitted the owner; bridge registry footer pointed to `AGENTS.md` for prompt rules | Add bridge registry to the spine; point prompts to `prompt_templates.py` and operating rules to `AGENTS.md`. |

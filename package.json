@@ -1,6 +1,6 @@
 {
   "name": "socratink-tui-agent",
-  "version": "0.37.0",
+  "version": "0.38.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,6 @@
     "agentlint:gate": "node scripts/agentlint.mjs --gate",
     "test": "./scripts/check-seda-spine.sh",
     "test:py": "./scripts/run-python-tests.sh",
-    "check:doc-spine": "./scripts/check-doc-spine.sh",
     "ci:local": "./scripts/run-ci-local.sh",
     "agent:git": "node bin/agent-git",
     "bump:loop": "node scripts/bump-loop-version.mjs",

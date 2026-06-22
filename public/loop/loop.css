@@ -229,6 +229,7 @@ body {
 }
 
 .phase-pill[data-phase="repair_dialogue"],
+.phase-pill[data-phase="own_words_repair"],
 .phase-pill[data-phase="repair_recovery"] {
   color: var(--phase-repair);
   border-color: rgba(248, 113, 113, 0.3);
@@ -404,6 +405,7 @@ body {
 
 .line.phase-repair,
 .line.phase-tag[data-phase="repair_dialogue"],
+.line.phase-tag[data-phase="own_words_repair"],
 .line.phase-tag[data-phase="repair_recovery"] {
   color: var(--phase-repair);
 }
@@ -525,24 +527,28 @@ body {
   user-select: none;
 }
 
-.composer input {
+.composer textarea {
   flex: 1;
   min-width: 0;
+  max-height: 7.5rem;
   background: transparent;
   border: none;
+  resize: none;
   color: var(--text);
   font: inherit;
   font-size: 0.8125rem;
   padding: 0.35rem 0;
   outline: none;
+  overflow-y: hidden;
+  line-height: 1.45;
 }
 
-.composer input::placeholder {
+.composer textarea::placeholder {
   color: var(--muted);
   opacity: 0.85;
 }
 
-.composer input:focus-visible {
+.composer textarea:focus-visible {
   outline: none;
 }
 
@@ -582,7 +588,7 @@ body {
   font-family: inherit;
 }
 
-.composer input:disabled,
+.composer textarea:disabled,
 .send:disabled {
   opacity: 0.45;
   cursor: not-allowed;

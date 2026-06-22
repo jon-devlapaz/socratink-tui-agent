@@ -223,7 +223,6 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /id="llm-picker-menu"/);
   assert.match(js, /refreshHealth/);
   assert.match(js, /setVersionPillFromHealth/);
-  assert.match(js, /appendLlmReceipt/);
   assert.match(js, /initLlmPicker/);
   assert.match(js, /socratink\.loop\.llmPreference/);
   assert.match(js, /\[Bridge error\]/);
@@ -245,13 +244,28 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /id="composer-cta"/);
   assert.match(html, /aria-busy/);
   assert.match(html, /class="terminal"/);
+  assert.match(html, /<textarea[^>]*id="input"/);
   assert.match(js, /THINKING_COPY/);
+  assert.match(js, /finding your first foothold/);
+  assert.match(js, /choosing your first question/);
   assert.match(js, /LONG_RUNNING_AFTER_MS/);
-  assert.match(js, /still working/);
-  assert.match(js, /Generating Smallest actionable route/);
+  assert.match(js, /still thinking/);
+  assert.match(js, /data\.learnerTranscript \|\| data\.transcript/);
+  assert.doesNotMatch(js, /isSkippedTranscriptLine/);
+  assert.doesNotMatch(js, /HYPOTHESIS MAP/);
+  assert.doesNotMatch(js, /Route LLM/);
+  assert.doesNotMatch(js, /Bridge readiness:/);
+  assert.doesNotMatch(js, /Spacing advanced:/);
+  assert.match(js, /own_words_repair: "repair"/);
+  assert.match(js, /input\.addEventListener\("keydown"/);
+  assert.match(js, /input\.addEventListener\("input", resizeComposerInput\)/);
+  assert.match(js, /input\.style\.height = "auto"/);
+  assert.doesNotMatch(js, /appendLlmReceipt/);
+  assert.doesNotMatch(js, /\[LLM \$\{/);
   assert.match(js, /isRecentDuplicate/);
   assert.doesNotMatch(js, /showThinkingLine/);
   assert.match(css, /braille-spin/);
+  assert.match(css, /\.composer textarea/);
   assert.doesNotMatch(css, /\.line\.thinking/);
   assert.match(css, /\.send-key/);
 });
@@ -394,19 +408,19 @@ test("loop API /help at launch_attempt matches launch step not learner goal", as
     String(line.text || "").startsWith("[Help]"),
   );
   assert.ok(helpLine);
-  assert.match(helpLine.text, /Launch attempt/i);
-  assert.match(helpLine.text, /before the map appears/i);
-  assert.match(helpLine.text, /not counted as the scored answer/i);
+  assert.match(helpLine.text, /First try/i);
+  assert.match(helpLine.text, /first explanation/i);
+  assert.doesNotMatch(helpLine.text, /map|route|scored answer/i);
   assert.doesNotMatch(helpLine.text, /Learner goal:/i);
-  assert.match(body.awaiting?.label || "", /Launch attempt/i);
+  assert.match(body.awaiting?.label || "", /First try/i);
 });
 
 test("loop cold eval returns before delta on separate turn", async () => {
   const { coldTurn } = await advanceToColdPacingStop();
   const text = transcriptText(coldTurn);
 
-  assert.equal(coldTurn.awaiting?.ctaLabel, "Continue");
-  assert.equal(coldTurn.awaiting?.ctaText, null);
+  assert.equal(coldTurn.awaiting?.ctaLabel, "Missing link");
+  assert.match(coldTurn.awaiting?.ctaText || "", /what has to happen/i);
   assert.match(text, /Cold Attempt/i);
   assert.match(text, /Evidence/i);
   assert.doesNotMatch(text, /Delta/i);

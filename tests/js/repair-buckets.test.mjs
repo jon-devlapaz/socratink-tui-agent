@@ -4,7 +4,15 @@ import assert from "node:assert/strict";
 import {
   bucketFromRepairTurn,
   canEnterRecoveryBucket,
+  isQuestionLikeRepair,
+  missingOperationFeedback,
+  questionRepairRedirect,
+  repairFollowUpPrompt,
+  recoveryNextActionText,
+  repairHintText,
   repairStateSnapshot,
+  repairNudge,
+  uncertaintyRecoveryPrompt,
   uncertaintyDialogueTurnEvent,
 } from "../../lib/seda/repair-dialogue-helpers.mjs";
 
@@ -68,4 +76,60 @@ test("repair_dialogue_turn events embed the repair_state snapshot", () => {
   assert.equal(event.repair_state.escalation_level, 0);
   // The escalation level was invisible to the log before; routing must not read it.
   assert.equal(event.bridge_ready, false);
+});
+
+test("repair fallback copy asks for one missing link without old worksheet phrasing", () => {
+  const scaffold = {
+    hinge_focus: "memory cells persist",
+    before: "the first exposure",
+    after: "the later response is faster",
+  };
+  const copy = [
+    uncertaintyRecoveryPrompt(scaffold, 1),
+    repairNudge(4, { escalationLevel: 1 }, {}),
+    missingOperationFeedback(scaffold, {}),
+    repairHintText(scaffold, 1),
+    recoveryNextActionText(scaffold),
+  ].join("\n");
+
+  assert.match(copy, /repair one missing link|missing link/i);
+  assert.doesNotMatch(copy, /what has to happen|what had to happen/i);
+});
+
+test("question-shaped repair is redirected into a claim", () => {
+  assert.equal(isQuestionLikeRepair("How does that work?"), true);
+  assert.equal(isQuestionLikeRepair("Memory cells stay ready."), false);
+
+  const prompt = questionRepairRedirect({
+    after: "the later response is faster",
+  });
+  assert.match(prompt, /Don't ask another question yet/);
+  assert.match(prompt, /because ___/);
+  assert.match(prompt, /in your own words/);
+
+  const fallbackPrompt = questionRepairRedirect({
+    after: "how immune memory cells enable faster responses. is correctly explained",
+  });
+  assert.match(fallbackPrompt, /the outcome changes/);
+  assert.doesNotMatch(fallbackPrompt, /correctly explained/);
+});
+
+test("repairFollowUpPrompt centralizes question redirect and judge fallback", () => {
+  const scaffold = { after: "stored results return faster" };
+  assert.match(
+    repairFollowUpPrompt({
+      repair: "Why is that?",
+      judge: { next_prompt: "ignored judge prompt" },
+      scaffold,
+    }),
+    /Don't ask another question yet/,
+  );
+  assert.equal(
+    repairFollowUpPrompt({
+      repair: "It skips recomputing.",
+      judge: { next_prompt: "Use that in one sentence." },
+      scaffold,
+    }),
+    "Use that in one sentence.",
+  );
 });

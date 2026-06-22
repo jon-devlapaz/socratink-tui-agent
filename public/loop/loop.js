@@ -21,7 +21,6 @@ const sendButtonLabel = sendButton?.querySelector(".send-label");
 let sessionId = null;
 let busy = false;
 let lastPromptMarker = null;
-let lastLlmStamp = null;
 let currentAwaiting = null;
 let llmOverrideAllowed = false;
 let llmOptions = [];
@@ -35,19 +34,19 @@ const LONG_RUNNING_AFTER_MS = 15_000;
 const THINKING_COPY = {
   idle: "starting session",
   ignition: "reading your starting model",
-  substrate_gate: "checking starting point",
-  route: "building provisional map",
-  map: "rendering route map",
+  substrate_gate: "finding your first foothold",
+  route: "choosing your first question",
+  map: "choosing your first question",
   cold_attempt: "reading your answer",
-  delta: "building repair scaffold",
+  delta: "finding the missing link",
   study: "unlocking study material",
-  repair_dialogue: "judging repair dialogue",
-  repair_recovery: "recovery step",
+  repair_dialogue: "checking your repair",
+  repair_recovery: "getting you unstuck",
   model_bridge: "preparing model bridge",
-  post_bridge_transfer: "post-bridge transfer check",
-  spacing: "spacing interval",
-  spaced_redrill: "evaluating spaced re-drill",
-  strong_cold_path: "routing strong cold path",
+  post_bridge_transfer: "setting up a transfer check",
+  spacing: "giving memory a little space",
+  spaced_redrill: "checking what came back",
+  strong_cold_path: "moving to memory check",
 };
 
 const PHASE_SLUG = {
@@ -59,6 +58,7 @@ const PHASE_SLUG = {
   map: "map",
   "cold attempt": "cold_attempt",
   "own-words repair": "repair_dialogue",
+  "own_words_repair": "own_words_repair",
   "repair dialogue": "repair_dialogue",
   hint: "repair_dialogue",
   "model bridge": "model_bridge",
@@ -75,17 +75,18 @@ const PHASE_LABELS = {
   idle: "idle",
   ignition: "starting point",
   substrate_gate: "starting point",
-  route: "draft map",
-  map: "draft map",
-  cold_attempt: "cold attempt",
-  delta: "delta",
+  route: "first question",
+  map: "first question",
+  cold_attempt: "first question",
+  delta: "missing link",
   study: "study",
-  repair_dialogue: "own-words repair",
+  repair_dialogue: "repair",
+  own_words_repair: "repair",
   repair_recovery: "recovery",
-  model_bridge: "model bridge",
-  post_bridge_transfer: "post-bridge transfer check",
+  model_bridge: "model answer",
+  post_bridge_transfer: "transfer check",
   spacing: "spacing",
-  spaced_redrill: "spaced re-drill",
+  spaced_redrill: "memory check",
   strong_cold_path: "strong cold path",
   pressure: "pressure",
   evidence: "evidence",
@@ -155,19 +156,10 @@ function appendChatLine(role, text, options = {}) {
   appendDomLine(el, raw);
 }
 
-function isSkippedTranscriptLine(text) {
-  const t = String(text ?? "").trim();
-  if (!t) return true;
-  if (t.startsWith("[Question]")) return true;
-  if (/^First question:\s*$/i.test(t)) return true;
-  if (/^Generating Smallest actionable route\.\.\.$/i.test(t)) return true;
-  return false;
-}
-
 function appendTranscript(lines) {
   for (const entry of lines || []) {
     const t = entry.text || "";
-    if (!t.trim() || isSkippedTranscriptLine(t)) continue;
+    if (!t.trim()) continue;
     if (t.startsWith("[Bridge error]")) {
       appendChatLine("error", t, { force: true });
       continue;
@@ -205,6 +197,11 @@ function setComposerCta(awaiting) {
   if (composerCtaText) composerCtaText.textContent = "";
 }
 
+function resizeComposerInput() {
+  input.style.height = "auto";
+  input.style.height = `${input.scrollHeight}px`;
+}
+
 function isContinueAwaiting(awaiting = currentAwaiting) {
   return awaiting?.key === "continue";
 }
@@ -221,7 +218,7 @@ function setSendButtonMode(awaiting) {
 }
 
 function promptPlaceholder(label) {
-  const base = "Type your answer… · /help · /hint · /feedback · /exit";
+  const base = "Type your answer…";
   if (!label) return base;
   const clean = label.replace(/:\s*$/, "").trim();
   if (clean === ">") return base;
@@ -279,12 +276,12 @@ function setBusy(isBusy, phase) {
   terminalEl.setAttribute("aria-busy", String(isBusy));
   if (isBusy) {
     const message = thinkingMessage(phase);
-    srStatus.textContent = `Loop is running: ${message}`;
+    srStatus.textContent = message;
     setComposerLoading(true, phase);
     busyNoticeTimer = setTimeout(() => {
       if (!busy) return;
-      composerBusyLabel.textContent = `${message} - still working`;
-      srStatus.textContent = `Loop is still running: ${message}`;
+      composerBusyLabel.textContent = `${message} - still thinking`;
+      srStatus.textContent = `${message} - still thinking`;
     }, LONG_RUNNING_AFTER_MS);
     return;
   }
@@ -299,6 +296,7 @@ function showAwaitingPrompt(awaiting) {
     lastPromptMarker = null;
     setComposerCta(null);
     input.placeholder = promptPlaceholder();
+    resizeComposerInput();
     return;
   }
   const marker = `${awaiting.key ?? ""}:${awaiting.ctaText ?? ""}:${awaiting.label ?? ""}`;
@@ -309,14 +307,16 @@ function showAwaitingPrompt(awaiting) {
   if (isContinueAwaiting(awaiting)) {
     input.value = "";
     input.placeholder = "Press Return to continue…";
+    resizeComposerInput();
     return;
   }
   const hasCtaBody = Boolean(String(awaiting.ctaText ?? "").trim());
   if (hasCtaBody) {
-    input.placeholder = "Type your answer… · /help · /hint · /feedback · /exit";
+    input.placeholder = "Type your answer…";
   } else {
     input.placeholder = promptPlaceholder(awaiting.ctaLabel || awaiting.label);
   }
+  resizeComposerInput();
 }
 
 function setComposerEnabled(enabled) {
@@ -482,7 +482,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.38";
+  const label = health?.app_version || "v0.39";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -503,34 +503,18 @@ async function refreshHealth() {
   }
 }
 
-function appendLlmReceipt(llm) {
-  if (!llm?.provider || llm.provider === "orchestrator") return;
-  const stamp = `${llm.stage}:${llm.provider}:${llm.model}:${llm.latency_ms}`;
-  if (stamp === lastLlmStamp) return;
-  lastLlmStamp = stamp;
-  const latency =
-    llm.latency_ms != null && llm.latency_ms !== "" ? ` · ${llm.latency_ms}ms` : "";
-  appendChatLine(
-    "meta",
-    `[LLM ${llm.stage}] ${llm.provider}/${llm.model}${latency}`,
-    { force: true },
-  );
-}
-
 function applyTurnResponse(data) {
   if (llmOverrideAllowed && data.llm_active?.provider && data.llm_active?.model) {
     setLlmSelection(data.llm_active);
   }
   setPhaseChrome(data.phase);
-  appendTranscript(data.transcript);
-  appendLlmReceipt(data.llm);
+  appendTranscript(data.learnerTranscript || data.transcript);
   if (data.complete) {
     appendChatLine("meta", "— session ended — type a concept to start a new session.");
     sessionId = null;
-    lastLlmStamp = null;
     showAwaitingPrompt({ label: "Concept: ", key: "concept" });
     setComposerEnabled(true);
-    input.placeholder = "Type a concept to explore… · /help · /feedback · /exit";
+    input.placeholder = "Pick a concept…";
     setPhaseChrome("idle");
     input.focus();
     return;
@@ -552,7 +536,7 @@ async function ensureSession() {
     );
     sessionId = data.sessionId;
     setSessionChrome(sessionId);
-    appendTranscript(data.transcript);
+    appendTranscript(data.learnerTranscript || data.transcript);
     busy = false;
     setBusy(false, data.phase);
     applyTurnResponse(data);
@@ -598,6 +582,7 @@ form.addEventListener("submit", async (event) => {
   if (!text && !continueTurn) return;
   const awaitingBeforeSubmit = currentAwaiting;
   input.value = "";
+  resizeComposerInput();
   try {
     if (continueTurn) {
       await sendContinueTurn();
@@ -613,6 +598,14 @@ form.addEventListener("submit", async (event) => {
     input.focus();
   }
 });
+
+input.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  form.requestSubmit();
+});
+
+input.addEventListener("input", resizeComposerInput);
 
 refreshHealth().then((health) => {
   // Picker must init before the auto-started session so the stored model

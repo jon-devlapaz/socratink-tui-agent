@@ -36,11 +36,13 @@ def build_user_prompt(payload: dict[str, object]) -> str:
     goal = str(payload.get("learner_goal") or "").strip()
     phase = str(payload.get("phase") or "").strip()
     awaiting = str(payload.get("awaiting_label") or "").strip()
+    awaiting_text = str(payload.get("awaiting_text") or "").strip()
     transcript = str(payload.get("transcript_text") or "").strip()
     return f"""Concept you chose: {concept}
 Learner goal: {goal or "(none yet)"}
 Current app phase: {phase or "unknown"}
 Current prompt label: {awaiting or "start — type a concept"}
+Current prompt text: {awaiting_text or "(none shown)"}
 
 Transcript so far:
 {transcript or "(empty)"}

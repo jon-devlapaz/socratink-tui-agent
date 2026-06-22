@@ -18,7 +18,7 @@
         <span class="brand-loop">loop</span>
       </div>
       <div class="chrome-meta">
-        <span id="version-pill" class="version-pill" title="Loop release">v0.38</span>
+        <span id="version-pill" class="version-pill" title="Loop release">v0.39</span>
         <div id="llm-picker" class="llm-picker">
           <button type="button" id="llm-pill" class="llm-pill" data-mode="checking" aria-haspopup="listbox" aria-expanded="false">llm…</button>
           <ul id="llm-picker-menu" class="llm-picker-menu" role="listbox" hidden></ul>
@@ -38,13 +38,13 @@
         </div>
         <div id="composer-idle" class="composer-idle">
           <span class="prompt-glyph" aria-hidden="true">›</span>
-          <input
+          <textarea
             id="input"
-            type="text"
             spellcheck="true"
             autocomplete="off"
-            placeholder="Type your answer… · /help · /hint · /feedback · /exit"
-          />
+            rows="1"
+            placeholder="Type your answer…"
+          ></textarea>
           <button type="submit" class="send" aria-label="Send (Return)">
             <span class="send-label">return</span>
             <kbd class="send-key">↵</kbd>

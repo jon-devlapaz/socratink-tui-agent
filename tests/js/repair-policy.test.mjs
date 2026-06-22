@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  applyRepairTurnBudget,
   decideBlankTurn,
   decidePostJudgeTurn,
   decideUncertainTurn,
@@ -44,7 +45,7 @@ function routeAfterPolicyTurn(priorEvents, turnEvent) {
 
 test("decideBlankTurn: recover before cap, abandon at cap", () => {
   assert.deepEqual(
-    decideBlankTurn({ turnIndex: 2, maxRepairTurns: MAX_REPAIR_TURNS }),
+    decideBlankTurn({ turnIndex: 1, maxRepairTurns: MAX_REPAIR_TURNS }),
     { nextDialogueAction: "recover_uncertainty" },
   );
   assert.deepEqual(
@@ -73,7 +74,7 @@ test("decideUncertainTurn: first uncertainty at direct prompt escalates once", (
   );
 });
 
-test("decideUncertainTurn: descends bounded recovery ladder (Policy B)", () => {
+test("decideUncertainTurn: second uncertainty abandons at two-turn cap", () => {
   const step1 = decideUncertainTurn({
     turnIndex: 2,
     escalationLevel: 1,
@@ -81,19 +82,8 @@ test("decideUncertainTurn: descends bounded recovery ladder (Policy B)", () => {
     maxUncertaintyRecoverySteps: MAX_UNCERTAINTY_RECOVERY_STEPS,
     maxRepairTurns: MAX_REPAIR_TURNS,
   });
-  assert.equal(step1.action, "recover_uncertainty");
-  assert.equal(step1.ladderStage, "bounded_causal_link");
-  assert.equal(step1.ladderStep, 1);
-
-  const step2 = decideUncertainTurn({
-    turnIndex: 3,
-    escalationLevel: 1,
-    uncertaintyRecoveryCount: 1,
-    maxUncertaintyRecoverySteps: MAX_UNCERTAINTY_RECOVERY_STEPS,
-    maxRepairTurns: MAX_REPAIR_TURNS,
-  });
-  assert.equal(step2.ladderStage, "keyword_to_sentence");
-  assert.equal(step2.ladderStep, 2);
+  assert.equal(step1.action, "abandon");
+  assert.equal(step1.ladderStage, "abandon");
 });
 
 test("decideUncertainTurn: abandons when ladder exhausted or turn cap hit", () => {
@@ -122,7 +112,7 @@ test("decideUncertainTurn: abandons when ladder exhausted or turn cap hit", () =
 test("decidePostJudgeTurn: closes repair state on abandon or cap", () => {
   assert.deepEqual(
     decidePostJudgeTurn({
-      turnIndex: 2,
+      turnIndex: 1,
       nextDialogueAction: "probe_again",
       maxRepairTurns: MAX_REPAIR_TURNS,
       escalationLevel: 0,
@@ -149,6 +139,112 @@ test("decidePostJudgeTurn: closes repair state on abandon or cap", () => {
   );
 });
 
+test("applyRepairTurnBudget bridges substantive repair at cap", () => {
+  const judge = applyRepairTurnBudget(
+    {
+      bridge_ready: false,
+      next_dialogue_action: "probe_again",
+      next_action: "probe_again",
+      progression_state: "needs_work",
+      causal_link_present: true,
+      missing_operation_addressed: false,
+      judge_reason: "Still missing the hinge.",
+    },
+    { turnIndex: MAX_REPAIR_TURNS, maxRepairTurns: MAX_REPAIR_TURNS },
+  );
+
+  assert.equal(judge.bridge_ready, true);
+  assert.equal(judge.next_dialogue_action, "commit_repair");
+  assert.equal(judge.next_action, "commit_repair");
+  assert.equal(judge.progression_state, "ready");
+  assert.match(judge.judge_reason, /two substantive repair tries/);
+});
+
+test("applyRepairTurnBudget leaves earlier repair judge alone", () => {
+  const judge = {
+    bridge_ready: false,
+    next_dialogue_action: "probe_again",
+  };
+  assert.equal(
+    applyRepairTurnBudget(judge, {
+      turnIndex: MAX_REPAIR_TURNS - 1,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+    }),
+    judge,
+  );
+});
+
+test("applyRepairTurnBudget preserves explicit abandon at cap", () => {
+  const judge = {
+    bridge_ready: false,
+    next_dialogue_action: "abandon",
+  };
+  assert.equal(
+    applyRepairTurnBudget(judge, {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+      repairText: "same vague answer",
+      previousRepairText: "same vague answer",
+    }),
+    judge,
+  );
+});
+
+test("applyRepairTurnBudget bridges a distinct final repair attempt", () => {
+  const judge = applyRepairTurnBudget(
+    {
+      bridge_ready: false,
+      next_dialogue_action: "probe_again",
+      causal_link_present: false,
+      missing_operation_addressed: false,
+    },
+    {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+      repairText: "Later, the body keeps defense cells on standby.",
+      previousRepairText: "The body keeps a record of the germ.",
+    },
+  );
+
+  assert.equal(judge.bridge_ready, true);
+  assert.equal(judge.next_dialogue_action, "commit_repair");
+});
+
+test("applyRepairTurnBudget does not bridge circular repair at cap", () => {
+  const judge = {
+    bridge_ready: false,
+    next_dialogue_action: "probe_again",
+    causal_link_present: false,
+    missing_operation_addressed: false,
+  };
+  assert.equal(
+    applyRepairTurnBudget(judge, {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+    }),
+    judge,
+  );
+});
+
+test("applyRepairTurnBudget bridges final-turn clarification question", () => {
+  const judge = applyRepairTurnBudget(
+    {
+      bridge_ready: false,
+      next_dialogue_action: "probe_again",
+      causal_link_present: false,
+      missing_operation_addressed: false,
+    },
+    {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+      repairText: "Do memory cells just stay in the blood forever?",
+    },
+  );
+
+  assert.equal(judge.bridge_ready, true);
+  assert.equal(judge.next_dialogue_action, "commit_repair");
+});
+
 const goldenMatrix = [
   {
     name: "first uncertainty escalates to repair_dialogue",
@@ -164,7 +260,7 @@ const goldenMatrix = [
     expectedPhase: "repair_dialogue",
   },
   {
-    name: "recovery ladder step stays in repair_dialogue",
+    name: "second uncertainty at cap routes to repair_abandoned",
     prior: [
       ev("gap_identified", { graph_neutral: true }),
       ev("repair_dialogue_turn", {
@@ -181,7 +277,7 @@ const goldenMatrix = [
       maxUncertaintyRecoverySteps: MAX_UNCERTAINTY_RECOVERY_STEPS,
       maxRepairTurns: MAX_REPAIR_TURNS,
     },
-    expectedPhase: "repair_dialogue",
+    expectedPhase: "repair_abandoned",
   },
   {
     name: "policy abandon routes to repair_abandoned",

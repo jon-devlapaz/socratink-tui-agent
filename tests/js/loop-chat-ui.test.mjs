@@ -223,7 +223,6 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /id="llm-picker-menu"/);
   assert.match(js, /refreshHealth/);
   assert.match(js, /setVersionPillFromHealth/);
-  assert.match(js, /appendLlmReceipt/);
   assert.match(js, /initLlmPicker/);
   assert.match(js, /socratink\.loop\.llmPreference/);
   assert.match(js, /\[Bridge error\]/);
@@ -261,8 +260,8 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /input\.addEventListener\("keydown"/);
   assert.match(js, /input\.addEventListener\("input", resizeComposerInput\)/);
   assert.match(js, /input\.style\.height = "auto"/);
-  assert.match(js, /LLM \[\^\\\]\]\+/);
-  assert.doesNotMatch(js, /appendLlmReceipt\(data\.llm\)/);
+  assert.doesNotMatch(js, /appendLlmReceipt/);
+  assert.doesNotMatch(js, /\[LLM \$\{/);
   assert.match(js, /isRecentDuplicate/);
   assert.doesNotMatch(js, /showThinkingLine/);
   assert.match(css, /braille-spin/);

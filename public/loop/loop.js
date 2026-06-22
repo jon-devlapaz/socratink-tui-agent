@@ -21,7 +21,6 @@ const sendButtonLabel = sendButton?.querySelector(".send-label");
 let sessionId = null;
 let busy = false;
 let lastPromptMarker = null;
-let lastLlmStamp = null;
 let currentAwaiting = null;
 let llmOverrideAllowed = false;
 let llmOptions = [];
@@ -504,20 +503,6 @@ async function refreshHealth() {
   }
 }
 
-function appendLlmReceipt(llm) {
-  if (!llm?.provider || llm.provider === "orchestrator") return;
-  const stamp = `${llm.stage}:${llm.provider}:${llm.model}:${llm.latency_ms}`;
-  if (stamp === lastLlmStamp) return;
-  lastLlmStamp = stamp;
-  const latency =
-    llm.latency_ms != null && llm.latency_ms !== "" ? ` · ${llm.latency_ms}ms` : "";
-  appendChatLine(
-    "meta",
-    `[LLM ${llm.stage}] ${llm.provider}/${llm.model}${latency}`,
-    { force: true },
-  );
-}
-
 function applyTurnResponse(data) {
   if (llmOverrideAllowed && data.llm_active?.provider && data.llm_active?.model) {
     setLlmSelection(data.llm_active);
@@ -527,7 +512,6 @@ function applyTurnResponse(data) {
   if (data.complete) {
     appendChatLine("meta", "— session ended — type a concept to start a new session.");
     sessionId = null;
-    lastLlmStamp = null;
     showAwaitingPrompt({ label: "Concept: ", key: "concept" });
     setComposerEnabled(true);
     input.placeholder = "Pick a concept…";

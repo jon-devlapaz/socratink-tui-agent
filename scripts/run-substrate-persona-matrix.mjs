@@ -22,6 +22,7 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MATRIX_IDS = ["novice", "middle_schooler", "expert"];
+const CASE_BOUNDARY_EVENTS = new Set(["spaced_redrill", "repair_abandoned"]);
 
 function parseArgs(argv) {
   const options = {
@@ -55,8 +56,24 @@ function parseArgs(argv) {
 function substrateMetrics(events) {
   const types = (events || []).map((e) => e.type);
   const idx = (t) => types.indexOf(t);
+  const evidenceEvents = (events || [])
+    .filter((event) => ["cold_attempt", "spaced_redrill"].includes(event.type))
+    .map((event) => ({
+      type: event.type,
+      classification: event.evaluation?.classification || null,
+      response: event.evaluation?.agent_response || null,
+    }));
+  const evidenceHolds = (events || [])
+    .filter((event) => event.type === "evidence_hold_recorded")
+    .map((event) => ({
+      state: event.state || null,
+      reason: event.reason || null,
+    }));
   return {
     event_types: types,
+    repair_turn_count: types.filter((type) => type === "repair_dialogue_turn").length,
+    evidence_events: evidenceEvents,
+    evidence_holds: evidenceHolds,
     has_substrate_seed: types.includes("substrate_seed_offered"),
     has_substrate_refinement: types.includes("substrate_refinement"),
     has_substrate_confirmed: types.includes("substrate_confirmed"),
@@ -106,9 +123,12 @@ async function runProfile(profile, options, health) {
         `  [${profile.id} turn ${turn.n}] phase=${turn.phase} key=${turn.awaiting_key_before || "?"} » ${turn.display.slice(0, 90)}${turn.display.length > 90 ? "…" : ""}`,
       );
     },
+    shouldStopAfterTurn: ({ eventsTail }) =>
+      eventsTail.some((event) => CASE_BOUNDARY_EVENTS.has(event.type)),
   });
 
   const metrics = substrateMetrics(session.events);
+  metrics.final_graph_badge = session.derived?.at?.(-1)?.concept_status?.badge || null;
   for (const turn of log.turns) {
     if (
       turn.awaiting_key_before !== "substrate_refinement" &&
@@ -119,6 +139,10 @@ async function runProfile(profile, options, health) {
   }
 
   const friction = collectFriction(profile, metrics);
+  const blockingFriction = [...friction];
+  if (profile.id === "novice-immune-memory" && metrics.repair_turn_count > 2) {
+    friction.push(`Repair load: ${metrics.repair_turn_count} repair turns before bridge.`);
+  }
   return {
     profile: profile.id.replace(/-immune-memory$/, ""),
     label: profile.label,
@@ -126,6 +150,7 @@ async function runProfile(profile, options, health) {
     turns: log.turns,
     metrics,
     friction,
+    blockingFriction,
     final: log.final,
   };
 }
@@ -185,7 +210,7 @@ async function main() {
   fs.writeFileSync(path.join(outDir, "matrix.json"), JSON.stringify(results, null, 2));
 
   console.log(`\n[matrix] wrote ${outDir}`);
-  const anyFriction = results.some((r) => r.friction.length);
+  const anyFriction = results.some((r) => r.blockingFriction.length);
   process.exit(anyFriction ? 1 : 0);
 }
 

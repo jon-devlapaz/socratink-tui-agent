@@ -132,3 +132,37 @@ test("sessionResponse exposes materialized session record for persona export", (
   assert.equal(body.caseComplete, true);
   assert.deepEqual(body.record, record);
 });
+
+test("sessionResponse projects learner transcript without mutating raw transcript", () => {
+  const transcript = [
+    { level: "log", text: "[Hypothesis Map]" },
+    { level: "log", text: "Thesis: hidden route detail" },
+    { level: "log", text: "[Route LLM] gemini/gemini-2.5-flash · 20ms" },
+    { level: "log", text: "Learner goal: explain caching" },
+    { level: "log", text: "You skipped recomputing. What connects that to speed?" },
+    { level: "log", text: "[Bridge error] generate-route: failed closed" },
+  ];
+  const body = sessionResponse(
+    {
+      id: "session-learner-transcript",
+      status: "awaiting_input",
+      phase: "idle",
+      awaiting: null,
+      transcript: [],
+      ctx: {},
+      llmCalls: [],
+      events: [],
+    },
+    transcript,
+  );
+
+  assert.deepEqual(body.transcript, transcript);
+  assert.deepEqual(
+    body.learnerTranscript.map((entry) => entry.text),
+    [
+      "Learner goal: explain caching",
+      "You skipped recomputing. What connects that to speed?",
+      "[Bridge error] generate-route: failed closed",
+    ],
+  );
+});

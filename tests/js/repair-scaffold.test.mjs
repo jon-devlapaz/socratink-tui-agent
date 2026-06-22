@@ -121,7 +121,7 @@ test("instructor-facing before is sanitized to learner before-state", () => {
   assert.doesNotMatch(scaffold.after, /observable result of/i);
   assert.match(scaffold.after, /glucose and oxygen/i);
   assert.doesNotMatch(scaffold.socratic_question, /consider what plants/i);
-  assert.match(scaffold.socratic_question, /first time versus later/i);
+  assert.match(scaffold.socratic_question, /repair one missing link/i);
 });
 
 test("rejected scaffold never falls back to meta before/after phrasing", () => {
@@ -201,8 +201,9 @@ test("buildRepairOpening uses orient for ultra-thin substantive cold", () => {
     scaffold: { hinge_focus: "strengthening between sessions" },
     firstNode: { label: "spacing", blank_hint: "strengthening between sessions" },
   });
-  assert.match(question, /first time versus later|what has to happen/i);
+  assert.match(question, /repair one missing link/i);
   assert.doesNotMatch(question, /you asked/i);
+  assert.doesNotMatch(question, /step that connects them/i);
 });
 
 test("buildContingentProbe echoes repair text without re-showing turn-1 opening", () => {
@@ -214,6 +215,23 @@ test("buildContingentProbe echoes repair text without re-showing turn-1 opening"
   assert.match(probe, /memory fading/i);
   assert.doesNotMatch(probe, /best guess at the mechanism/i);
   assert.equal((probe.match(/\?/g) || []).length, 1);
+});
+
+test("repair fallbacks avoid self-referential connective wording", () => {
+  const opening = buildRepairOpening({
+    coldAttemptText: "memory is involved somehow",
+    evaluation: {
+      classification: "thin",
+      generative_commitment: true,
+    },
+    scaffold: {},
+    firstNode: { label: "immune memory" },
+  });
+  const probe = buildContingentProbe({ repairText: "", scaffold: {} });
+
+  assert.match(opening, /repair one missing link/i);
+  assert.match(probe, /repair one missing link/i);
+  assert.doesNotMatch(`${opening}\n${probe}`, /step that connects them/i);
 });
 
 test("mechanism-first good scaffold preserves hinge and contrast", () => {

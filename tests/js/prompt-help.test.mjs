@@ -30,8 +30,9 @@ test("printIdleHelp emits path and default commands without insider jargon", () 
     console.log = log;
   }
   assert.equal(lines.length, 2);
-  assert.match(lines[0], /draft map/i);
-  assert.doesNotMatch(lines.join(" "), /graph evidence|graph-neutral|solidified/i);
+  assert.match(lines[0], /first try/i);
+  assert.match(lines[0], /missing link/i);
+  assert.doesNotMatch(lines.join(" "), /draft map|route|scored answer|graph evidence|graph-neutral|solidified/i);
   assert.match(lines[1], /\/hint.*repair/i);
   assert.doesNotMatch(lines[1], /\/meta/);
 });
@@ -45,7 +46,23 @@ test("step help uses plain language", () => {
   } finally {
     console.log = log;
   }
-  assert.match(lines[0], /Cold attempt/);
+  assert.match(lines[0], /First question/);
   assert.match(lines[0], /from memory/i);
   assert.doesNotMatch(lines[0], /node from memory/i);
+});
+
+test("step help keeps repair and memory copy terse", () => {
+  const lines = [];
+  const log = console.log;
+  console.log = (...args) => lines.push(args.join(" "));
+  try {
+    printPromptHelp("repair");
+    printPromptHelp("spaced_attempt");
+  } finally {
+    console.log = log;
+  }
+  assert.match(lines[0], /Missing link/);
+  assert.match(lines[0], /Repair one missing link/);
+  assert.match(lines[1], /From memory, explain it again/);
+  assert.doesNotMatch(lines.join(" "), /what had to happen|does not mean|same idea again/i);
 });

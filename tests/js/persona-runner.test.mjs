@@ -65,6 +65,7 @@ test("persona runner core turn contract", () => {
   assert.match(text, /JSON\.stringify\(body\)/);
   assert.match(text, /run_gap_drill/);
   assert.match(text, /persona_hint/);
+  assert.match(text, /awaiting_text/);
   assert.match(text, /preflightPersonaRun/);
 });
 

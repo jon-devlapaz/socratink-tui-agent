@@ -110,6 +110,21 @@ def test_build_system_prompt_appends_persona_hint() -> None:
     assert persona.PERSONA_SYSTEM in prompt
 
 
+def test_build_user_prompt_includes_current_prompt_text() -> None:
+    prompt = persona.build_user_prompt(
+        {
+            "concept": "Immune memory",
+            "learner_goal": "Explain vaccines",
+            "phase": "spaced_redrill",
+            "awaiting_label": "Spaced re-drill",
+            "awaiting_text": "Name what stays and what it does faster next time.",
+            "transcript_text": "Earlier text",
+        }
+    )
+    assert "Current prompt text: Name what stays" in prompt
+    assert "what it does faster next time" in prompt
+
+
 def test_generate_openai_compatible_uses_mocked_http() -> None:
     text = persona.generate_openai_compatible(
         system_prompt="system",

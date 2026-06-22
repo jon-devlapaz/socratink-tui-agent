@@ -42,8 +42,9 @@ test("spacedRedrillClosureLine explains primed pause without sounding like anoth
     finalState: "primed",
     evidenceHold: null,
   });
-  assert.match(line, /not another question/);
-  assert.match(line, /primed/);
+  assert.match(line, /Useful practice/);
+  assert.match(line, /Not stable yet/);
+  assert.doesNotMatch(line, /graph truth|another question/i);
 });
 
 test("spacedRedrillClosureLine prefers solidified copy over stale evidenceHold", () => {
@@ -72,8 +73,9 @@ test("spacedRedrillClosureLine shortens when evidence hold already explains deri
     finalState: "primed",
     evidenceHold: hold,
   });
-  assert.match(line, /Case paused here/);
-  assert.doesNotMatch(line, /not another question/);
+  assert.match(line, /Useful practice/);
+  assert.match(line, /first no-help attempt was not strong/);
+  assert.doesNotMatch(line, /not another question|graph truth/i);
 });
 
 test("spaced redrill records graph-neutral evidence hold event when derivation holds solid answer", async () => {
@@ -164,7 +166,7 @@ test("spaced redrill records graph-neutral evidence hold event when derivation h
   assert.equal(nextPhase(events), "idle");
   assert.equal(result.llm_calls.length, 2);
   assert.ok(
-    lines.some((line) => line.includes("Case paused here")),
+    lines.some((line) => line.includes("Useful practice")),
     "expected evidence-hold closure before idle",
   );
 });
@@ -245,7 +247,7 @@ test("spaced redrill prints primed closure when spaced answer is not solid", asy
 
   assert.deepEqual(events.map((event) => event.type), ["spaced_redrill"]);
   assert.ok(
-    lines.some((line) => line.includes("not another question")),
+    lines.some((line) => line.includes("Useful practice")),
     "expected primed closure before idle",
   );
 });

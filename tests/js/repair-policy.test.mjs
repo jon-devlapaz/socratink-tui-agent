@@ -146,6 +146,8 @@ test("applyRepairTurnBudget bridges substantive repair at cap", () => {
       next_dialogue_action: "probe_again",
       next_action: "probe_again",
       progression_state: "needs_work",
+      causal_link_present: true,
+      missing_operation_addressed: false,
       judge_reason: "Still missing the hinge.",
     },
     { turnIndex: MAX_REPAIR_TURNS, maxRepairTurns: MAX_REPAIR_TURNS },
@@ -170,6 +172,77 @@ test("applyRepairTurnBudget leaves earlier repair judge alone", () => {
     }),
     judge,
   );
+});
+
+test("applyRepairTurnBudget preserves explicit abandon at cap", () => {
+  const judge = {
+    bridge_ready: false,
+    next_dialogue_action: "abandon",
+  };
+  assert.equal(
+    applyRepairTurnBudget(judge, {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+      repairText: "same vague answer",
+      previousRepairText: "same vague answer",
+    }),
+    judge,
+  );
+});
+
+test("applyRepairTurnBudget bridges a distinct final repair attempt", () => {
+  const judge = applyRepairTurnBudget(
+    {
+      bridge_ready: false,
+      next_dialogue_action: "probe_again",
+      causal_link_present: false,
+      missing_operation_addressed: false,
+    },
+    {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+      repairText: "Later, the body keeps defense cells on standby.",
+      previousRepairText: "The body keeps a record of the germ.",
+    },
+  );
+
+  assert.equal(judge.bridge_ready, true);
+  assert.equal(judge.next_dialogue_action, "commit_repair");
+});
+
+test("applyRepairTurnBudget does not bridge circular repair at cap", () => {
+  const judge = {
+    bridge_ready: false,
+    next_dialogue_action: "probe_again",
+    causal_link_present: false,
+    missing_operation_addressed: false,
+  };
+  assert.equal(
+    applyRepairTurnBudget(judge, {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+    }),
+    judge,
+  );
+});
+
+test("applyRepairTurnBudget bridges final-turn clarification question", () => {
+  const judge = applyRepairTurnBudget(
+    {
+      bridge_ready: false,
+      next_dialogue_action: "probe_again",
+      causal_link_present: false,
+      missing_operation_addressed: false,
+    },
+    {
+      turnIndex: MAX_REPAIR_TURNS,
+      maxRepairTurns: MAX_REPAIR_TURNS,
+      repairText: "Do memory cells just stay in the blood forever?",
+    },
+  );
+
+  assert.equal(judge.bridge_ready, true);
+  assert.equal(judge.next_dialogue_action, "commit_repair");
 });
 
 const goldenMatrix = [

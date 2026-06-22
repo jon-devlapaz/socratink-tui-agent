@@ -221,7 +221,7 @@ function promptPlaceholder(label) {
   const base = "Type your answer…";
   if (!label) return base;
   const clean = label.replace(/:\s*$/, "").trim();
-  if (clean === ">") return base;
+  if (clean === ">") return "Pick a concept…";
   return clean ? `${clean}…` : base;
 }
 

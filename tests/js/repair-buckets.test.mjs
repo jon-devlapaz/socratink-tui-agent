@@ -12,6 +12,7 @@ import {
   repairHintText,
   repairStateSnapshot,
   repairNudge,
+  repairTurnLabel,
   uncertaintyRecoveryPrompt,
   uncertaintyDialogueTurnEvent,
 } from "../../lib/seda/repair-dialogue-helpers.mjs";
@@ -86,7 +87,7 @@ test("repair fallback copy asks for one missing link without old worksheet phras
   };
   const copy = [
     uncertaintyRecoveryPrompt(scaffold, 1),
-    repairNudge(4, { escalationLevel: 1 }, {}),
+    repairNudge(2, { escalationLevel: 1 }, {}),
     missingOperationFeedback(scaffold, {}),
     repairHintText(scaffold, 1),
     recoveryNextActionText(scaffold),
@@ -94,6 +95,11 @@ test("repair fallback copy asks for one missing link without old worksheet phras
 
   assert.match(copy, /repair one missing link|missing link/i);
   assert.doesNotMatch(copy, /what has to happen|what had to happen/i);
+});
+
+test("second repair turn is presented as the final try", () => {
+  assert.equal(repairTurnLabel(1), "Fill the missing link");
+  assert.equal(repairTurnLabel(2), "One more try");
 });
 
 test("question-shaped repair is redirected into a claim", () => {

@@ -343,10 +343,10 @@
           "rules": [
             "bridge_ready → repair",
             "next_dialogue_action in (escalate, recover_uncertainty) → repair_dialogue",
-            "turn_index >= MAX_REPAIR_TURNS OR next_dialogue_action === abandon → repair_abandoned",
+            "turn_index >= MAX_REPAIR_TURNS OR next_dialogue_action === abandon → repair_abandoned unless bridge_ready was promoted by repair-policy",
             "else → repair_dialogue"
           ],
-          "handler_policy": "repair-policy.decidePostJudgeTurn uses next_dialogue_action before next event"
+          "handler_policy": "repair-policy.applyRepairTurnBudget may promote substantive cap turns to bridge_ready before repair-policy.decidePostJudgeTurn uses next_dialogue_action"
         }
       ],
       "graph_role": "graph_neutral"

@@ -246,6 +246,12 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /aria-busy/);
   assert.match(html, /class="terminal"/);
   assert.match(html, /<textarea[^>]*id="input"/);
+  assert.match(html, /id="voice-input"/);
+  assert.match(js, /SpeechRecognition \|\| window\.webkitSpeechRecognition/);
+  assert.match(js, /speechRecognition\.interimResults = true/);
+  assert.match(js, /speechRecognition\.addEventListener\("result"/);
+  assert.match(js, /voiceButton\.disabled = !enabled \|\| isContinueAwaiting\(\)/);
+  assert.match(css, /\.voice-input/);
   assert.match(js, /THINKING_COPY/);
   assert.match(js, /finding your first foothold/);
   assert.match(js, /choosing your first question/);

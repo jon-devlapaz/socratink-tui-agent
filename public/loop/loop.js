@@ -15,7 +15,8 @@ const srStatus = document.getElementById("sr-status");
 const composerCtaEl = document.getElementById("composer-cta");
 const composerCtaLabel = document.getElementById("composer-cta-label");
 const composerCtaText = document.getElementById("composer-cta-text");
-const sendButton = form.querySelector("button");
+const voiceButton = document.getElementById("voice-input");
+const sendButton = form.querySelector('button[type="submit"]');
 const sendButtonLabel = sendButton?.querySelector(".send-label");
 
 let sessionId = null;
@@ -26,6 +27,9 @@ let llmOverrideAllowed = false;
 let llmOptions = [];
 let activeLlmSelection = null;
 let busyNoticeTimer = null;
+let speechRecognition = null;
+let listening = false;
+let speechBaseText = "";
 
 const LLM_PREF_KEY = "socratink.loop.llmPreference";
 const LOCAL_LLM_PROVIDERS = new Set(["openai_compatible"]);
@@ -202,6 +206,17 @@ function resizeComposerInput() {
   input.style.height = `${input.scrollHeight}px`;
 }
 
+function setVoiceListening(isListening) {
+  listening = isListening;
+  if (!voiceButton) return;
+  voiceButton.classList.toggle("is-listening", isListening);
+  voiceButton.setAttribute("aria-pressed", String(isListening));
+  voiceButton.setAttribute(
+    "aria-label",
+    isListening ? "Stop dictating answer" : "Dictate answer",
+  );
+}
+
 function isContinueAwaiting(awaiting = currentAwaiting) {
   return awaiting?.key === "continue";
 }
@@ -259,7 +274,9 @@ function setComposerLoading(isLoading, phase) {
   composerBusyLabel.textContent = message;
   composerIdle.hidden = isLoading;
   composerBusy.hidden = !isLoading;
+  if (isLoading && listening) speechRecognition?.stop();
   input.disabled = isLoading;
+  if (voiceButton) voiceButton.disabled = isLoading;
   sendButton.disabled = isLoading;
 }
 
@@ -322,7 +339,59 @@ function showAwaitingPrompt(awaiting) {
 function setComposerEnabled(enabled) {
   if (busy) return;
   input.disabled = !enabled;
+  if (voiceButton) voiceButton.disabled = !enabled || isContinueAwaiting();
   sendButton.disabled = !enabled;
+}
+
+function initVoiceInput() {
+  if (!voiceButton) return;
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) return;
+
+  speechRecognition = new Recognition();
+  speechRecognition.continuous = false;
+  speechRecognition.interimResults = true;
+  speechRecognition.lang = navigator.language || "en-US";
+  voiceButton.hidden = false;
+
+  speechRecognition.addEventListener("start", () => {
+    speechBaseText = input.value.trim();
+    setVoiceListening(true);
+    srStatus.textContent = "listening";
+  });
+
+  speechRecognition.addEventListener("result", (event) => {
+    let transcript = "";
+    for (let i = 0; i < event.results.length; i += 1) {
+      transcript += event.results[i][0].transcript;
+    }
+    input.value = [speechBaseText, transcript.trim()].filter(Boolean).join(" ");
+    resizeComposerInput();
+  });
+
+  speechRecognition.addEventListener("end", () => {
+    setVoiceListening(false);
+    srStatus.textContent = "";
+    input.focus();
+  });
+
+  speechRecognition.addEventListener("error", (event) => {
+    setVoiceListening(false);
+    srStatus.textContent = event.error ? `voice input: ${event.error}` : "voice input stopped";
+  });
+
+  voiceButton.addEventListener("click", () => {
+    if (busy || voiceButton.disabled) return;
+    if (listening) {
+      speechRecognition.stop();
+      return;
+    }
+    try {
+      speechRecognition.start();
+    } catch {
+      setVoiceListening(false);
+    }
+  });
 }
 
 async function post(path, body) {
@@ -606,6 +675,8 @@ input.addEventListener("keydown", (event) => {
 });
 
 input.addEventListener("input", resizeComposerInput);
+
+initVoiceInput();
 
 refreshHealth().then((health) => {
   // Picker must init before the auto-started session so the stored model

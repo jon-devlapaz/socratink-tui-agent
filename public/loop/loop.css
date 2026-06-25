@@ -560,7 +560,8 @@ body {
     0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
-.send {
+.send,
+.voice-input {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -577,9 +578,15 @@ body {
     border-color 0.15s var(--ease);
 }
 
-.send:hover:not(:disabled) {
+.send:hover:not(:disabled),
+.voice-input:hover:not(:disabled),
+.voice-input.is-listening {
   color: var(--cream);
   border-color: var(--violet-dim);
+}
+
+.voice-input.is-listening {
+  box-shadow: 0 0 0 2px rgba(183, 148, 246, 0.12);
 }
 
 .send-key {
@@ -589,7 +596,8 @@ body {
 }
 
 .composer textarea:disabled,
-.send:disabled {
+.send:disabled,
+.voice-input:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }

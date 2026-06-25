@@ -16,6 +16,7 @@ const composerCtaEl = document.getElementById("composer-cta");
 const composerCtaLabel = document.getElementById("composer-cta-label");
 const composerCtaText = document.getElementById("composer-cta-text");
 const voiceButton = document.getElementById("voice-input");
+const tutorVoiceButton = document.getElementById("tutor-voice");
 const sendButton = form.querySelector('button[type="submit"]');
 const sendButtonLabel = sendButton?.querySelector(".send-label");
 
@@ -30,8 +31,11 @@ let busyNoticeTimer = null;
 let speechRecognition = null;
 let listening = false;
 let speechBaseText = "";
+let tutorVoiceEnabled = false;
+let lastSpokenPromptMarker = null;
 
 const LLM_PREF_KEY = "socratink.loop.llmPreference";
+const TUTOR_VOICE_PREF_KEY = "socratink.loop.tutorVoice";
 const LOCAL_LLM_PROVIDERS = new Set(["openai_compatible"]);
 const LONG_RUNNING_AFTER_MS = 15_000;
 
@@ -163,7 +167,8 @@ function appendChatLine(role, text, options = {}) {
 function appendTranscript(lines) {
   for (const entry of lines || []) {
     const t = entry.text || "";
-    if (!t.trim()) continue;
+    const trimmed = t.trim();
+    if (!trimmed) continue;
     if (t.startsWith("[Bridge error]")) {
       appendChatLine("error", t, { force: true });
       continue;
@@ -209,6 +214,7 @@ function resizeComposerInput() {
 function setVoiceListening(isListening) {
   listening = isListening;
   if (!voiceButton) return;
+  if (isListening) window.speechSynthesis?.cancel();
   voiceButton.classList.toggle("is-listening", isListening);
   voiceButton.setAttribute("aria-pressed", String(isListening));
   voiceButton.setAttribute(
@@ -217,13 +223,37 @@ function setVoiceListening(isListening) {
   );
 }
 
+function setTutorVoiceEnabled(enabled) {
+  tutorVoiceEnabled = enabled;
+  if (!tutorVoiceButton) return;
+  tutorVoiceButton.classList.toggle("is-speaking", enabled);
+  tutorVoiceButton.setAttribute("aria-pressed", String(enabled));
+  tutorVoiceButton.setAttribute(
+    "aria-label",
+    enabled ? "Tutor voice on" : "Tutor voice off",
+  );
+  try {
+    localStorage.setItem(TUTOR_VOICE_PREF_KEY, enabled ? "1" : "0");
+  } catch {
+    /* preference just won't stick */
+  }
+}
+
+function speakTutorPrompt(awaiting, marker) {
+  const text = String(awaiting?.ctaText ?? "").trim();
+  if (!tutorVoiceEnabled || !text || marker === lastSpokenPromptMarker) return;
+  lastSpokenPromptMarker = marker;
+  window.speechSynthesis?.cancel();
+  window.speechSynthesis?.speak(new window.SpeechSynthesisUtterance(text));
+}
+
 function isContinueAwaiting(awaiting = currentAwaiting) {
   return awaiting?.key === "continue";
 }
 
 function setSendButtonMode(awaiting) {
   if (!sendButtonLabel || !sendButton) return;
-  if (isContinueAwaiting(awaiting)) {
+  if (isContinueAwaiting(awaiting) && !input.value.trim()) {
     sendButtonLabel.textContent = "continue";
     sendButton.setAttribute("aria-label", "Continue (Return)");
     return;
@@ -275,6 +305,7 @@ function setComposerLoading(isLoading, phase) {
   composerIdle.hidden = isLoading;
   composerBusy.hidden = !isLoading;
   if (isLoading && listening) speechRecognition?.stop();
+  if (isLoading) window.speechSynthesis?.cancel();
   input.disabled = isLoading;
   if (voiceButton) voiceButton.disabled = isLoading;
   sendButton.disabled = isLoading;
@@ -319,11 +350,13 @@ function showAwaitingPrompt(awaiting) {
   const marker = `${awaiting.key ?? ""}:${awaiting.ctaText ?? ""}:${awaiting.label ?? ""}`;
   if (marker !== lastPromptMarker) {
     lastPromptMarker = marker;
+    speakTutorPrompt(awaiting, marker);
   }
   setComposerCta(awaiting);
   if (isContinueAwaiting(awaiting)) {
     input.value = "";
     input.placeholder = "Press Return to continue…";
+    setSendButtonMode(awaiting);
     resizeComposerInput();
     return;
   }
@@ -339,7 +372,7 @@ function showAwaitingPrompt(awaiting) {
 function setComposerEnabled(enabled) {
   if (busy) return;
   input.disabled = !enabled;
-  if (voiceButton) voiceButton.disabled = !enabled || isContinueAwaiting();
+  if (voiceButton) voiceButton.disabled = !enabled;
   sendButton.disabled = !enabled;
 }
 
@@ -349,7 +382,7 @@ function initVoiceInput() {
   if (!Recognition) return;
 
   speechRecognition = new Recognition();
-  speechRecognition.continuous = false;
+  speechRecognition.continuous = true;
   speechRecognition.interimResults = true;
   speechRecognition.lang = navigator.language || "en-US";
   voiceButton.hidden = false;
@@ -367,6 +400,7 @@ function initVoiceInput() {
     }
     input.value = [speechBaseText, transcript.trim()].filter(Boolean).join(" ");
     resizeComposerInput();
+    setSendButtonMode(currentAwaiting);
   });
 
   speechRecognition.addEventListener("end", () => {
@@ -390,6 +424,26 @@ function initVoiceInput() {
       speechRecognition.start();
     } catch {
       setVoiceListening(false);
+    }
+  });
+}
+
+function initTutorVoice() {
+  if (!tutorVoiceButton || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  tutorVoiceButton.hidden = false;
+  try {
+    setTutorVoiceEnabled(localStorage.getItem(TUTOR_VOICE_PREF_KEY) === "1");
+  } catch {
+    setTutorVoiceEnabled(false);
+  }
+  tutorVoiceButton.addEventListener("click", () => {
+    const enabled = !tutorVoiceEnabled;
+    setTutorVoiceEnabled(enabled);
+    if (!enabled) window.speechSynthesis.cancel();
+    if (enabled && currentAwaiting) {
+      const marker = `${currentAwaiting.key ?? ""}:${currentAwaiting.ctaText ?? ""}:${currentAwaiting.label ?? ""}`;
+      lastSpokenPromptMarker = null;
+      speakTutorPrompt(currentAwaiting, marker);
     }
   });
 }
@@ -551,7 +605,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.41";
+  const label = health?.app_version || "v0.42";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -674,9 +728,13 @@ input.addEventListener("keydown", (event) => {
   form.requestSubmit();
 });
 
-input.addEventListener("input", resizeComposerInput);
+input.addEventListener("input", () => {
+  resizeComposerInput();
+  setSendButtonMode(currentAwaiting);
+});
 
 initVoiceInput();
+initTutorVoice();
 
 refreshHealth().then((health) => {
   // Picker must init before the auto-started session so the stored model

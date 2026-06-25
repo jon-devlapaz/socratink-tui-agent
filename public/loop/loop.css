@@ -561,7 +561,8 @@ body {
 }
 
 .send,
-.voice-input {
+.voice-input,
+.tutor-voice {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -580,12 +581,15 @@ body {
 
 .send:hover:not(:disabled),
 .voice-input:hover:not(:disabled),
-.voice-input.is-listening {
+.voice-input.is-listening,
+.tutor-voice:hover:not(:disabled),
+.tutor-voice.is-speaking {
   color: var(--cream);
   border-color: var(--violet-dim);
 }
 
-.voice-input.is-listening {
+.voice-input.is-listening,
+.tutor-voice.is-speaking {
   box-shadow: 0 0 0 2px rgba(183, 148, 246, 0.12);
 }
 
@@ -597,7 +601,8 @@ body {
 
 .composer textarea:disabled,
 .send:disabled,
-.voice-input:disabled {
+.voice-input:disabled,
+.tutor-voice:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }

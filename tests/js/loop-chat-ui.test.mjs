@@ -216,6 +216,18 @@ test("loop static assets use terminal chrome and phase styling", () => {
   const html = readFileSync(path.join(ROOT, "public/loop/index.html"), "utf8");
   const js = readFileSync(path.join(ROOT, "public/loop/loop.js"), "utf8");
   const css = readFileSync(path.join(ROOT, "public/loop/loop.css"), "utf8");
+  const learnerTranscript = readFileSync(
+    path.join(ROOT, "lib/loop-server/learner-transcript.mjs"),
+    "utf8",
+  );
+  const sessionServer = readFileSync(
+    path.join(ROOT, "lib/loop-server/session.mjs"),
+    "utf8",
+  );
+  const repairDialogue = readFileSync(
+    path.join(ROOT, "lib/seda/handlers/repair-dialogue.mjs"),
+    "utf8",
+  );
   assert.doesNotMatch(html, /id="status"/);
   assert.match(html, /id="phase-pill"/);
   assert.match(html, /id="version-pill"/);
@@ -247,11 +259,26 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(html, /class="terminal"/);
   assert.match(html, /<textarea[^>]*id="input"/);
   assert.match(html, /id="voice-input"/);
+  assert.match(html, /id="tutor-voice"/);
   assert.match(js, /SpeechRecognition \|\| window\.webkitSpeechRecognition/);
+  assert.match(js, /speechRecognition\.continuous = true/);
   assert.match(js, /speechRecognition\.interimResults = true/);
   assert.match(js, /speechRecognition\.addEventListener\("result"/);
-  assert.match(js, /voiceButton\.disabled = !enabled \|\| isContinueAwaiting\(\)/);
+  assert.match(js, /voiceButton\.disabled = !enabled/);
+  assert.doesNotMatch(js, /voiceButton\.disabled = !enabled \|\| isContinueAwaiting\(\)/);
+  assert.match(js, /isContinueAwaiting\(awaiting\) && !input\.value\.trim\(\)/);
+  assert.match(js, /setSendButtonMode\(currentAwaiting\)/);
+  assert.match(js, /socratink\.loop\.tutorVoice/);
+  assert.match(js, /SpeechSynthesisUtterance\(text\)/);
+  assert.match(js, /appendTranscript\(data\.learnerTranscript \|\| data\.transcript\)/);
+  assert.doesNotMatch(js, /trimmed === ctaText/);
   assert.match(css, /\.voice-input/);
+  assert.match(css, /\.tutor-voice/);
+  assert.match(learnerTranscript, /Route Retry/);
+  assert.match(learnerTranscript, /t === ctaText/);
+  assert.match(sessionServer, /filterLearnerTranscript\(transcript, awaiting\?\.ctaText\)/);
+  assert.match(repairDialogue, /ctx\.composerCta = {\s*label: repairTurnLabel\(turnIndex \+ 1\),\s*text:\s*ctx\.repairScaffold\.analogical_prompt/);
+  assert.match(repairDialogue, /ctx\.composerCta = {\s*label: repairTurnLabel\(turnIndex \+ 1\),\s*text: state\.queuedPrompt/);
   assert.match(js, /THINKING_COPY/);
   assert.match(js, /finding your first foothold/);
   assert.match(js, /choosing your first question/);
@@ -265,7 +292,7 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.doesNotMatch(js, /Spacing advanced:/);
   assert.match(js, /own_words_repair: "repair"/);
   assert.match(js, /input\.addEventListener\("keydown"/);
-  assert.match(js, /input\.addEventListener\("input", resizeComposerInput\)/);
+  assert.match(js, /input\.addEventListener\("input", \(\) =>/);
   assert.match(js, /input\.style\.height = "auto"/);
   assert.doesNotMatch(js, /appendLlmReceipt/);
   assert.doesNotMatch(js, /\[LLM \$\{/);
@@ -594,6 +621,16 @@ test("loop cold help exhaustion waits before zero-schema delta", async () => {
   const firstHelp = await session.post("I don't know.");
 
   assert.equal(firstHelp.awaiting?.key, "cold_attempt");
+  assert.equal(firstHelp.awaiting?.ctaText, firstHelp.events.findLast(
+    (event) => event.type === "cold_help_turn",
+  )?.agent_response);
+  assert.equal(
+    (firstHelp.learnerTranscript || [])
+      .map((line) => line.text || "")
+      .join("\n")
+      .includes(firstHelp.awaiting.ctaText),
+    false,
+  );
   assert.ok(firstHelp.events.some((event) => event.type === "cold_help_turn"));
   assert.equal(
     firstHelp.events.some((event) => event.type === "cold_support_exhausted"),

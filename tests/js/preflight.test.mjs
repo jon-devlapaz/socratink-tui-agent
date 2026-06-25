@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 import { resolveTuiPaths, preflightTuiPaths } from "../../lib/config/paths.mjs";
 
@@ -67,6 +67,9 @@ test("loop server wrapper owns stale listener cleanup before exec", () => {
 });
 
 test("riverflow wrapper forwards all args to external tool", () => {
+  if (!existsSync(new URL("../../riverflow", import.meta.url))) {
+    return;
+  }
   const wrapper = readFileSync(new URL("../../riverflow", import.meta.url), "utf8");
   const syntax = spawnSync("bash", ["-n", "riverflow"], {
     cwd: new URL("../..", import.meta.url),

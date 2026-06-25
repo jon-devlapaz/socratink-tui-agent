@@ -10,6 +10,9 @@ __pycache__/
 .playwright-cli/
 .demo-map-vis/
 .cursor/
+.cursorrules
+.mex/
+.opencode/
 .poolside/
 .supergoal/
 .agent/

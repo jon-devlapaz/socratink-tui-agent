@@ -125,6 +125,9 @@ test("listLabRuns summarizes recent disk artifacts", () => {
       label: "Novice",
       concept: "Immune memory",
       learner_goal: "Explain vaccines.",
+      final: {
+        prompt_versions: { repair_dialogue: "socratink-repair-dialogue-v2" },
+      },
       turns: [
         {
           n: 1,
@@ -139,7 +142,18 @@ test("listLabRuns summarizes recent disk artifacts", () => {
       run_count: 1,
       evidence_status: "caveated",
       recommendation: "Compare this watch batch with another run before changing prompts.",
+      model_receipt: {
+        tutor: { provider: "gemini", model: "gemini-2.5-flash", mode: "cloud" },
+      },
       runs: [{ out_dir: founderRun }],
+      signatures: [
+        {
+          out_dir: founderRun,
+          terminal_event: "spaced_redrill",
+          score_eligible_events: 2,
+          failure_events: 0,
+        },
+      ],
     }));
 
     const personaDir = path.join(root, "loop-persona", "persona-run");
@@ -169,6 +183,16 @@ test("listLabRuns summarizes recent disk artifacts", () => {
     assert.equal(rows[0].runs, 1);
     assert.equal(rows[0].evidence, "caveated");
     assert.match(rows[0].recommendation, /Compare this watch batch/);
+    assert.equal(rows[0].review.version, "founder-run-review-v1");
+    assert.equal(rows[0].review.terminal_status, "spaced_redrill");
+    assert.equal(rows[0].review.failure_cause, "caveated_evidence");
+    assert.equal(rows[0].review.graph_truth_impact, "none");
+    assert.match(rows[0].review.source_run_path, /run-001$/);
+    assert.ok(rows[0].review.evidence_pointers.some((item) => item.endsWith("founder-report.json")));
+    assert.equal(
+      rows[0].review.prompt_version_context.prompt_versions.repair_dialogue,
+      "socratink-repair-dialogue-v2",
+    );
     assert.equal(rows[0].concept, "Immune memory");
     assert.equal(rows[1].status, "done");
     assert.equal(rows[2].evidence, "idle_exit");
@@ -204,7 +228,10 @@ test("listLabRuns supports direct founder run folders", () => {
     fs.writeFileSync(path.join(runDir, "founder-report.json"), JSON.stringify({
       run_count: 1,
       evidence_status: "rejected",
+      recommendation: "Fix provider reliability before using this batch as pedagogy evidence.",
+      comparison: { failure_runs: [1], evidence_starved_runs: [] },
       runs: [{ out_dir: runDir }],
+      signatures: [{ out_dir: runDir, terminal_event: "bridge_error", failure_events: 1 }],
     }));
 
     const rows = listLabRuns({ root, limit: 10 });
@@ -213,6 +240,9 @@ test("listLabRuns supports direct founder run folders", () => {
     assert.equal(rows[0].source, "founder-batch");
     assert.equal(rows[0].runs, 1);
     assert.equal(rows[0].evidence, "rejected");
+    assert.equal(rows[0].review.terminal_status, "bridge_error");
+    assert.equal(rows[0].review.failure_cause, "failure_events");
+    assert.match(rows[0].review.proposed_next_experiment, /provider reliability/);
 
     const dialogue = getLabRunDialogue(rows[0].dialogueId, { root });
     assert.equal(dialogue.source, "founder-batch");

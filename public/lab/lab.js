@@ -871,6 +871,13 @@ function runPrimaryText(run) {
 
 function runDecision(run) {
   if (run.source === "founder-batch") {
+    const cause = run.review?.failure_cause || "";
+    if (cause === "none") return ["Keep signal", "good"];
+    if (cause === "fake_tutor") return ["Rerun live tutor", "warn"];
+    if (cause === "incomplete_rubric" || cause === "evidence_starved") return ["Collect trace", "warn"];
+    if (cause === "failure_events") return ["Debug failure", "bad"];
+    if (cause === "caveated_evidence") return ["Compare runs", "warn"];
+    if (cause.startsWith("rubric_")) return ["Patch candidate", "bad"];
     const recommendation = String(run.recommendation || "").toLowerCase();
     if (run.evidence === "rejected" && recommendation.includes("rerun")) return ["Rerun live tutor", "warn"];
     if (run.evidence === "rejected" && recommendation.includes("complete rubric")) return ["Collect trace", "warn"];
@@ -886,6 +893,17 @@ function runDecision(run) {
 
 function runEvidencePath(run) {
   return run?.reportPath || run?.outDir || run?.id || "n/a";
+}
+
+function reviewPromptLines(run) {
+  const review = run?.review;
+  if (!review) return [];
+  return [
+    `Failure cause: ${review.failure_cause || "unknown"}`,
+    `Terminal status: ${review.terminal_status || "unknown"}`,
+    `Graph truth impact: ${review.graph_truth_impact || "unknown"}`,
+    `Next experiment: ${review.proposed_next_experiment || run.recommendation || "review report"}`,
+  ];
 }
 
 function thurmanDeliverable(run, payload = selectedRunDialogue) {
@@ -911,6 +929,21 @@ function thurmanDeliverable(run, payload = selectedRunDialogue) {
       prompt: "",
     };
   }
+  if (decision === "Debug failure") {
+    return {
+      title: "Runner failure debug",
+      state: "copy-ready",
+      body: "The run failed before it can justify a pedagogy or prompt change. Fix the runner/provider/reporting failure, then rerun the same cartridge.",
+      prompt: [
+        "Inspect this Socratink founder run and identify the smallest runner/provider/reporting fix only.",
+        `Evidence path: ${path}`,
+        `Dialogue endpoint: /api/lab/runs/${encodeURIComponent(run.dialogueId || run.id)}/dialogue`,
+        `Observed decision: ${decision}; evidence=${run.evidence || "n/a"}; turns=${turnCount}.`,
+        ...reviewPromptLines(run),
+        "Do not propose pedagogy, graph, or prompt changes until a clean rerun reproduces the issue.",
+      ].join("\n"),
+    };
+  }
   if (decision === "Patch candidate") {
     return {
       title: "Prompt/output patch proposal",
@@ -921,6 +954,7 @@ function thurmanDeliverable(run, payload = selectedRunDialogue) {
         `Evidence path: ${path}`,
         `Dialogue endpoint: /api/lab/runs/${encodeURIComponent(run.dialogueId || run.id)}/dialogue`,
         `Observed decision: ${decision}; evidence=${run.evidence || "n/a"}; turns=${turnCount}.`,
+        ...reviewPromptLines(run),
         "Preserve SEDA graph-truth boundaries. Do not apply patches. Recommend exactly one rerun/comparison check.",
       ].join("\n"),
     };
@@ -935,6 +969,7 @@ function thurmanDeliverable(run, payload = selectedRunDialogue) {
         `Evidence path: ${path}`,
         `Dialogue endpoint: /api/lab/runs/${encodeURIComponent(run.dialogueId || run.id)}/dialogue`,
         `Observed decision: ${decision}; evidence=${run.evidence || "n/a"}; turns=${turnCount}.`,
+        ...reviewPromptLines(run),
         "Return the smallest next experiment and only propose a patch if both runs show the same failure.",
       ].join("\n"),
     };
@@ -964,6 +999,7 @@ function renderThurmanWorkbench(run = selectedLabRun, payload = selectedRunDialo
 function runSortScore(run) {
   const [decision] = runDecision(run);
   if (decision === "Patch candidate") return 0;
+  if (decision === "Debug failure") return 0;
   if (decision === "Compare runs") return 1;
   if (run.source === "founder-batch") return 2;
   if (decision === "Debug run") return 3;
@@ -974,7 +1010,7 @@ function renderRunsSummary(runs) {
   const founder = runs.filter((run) => run.source === "founder-batch");
   const needsAction = runs.filter((run) => {
     const [label] = runDecision(run);
-    return label === "Patch candidate" || label === "Compare runs" || label === "Debug run";
+    return label === "Patch candidate" || label === "Compare runs" || label === "Debug failure" || label === "Debug run";
   });
   const latest = runs[0];
   const strip = node("div", "runs-summary");
@@ -1008,7 +1044,7 @@ function renderRuns(runs) {
   const table = node("table", "runs-table");
   const head = document.createElement("thead");
   const headRow = document.createElement("tr");
-  for (const label of ["Updated", "Source", "Run", "Decision", "Evidence", "Report"]) {
+  for (const label of ["Updated", "Source", "Run", "Decision", "Cause", "Evidence", "Report"]) {
     headRow.append(node("th", "", label));
   }
   head.append(headRow);
@@ -1026,6 +1062,7 @@ function renderRuns(runs) {
       node("td", "", run.source || "run"),
       node("td", "", runPrimaryText(run)),
       node("td", "runs-decision", decision),
+      node("td", "", run.review?.failure_cause || ""),
       node("td", "", run.evidence || "n/a"),
       node("td", "runs-path", run.reportPath || run.outDir || ""),
     );

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 test("persona runners delegate to shared persona-runner module", () => {
@@ -12,4 +13,32 @@ test("persona runners delegate to shared persona-runner module", () => {
     assert.match(text, /runPersonaSession/);
     assert.match(text, /preflightPersonaRun/);
   }
+});
+
+test("loop persona live CLI handles help and unknown arguments before preflight", () => {
+  const help = spawnSync("node", ["scripts/loop-persona-live.mjs", "--help"], {
+    encoding: "utf8",
+  });
+  assert.equal(help.status, 0);
+  assert.match(help.stdout, /Usage: node scripts\/loop-persona-live\.mjs/);
+
+  const unknown = spawnSync("node", ["scripts/loop-persona-live.mjs", "--bogus"], {
+    encoding: "utf8",
+  });
+  assert.equal(unknown.status, 1);
+  assert.match(unknown.stderr, /unknown argument: --bogus/);
+});
+
+test("substrate persona matrix CLI handles help and unknown arguments before preflight", () => {
+  const help = spawnSync("node", ["scripts/run-substrate-persona-matrix.mjs", "--help"], {
+    encoding: "utf8",
+  });
+  assert.equal(help.status, 0);
+  assert.match(help.stdout, /Usage: node scripts\/run-substrate-persona-matrix\.mjs/);
+
+  const unknown = spawnSync("node", ["scripts/run-substrate-persona-matrix.mjs", "--bogus"], {
+    encoding: "utf8",
+  });
+  assert.equal(unknown.status, 1);
+  assert.match(unknown.stderr, /unknown argument: --bogus/);
 });

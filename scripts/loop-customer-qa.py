@@ -2,8 +2,8 @@
 """
 Customer persona browser QA for the hosted loop (exploration, not a CI gate).
 
-Persona: Maya — curious non-expert on the dogfood link. Asserts live LLM,
-/help, map + Option F composer CTA, cold eval advance, /exit.
+Persona: Maya — curious non-expert on the hosted loop. Asserts live LLM,
+/help, visible composer CTA, cold eval advance, /exit.
 
 Setup (once):
   .venv/bin/pip install -r requirements-dev.txt
@@ -154,11 +154,9 @@ def main() -> int:
         t_help = transcript_text(page)
         help_lines = [ln for ln in t_help.splitlines() if ln.startswith("[Help]")]
         cp2_ok = (
-            len(help_lines) >= 1
+            len(help_lines) >= 2
             and any("Path:" in ln for ln in help_lines)
-            and (
-                "dogfood" in t_help.lower() or "map is a draft" in t_help.lower()
-            )
+            and any("Commands:" in ln for ln in help_lines)
         )
         findings.append(
             {
@@ -174,13 +172,22 @@ def main() -> int:
             snap(page, f"03-after-{step}")
 
         t_after_route = transcript_text(page)
-        cp3_ok = "[Map]" in t_after_route or "map" in t_after_route.lower()
+        cp3_cta = cta_state(page)
+        cp3_ok = (
+            cp3_cta["visible"]
+            and phase_pill(page).lower() == "first question"
+            and len(str(cp3_cta["text"])) > 20
+        )
         findings.append(
             {
                 "id": "CP3",
-                "claim": "After launch, learner sees a provisional map in the log",
+                "claim": "After launch, learner receives the first reconstruction question",
                 "pass": cp3_ok,
-                "evidence": {"phase": phase_pill(page), "transcript_tail": t_after_route[-800:]},
+                "evidence": {
+                    "phase": phase_pill(page),
+                    "cta": cp3_cta,
+                    "transcript_tail": t_after_route[-800:],
+                },
             },
         )
 
@@ -232,13 +239,14 @@ def main() -> int:
 
         browser.close()
 
+    all_pass = all(f["pass"] for f in findings) and not failed_requests
     report = {
         "persona": PERSONA,
         "url": LOOP_URL,
         "findings": findings,
         "console_errors": [e for e in console_errors if e],
         "failed_requests": failed_requests,
-        "all_pass": all(f["pass"] for f in findings),
+        "all_pass": all_pass,
     }
     REPORT.write_text(json.dumps(report, indent=2), encoding="utf-8")
 

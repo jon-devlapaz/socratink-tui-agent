@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -42,3 +44,33 @@ def test_route_runtime_prompt_path_matches_ai_service() -> None:
     assert str(ai_service.GENERATE_SMALLEST_ROUTE_PROMPT_PATH).endswith(
         route_runtime["prompt_path"].replace("vendor/python/", "")
     )
+
+
+def test_route_runtime_pin_dry_run_does_not_rewrite_registry(tmp_path: Path) -> None:
+    registry = _load_registry()
+    route_runtime = registry["actions"]["generate-route"]["route_runtime"]
+    route_runtime["prompt_sha256"] = "0" * 64
+
+    registry_path = tmp_path / "lib" / "bridge" / "registry.json"
+    prompt_path = tmp_path / route_runtime["prompt_path"]
+    registry_path.parent.mkdir(parents=True)
+    prompt_path.parent.mkdir(parents=True)
+    registry_path.write_text(json.dumps(registry, indent=2) + "\n")
+    prompt_path.write_text("updated route prompt\n")
+    before = registry_path.read_text()
+
+    result = subprocess.run(
+        [
+            os.environ.get("NODE", "node"),
+            str(WORKSPACE_ROOT / "scripts" / "refresh-route-runtime-pin.mjs"),
+            "--dry-run",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Dry run" in result.stdout
+    assert registry_path.read_text() == before

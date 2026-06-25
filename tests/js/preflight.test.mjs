@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 import { resolveTuiPaths, preflightTuiPaths } from "../../lib/config/paths.mjs";
 
@@ -45,5 +47,47 @@ test("preflight reports every missing dependency at once", () => {
   } catch (err) {
     const bullets = err.message.split("\n").filter((l) => l.includes("- "));
     assert.equal(bullets.length, 5);
+  }
+});
+
+test("loop server wrapper owns stale listener cleanup before exec", () => {
+  const wrapper = readFileSync(new URL("../../socratink-loop-server", import.meta.url), "utf8");
+  const syntax = spawnSync("bash", ["-n", "socratink-loop-server"], {
+    cwd: new URL("../..", import.meta.url),
+    encoding: "utf8",
+  });
+  assert.equal(syntax.status, 0, syntax.stderr);
+  assert.match(wrapper, /export PORT="\$\{PORT:-8787\}"/);
+  assert.match(wrapper, /lsof -ti "tcp:\$\{PORT\}"/);
+  assert.match(wrapper, /kill \$existing_pids/);
+  assert.match(wrapper, /for _ in \{1\.\.30\}/);
+  assert.match(wrapper, /port \$\{PORT\} still in use/);
+  assert.match(wrapper, /exit 1/);
+  assert.match(wrapper, /exec node --no-warnings loop-server\.mjs/);
+});
+
+test("riverflow wrapper forwards all args to external tool", () => {
+  const wrapper = readFileSync(new URL("../../riverflow", import.meta.url), "utf8");
+  const syntax = spawnSync("bash", ["-n", "riverflow"], {
+    cwd: new URL("../..", import.meta.url),
+    encoding: "utf8",
+  });
+  assert.equal(syntax.status, 0, syntax.stderr);
+  assert.match(wrapper, /"\/Users\/jondev\/dev\/tools\/riverflow\/riverflow" "\$@"/);
+});
+
+test(".env.example lists operator-facing advanced knobs", () => {
+  const envExample = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
+  for (const key of [
+    "LLM_REQUEST_TIMEOUT_SECONDS",
+    "SOCRATINK_LOOP_SESSION_STORE_DIR",
+    "SOCRATINK_BRIDGE_TIMEOUT_MS",
+    "SOCRATINK_TUI_META_COMMAND",
+    "SOCRATINK_PERSONA_PYTHON",
+    "PERSONA_LLM_TARGET",
+    "PERSONA_GEMINI_MODEL",
+    "SOCRATINK_LOOP_QA_OUT",
+  ]) {
+    assert.match(envExample, new RegExp(`(^|\\n)#? ?${key}=`), `${key} missing`);
   }
 });

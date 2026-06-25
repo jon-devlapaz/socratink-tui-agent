@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import path from "node:path";
 import { readFileSync } from "node:fs";
+import { accessSync } from "node:fs";
 
 import { isLabEnabled, isLoopbackRequest, labAccessAllowed } from "../../lib/lab/lab-access.mjs";
 import { handleLabApi } from "../../lib/lab/lab-api.mjs";
@@ -335,6 +337,37 @@ test("lab browser run view stays decision-oriented", () => {
   assert.match(script, /Model endpoint missing/);
 });
 
+test("public browser screens reference only shipped local assets", () => {
+  const refs = [];
+  for (const screen of ["loop", "dashboard", "lab"]) {
+    const html = readFileSync(new URL(`../../public/${screen}/index.html`, import.meta.url), "utf8");
+    refs.push(
+      ...[...html.matchAll(/(?:href|src)="(\/(?:loop|dashboard|lab)\/[^"?]+)(?:\?[^"]*)?"/g)]
+        .map((match) => match[1]),
+    );
+  }
+  assert.ok(refs.length > 0);
+  for (const ref of refs) {
+    accessSync(path.join(process.cwd(), "public", ref));
+  }
+});
+
+test("public browser screens use valid local links and anchors", () => {
+  for (const screen of ["loop", "dashboard", "lab"]) {
+    const html = readFileSync(new URL(`../../public/${screen}/index.html`, import.meta.url), "utf8");
+    const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]));
+    for (const [, href] of html.matchAll(/href="([#/][^"]*)"/g)) {
+      if (href.startsWith("#")) {
+        assert.ok(ids.has(href.slice(1)), `${screen} missing anchor target ${href}`);
+      } else if (/^\/(?:loop|dashboard|lab)\/?$/.test(href)) {
+        continue;
+      } else if (/^\/(?:loop|dashboard|lab)\//.test(href)) {
+        accessSync(path.join(process.cwd(), "public", href.split(/[?#]/)[0]));
+      }
+    }
+  }
+});
+
 test("canonical gate map links bridge-owned events to registry actions", async () => {
   const res = mockRes();
   await handleLabApi(mockReq(), res, "/api/lab/gates", { skipGate: true });
@@ -619,6 +652,34 @@ test("lab api run lifecycle with mocked runner", async () => {
   process.env.SOCRATINK_LAB_ENABLED = prev;
 });
 
+test("lab api cancels cancellable persona runs", async () => {
+  let cancelled = null;
+  const runStore = {
+    cancelLabRun(runId) {
+      if (runId !== "run-1") return false;
+      cancelled = runId;
+      return true;
+    },
+  };
+
+  const ok = mockRes();
+  await handleLabApi(mockReq({ method: "POST" }), ok, "/api/lab/runs/run-1/cancel", {
+    runStore,
+    skipGate: true,
+  });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(JSON.parse(ok.body), { cancelled: true });
+  assert.equal(cancelled, "run-1");
+
+  const missing = mockRes();
+  await handleLabApi(mockReq({ method: "POST" }), missing, "/api/lab/runs/missing/cancel", {
+    runStore,
+    skipGate: true,
+  });
+  assert.equal(missing.status, 404);
+  assert.match(JSON.parse(missing.body).error, /not found or not cancellable/);
+});
+
 test("lab api returns dialogue for a listed run", async () => {
   const runStore = {
     listLabRuns() {
@@ -831,6 +892,74 @@ test("lab api reveal opens run folder via injected helper", async () => {
   assert.equal(revealed, "/tmp/fake-persona-run");
 
   process.env.SOCRATINK_LAB_ENABLED = prev;
+});
+
+test("lab api reveal reports not-ready and helper failures", async () => {
+  const missingRunDir = mockRes();
+  await handleLabApi(
+    mockReq({ method: "POST" }),
+    missingRunDir,
+    "/api/lab/runs/run-1/reveal",
+    {
+      runStore: { getLabRunSnapshot: () => ({ runId: "run-1", outDir: null }) },
+      skipGate: true,
+    },
+  );
+  assert.equal(missingRunDir.status, 409);
+  assert.match(JSON.parse(missingRunDir.body).error, /run folder not ready/);
+
+  const missingBatchDir = mockRes();
+  await handleLabApi(
+    mockReq({ method: "POST" }),
+    missingBatchDir,
+    "/api/lab/batches/batch-1/reveal",
+    {
+      batchStore: { getLabBatchSnapshot: () => ({ batchId: "batch-1", batchDir: null }) },
+      skipGate: true,
+    },
+  );
+  assert.equal(missingBatchDir.status, 409);
+  assert.match(JSON.parse(missingBatchDir.body).error, /batch folder not ready/);
+
+  const failedReveal = mockRes();
+  await handleLabApi(
+    mockReq({ method: "POST" }),
+    failedReveal,
+    "/api/lab/runs/run-2/reveal",
+    {
+      runStore: { getLabRunSnapshot: () => ({ runId: "run-2", outDir: "/tmp/run-2" }) },
+      skipGate: true,
+      revealPathInOs: async () => {
+        throw new Error("open failed");
+      },
+    },
+  );
+  assert.equal(failedReveal.status, 500);
+  assert.deepEqual(JSON.parse(failedReveal.body), {
+    error: "open failed",
+    outDir: "/tmp/run-2",
+  });
+
+  const failedBatchReveal = mockRes();
+  await handleLabApi(
+    mockReq({ method: "POST" }),
+    failedBatchReveal,
+    "/api/lab/batches/batch-2/reveal",
+    {
+      batchStore: {
+        getLabBatchSnapshot: () => ({ batchId: "batch-2", batchDir: "/tmp/batch-2" }),
+      },
+      skipGate: true,
+      revealPathInOs: async () => {
+        throw new Error("open failed");
+      },
+    },
+  );
+  assert.equal(failedBatchReveal.status, 500);
+  assert.deepEqual(JSON.parse(failedBatchReveal.body), {
+    error: "open failed",
+    batchDir: "/tmp/batch-2",
+  });
 });
 
 test("HTTP /lab static is 404 when lab disabled", async () => {

@@ -482,7 +482,7 @@ function setLlmPillFromHealth(health) {
 
 function setVersionPillFromHealth(health) {
   if (!versionPill) return;
-  const label = health?.app_version || "v0.40";
+  const label = health?.app_version || "v0.41";
   versionPill.textContent = label;
   versionPill.title = `Loop release ${label}`;
 }
@@ -584,7 +584,7 @@ form.addEventListener("submit", async (event) => {
   input.value = "";
   resizeComposerInput();
   try {
-    if (continueTurn) {
+    if (continueTurn && !text) {
       await sendContinueTurn();
     } else {
       await sendTurn(text);

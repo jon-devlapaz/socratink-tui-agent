@@ -65,6 +65,23 @@ def test_replay_reports_missing_raw_text(tmp_path: Path) -> None:
     assert result["action"] == "substrate-gate"
 
 
+def test_replay_reports_unsupported_action(tmp_path: Path) -> None:
+    from bridge_lib.contract_replay import replay_bridge_diagnostic
+
+    diagnostic_path = tmp_path / "unknown-action.json"
+    diagnostic_path.write_text(
+        json.dumps({"id": "fixture-unknown", "action": "unknown-action"}),
+        encoding="utf-8",
+    )
+
+    result = replay_bridge_diagnostic(diagnostic_path)
+
+    assert result["ok"] is False
+    assert result["error"] == "unsupported-action"
+    assert result["schema"] is None
+    assert result["diagnostic_id"] == "fixture-unknown"
+
+
 def test_replay_cli_prints_compact_json(tmp_path: Path) -> None:
     diagnostic_path = tmp_path / "substrate-gate.json"
     _write_diagnostic(

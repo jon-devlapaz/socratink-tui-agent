@@ -59,13 +59,15 @@ test("appendMetaTurn records graph-neutral non-evidence event", () => {
 
 test("meta feature flag is deterministic and default-off", () => {
   assert.equal(isMetaLearnerFeatureEnabled({}), false);
+  for (const value of ["1", "true", "yes", "on", "enabled", " TRUE "]) {
+    assert.equal(
+      isMetaLearnerFeatureEnabled({ SOCRATINK_TUI_META_COMMAND: value }),
+      true,
+    );
+  }
   assert.equal(
-    isMetaLearnerFeatureEnabled({ SOCRATINK_TUI_META_COMMAND: "1" }),
-    true,
-  );
-  assert.equal(
-    isMetaLearnerFeatureEnabled({ SOCRATINK_TUI_META_COMMAND: "true" }),
-    true,
+    isMetaLearnerFeatureEnabled({ SOCRATINK_TUI_META_COMMAND: "0" }),
+    false,
   );
 });
 

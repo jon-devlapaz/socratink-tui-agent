@@ -148,6 +148,38 @@ def test_fake_evaluation_lookup_hit_for_l2_solid_case() -> None:
     assert payload["evaluation"]["classification"] == "solid"
 
 
+def test_fake_env_knobs_override_spaced_and_substrate_classification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from bridge_lib.fake import fake_evaluation, fake_substrate_gate
+
+    monkeypatch.setenv("SOCRATINK_TUI_FAKE_SPACED_CLASSIFICATION", "deep")
+    spaced = fake_evaluation({**_evaluation_request(), "drill_mode": "spaced_redrill"})
+    assert spaced["evaluation"]["classification"] == "deep"
+    assert spaced["evaluation"]["routing"] == "PROBE"
+
+    monkeypatch.setenv("SOCRATINK_TUI_FAKE_SUBSTRATE_CLASSIFICATION", "slow")
+    substrate = fake_substrate_gate(
+        {
+            "concept": "Caching",
+            "launch_attempt": "I do not know yet.",
+        }
+    )["substrate_gate"]
+    assert substrate["classification"] == "slow"
+    assert substrate["seed_text"]
+    assert substrate["refinement_prompt"]
+
+
+def test_fake_leaky_scaffold_env_knob_switches_scaffold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from bridge_lib.fake import fake_repair_scaffold
+
+    monkeypatch.setenv("SOCRATINK_TUI_FAKE_LEAKY_SCAFFOLD", "1")
+    scaffold = fake_repair_scaffold(_repair_request())["repair_scaffold"]
+    assert scaffold["missing_operation"].startswith("observe the tool result")
+
+
 def test_fake_scaffold_and_dialogue_helpers_are_importable_directly() -> None:
     from bridge_lib.fake import (
         fake_repair_dialogue,

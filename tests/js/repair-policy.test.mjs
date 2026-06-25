@@ -7,9 +7,13 @@ import {
   decidePostJudgeTurn,
   decideUncertainTurn,
 } from "../../lib/seda/repair-policy.mjs";
+import { handleRepairAbandoned } from "../../lib/seda/handlers/repair-abandoned.mjs";
 import { MAX_REPAIR_TURNS, nextPhase } from "../../lib/seda/next-phase.mjs";
 import { MAX_UNCERTAINTY_RECOVERY_STEPS } from "../../lib/seda/repair-recovery-config.mjs";
 import { uncertaintyDialogueTurnEvent } from "../../lib/seda/repair-dialogue-helpers.mjs";
+import { initTrainingDerive } from "../../lib/seda/training-summary.mjs";
+
+await initTrainingDerive();
 
 const ev = (type, extra = {}) => ({ type, ...extra });
 
@@ -41,6 +45,46 @@ function policyTurnEvent({ turnIndex, decision, uncertaintyType = "idk" }) {
 
 function routeAfterPolicyTurn(priorEvents, turnEvent) {
   return nextPhase([...priorEvents, turnEvent]);
+}
+
+async function runRepairAbandoned({ flagValue, lastTurn }) {
+  const originalFlag = process.env.SOCRATINK_TUI_ENABLE_RECOVERY_BRANCH;
+  if (flagValue === undefined) {
+    delete process.env.SOCRATINK_TUI_ENABLE_RECOVERY_BRANCH;
+  } else {
+    process.env.SOCRATINK_TUI_ENABLE_RECOVERY_BRANCH = flagValue;
+  }
+
+  const events = [lastTurn];
+  const derived = [];
+  try {
+    await handleRepairAbandoned({
+      events,
+      derived,
+      store: { loadTraining: async () => ({ node_records: {} }) },
+      ctx: {
+        conceptId: "concept-test",
+        firstNode: {
+          id: "kc-test",
+          kc_id: "kc-test",
+        },
+        nodeIds: ["kc-test"],
+        repairScaffold: {
+          missing_operation: "the causal link",
+          before: "before",
+          after: "after",
+        },
+        section: (_kind, label) => `[${label}]`,
+      },
+    });
+  } finally {
+    if (originalFlag === undefined) {
+      delete process.env.SOCRATINK_TUI_ENABLE_RECOVERY_BRANCH;
+    } else {
+      process.env.SOCRATINK_TUI_ENABLE_RECOVERY_BRANCH = originalFlag;
+    }
+  }
+  return { events, derived };
 }
 
 test("decideBlankTurn: recover before cap, abandon at cap", () => {
@@ -370,6 +414,49 @@ test("golden sequence: abandon then recovery_prompt routes to repair_recovery", 
       graph_neutral: true,
       next_step: "recovery_prompt",
     }),
+  );
+  assert.equal(nextPhase(events), "repair_recovery");
+});
+
+test("repair abandoned handler defaults recovery branch off", async () => {
+  const { events, derived } = await runRepairAbandoned({
+    flagValue: undefined,
+    lastTurn: ev("repair_dialogue_turn", {
+      turn_index: MAX_REPAIR_TURNS,
+      bridge_ready: false,
+      next_dialogue_action: "abandon",
+      graph_neutral: true,
+      score_eligible: false,
+      text: "The process changes later.",
+    }),
+  });
+
+  assert.equal(events.at(-1).type, "repair_abandoned");
+  assert.equal(events.at(-1).next_step, "micro_scaffold");
+  assert.equal(events.at(-2).type, "repair_recovery_closed");
+  assert.equal(events.at(-2).outcome, "idle_return");
+  assert.equal(nextPhase(events), "idle");
+  assert.equal(derived.length, 1);
+});
+
+test("repair abandoned handler routes eligible flagged buckets to recovery", async () => {
+  const { events } = await runRepairAbandoned({
+    flagValue: "1",
+    lastTurn: ev("repair_dialogue_turn", {
+      turn_index: MAX_REPAIR_TURNS,
+      bridge_ready: false,
+      next_dialogue_action: "abandon",
+      graph_neutral: true,
+      score_eligible: false,
+      text: "The process changes later.",
+    }),
+  });
+
+  assert.equal(events.at(-1).type, "repair_abandoned");
+  assert.equal(events.at(-1).next_step, "recovery_prompt");
+  assert.equal(
+    events.some((event) => event.type === "repair_recovery_closed"),
+    false,
   );
   assert.equal(nextPhase(events), "repair_recovery");
 });

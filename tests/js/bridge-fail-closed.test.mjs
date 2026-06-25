@@ -158,6 +158,33 @@ setTimeout(() => {
   assert.equal(event.timeout_ms, 50);
 });
 
+test("bridge client ignores invalid timeout config", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "socratink-bridge-timeout-default-"));
+  const bridgePath = path.join(dir, "quick-bridge.mjs");
+  writeFileSync(
+    bridgePath,
+    `
+setTimeout(() => {
+  process.stdout.write(JSON.stringify({ ok: true }));
+}, 25);
+`,
+  );
+
+  for (const timeoutMs of ["bogus", -1]) {
+    const client = createBridgeClient({
+      workspaceRoot: dir,
+      bridgePath,
+      python: process.execPath,
+      timeoutMs,
+    });
+
+    assert.deepEqual(client.callBridgeResult("quick-action", {}), {
+      ok: true,
+      payload: { ok: true },
+    });
+  }
+});
+
 test("route retry exhaustion fails closed without route_generated or cold_attempt advance", async () => {
   const events = [];
   const ctx = makeRouteCtx();

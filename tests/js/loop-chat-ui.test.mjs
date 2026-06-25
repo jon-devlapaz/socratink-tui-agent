@@ -230,6 +230,7 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /substrate_gate/);
   assert.match(js, /isContinueAwaiting/);
   assert.match(js, /sendContinueTurn/);
+  assert.match(js, /continueTurn && !text/);
   assert.match(js, /appendUser:\s*false/);
   assert.match(js, /awaitingBeforeSubmit/);
   assert.match(js, /showAwaitingPrompt\(awaitingBeforeSubmit\)/);
@@ -284,6 +285,15 @@ test("dashboard static assets expose shared payload version tracker", () => {
   assert.match(js, /tracker\.logic_owner/);
   assert.match(css, /\.version-tracker/);
   assert.match(css, /\.product-metrics/);
+});
+
+test("customer browser QA script supports configurable artifact output", () => {
+  const script = readFileSync(path.join(ROOT, "scripts/loop-customer-qa.py"), "utf8");
+  assert.match(script, /SOCRATINK_LOOP_BASE_URL/);
+  assert.match(script, /SOCRATINK_LOOP_QA_OUT/);
+  assert.match(script, /REPORT = OUT \/ "report\.json"/);
+  assert.match(script, /all\(f\["pass"\] for f in findings\) and not failed_requests/);
+  assert.match(script, /Artifacts: \{OUT\}/);
 });
 
 test("loop API /health exposes app_version", async () => {

@@ -142,6 +142,25 @@ test("HTTP dashboard report clear deletes live reports and preserves promoted pa
   }
 });
 
+test("HTTP dashboard report clear reports unavailable stores", async () => {
+  const { createLoopServerWithStore } = await import(
+    "../../lib/loop-server/http-server.mjs"
+  );
+  const server = createLoopServerWithStore({ sessionStore: {} });
+  const baseUrl = await listen(server);
+  try {
+    const response = await fetch(`${baseUrl}/api/dashboard/reports`, {
+      method: "DELETE",
+    });
+    assert.equal(response.status, 501);
+    assert.deepEqual(await response.json(), {
+      error: "session report clearing unavailable",
+    });
+  } finally {
+    await close(server);
+  }
+});
+
 test("HTTP dashboard includes live runtime from session store", async () => {
   const { store } = await tempStore();
   const sessionId = uuid("900");

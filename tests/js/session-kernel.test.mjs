@@ -1,12 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { HANDLERS } from "../../lib/seda/handlers/index.mjs";
 import {
   createSessionKernel,
+  loadAgentContracts,
   makeAgentLookup,
 } from "../../lib/seda/session-kernel.mjs";
 import { createSessionState } from "../../lib/loop-server/runtime.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "../..");
 
 function createMemoryTrainingStore() {
   const trainings = new Map();
@@ -142,4 +149,36 @@ test("hosted session wraps the kernel without replacing kernel-owned identity", 
   assert.equal(session.handlers, HANDLERS);
   assert.equal(session.ctx.logDir, null);
   assert.equal(session.ctx.composerCta, null);
+});
+
+test("pedagogical agent contracts cannot write graph truth", async () => {
+  const contracts = await loadAgentContracts(ROOT);
+  const readme = readFileSync(path.join(ROOT, "pedagogical_agents/README.md"), "utf8");
+
+  assert.deepEqual(
+    contracts.agents.map((agent) => agent.id),
+    [
+      "substrate_gate",
+      "route",
+      "cold_attempt",
+      "delta",
+      "socratic_repair_drill",
+      "repair",
+      "model_bridge",
+      "redrill",
+      "evidence_judge",
+    ],
+  );
+  assert.match(contracts.architecture.truth_contract, /Derivation decides truth/);
+  assert.match(readme, /Every subagent has `truth_permission: "none"` and `may_write_events: \[\]`/);
+
+  for (const agent of contracts.agents) {
+    assert.ok(agent.job);
+    assert.ok(agent.inputs_allowed.length);
+    assert.ok(agent.required_outputs.length);
+    assert.ok(Array.isArray(agent.may_propose_events));
+    assert.deepEqual(agent.may_write_events, []);
+    assert.equal(agent.truth_permission, "none");
+    assert.ok(agent.failure_mode_to_guard);
+  }
 });

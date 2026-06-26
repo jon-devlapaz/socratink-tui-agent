@@ -1,0 +1,42 @@
+name: Test Required
+on:
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  test-required:
+    name: Enforce test coupling for feat/fix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Require test evidence for feat/fix changes
+        run: |
+          set -euo pipefail
+
+          base_ref="${GITHUB_BASE_REF:-main}"
+          if ! git show-ref --verify --quiet "refs/remotes/origin/${base_ref}"; then
+            echo "Base ref origin/${base_ref} not present; skipping."
+            exit 0
+          fi
+
+          if ! git log --format=%s "origin/${base_ref}..HEAD" \
+            | grep -Eq '^(feat|fix)(\(.+\))?:'; then
+            exit 0
+          fi
+
+          changed_files="$(git diff --name-only "origin/${base_ref}...HEAD")"
+          if printf '%s\n' "$changed_files" | \
+            grep -Eq '(^|/)(__tests__|test|tests)/|(^|/)(.*\.)?(test|spec)\.(js|mjs|ts|tsx|py)$'; then
+            exit 0
+          fi
+
+          echo "::error::feat/fix commits require test changes (tests/ or *.test.* / *.spec.* files)."
+          echo "Changed files in scope:"
+          printf '%s\n' "$changed_files"
+          exit 1

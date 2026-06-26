@@ -5,21 +5,21 @@
 - Branch: `codex/event-taxonomy-dashboard-v2`
 - Starting status: `?? docs/implementation/event-taxonomy-dashboard-v2/`
 - Baseline validation:
-  - `rtk ./scripts/check-canon-drift.sh` - pass
-  - `rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
-  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 119 tests
-  - `rtk ./socratink-harness replay` - pass, 8 cases
-  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
-  - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
-- Command compatibility note: the literal GOAL command forms for compound `find` and leading env assignment do not execute under `rtk`; the measured baseline used `rtk proxy find ...` and `rtk env ...`.
+  - `./scripts/check-canon-drift.sh` - pass
+  - `.venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
+  - `proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 119 tests
+  - `./socratink-harness replay` - pass, 8 cases
+  - `./socratink-harness routing-proof` - pass, 8 cases
+  - `env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
+- Command compatibility note: the literal GOAL command forms for compound `find` and leading env assignment do not execute under ` `; the measured baseline used `proxy find ...` and `env ...`.
 
 ## Checkpoint 2 - Contract Tests First
 
 - Added failing taxonomy contract tests in `tests/js/event-taxonomy.test.mjs`.
 - Added failing dashboard product metric tests in `tests/js/dashboard.test.mjs`.
 - RED validation:
-  - `rtk node --test tests/js/event-taxonomy.test.mjs` - expected fail, missing `lib/seda/event-taxonomy.mjs`
-  - `rtk node --test tests/js/dashboard.test.mjs` - expected fail, product metrics still scalar rates without numerator/denominator/source metadata
+  - `node --test tests/js/event-taxonomy.test.mjs` - expected fail, missing `lib/seda/event-taxonomy.mjs`
+  - `node --test tests/js/dashboard.test.mjs` - expected fail, product metrics still scalar rates without numerator/denominator/source metadata
 
 ## Checkpoint 3 - Canonical Envelope Adapter
 
@@ -30,7 +30,7 @@
 - Preserved legacy `event.type`; no append sites were migrated because the
   bounded solution is a read-only canonical projection.
 - Compatibility evidence:
-  - `rtk node --test tests/js/event-taxonomy.test.mjs` - pass, 4 tests
+  - `node --test tests/js/event-taxonomy.test.mjs` - pass, 4 tests
 
 ## Checkpoint 4 - Dashboard Metric Projection
 
@@ -41,7 +41,7 @@
 - `evidence_hold_rate` is reconstructed from canonical cold/spaced evaluation
   classifications, not `session.evidence_holds`.
 - Compatibility evidence:
-  - `rtk node --test tests/js/dashboard.test.mjs` - pass, 8 tests
+  - `node --test tests/js/dashboard.test.mjs` - pass, 8 tests
 
 ## Checkpoint 5 - Promotion Gates and Final Validation
 
@@ -55,12 +55,12 @@
 - Bumped `LOOP_APP_VERSION_DEFAULT` in `lib/loop-server/version.mjs` from
   `v0.04` to `v0.05` within the GOAL-scoped file list.
 - Final validation:
-  - `rtk ./scripts/check-canon-drift.sh` - pass
-  - `rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
-  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 125 tests
-  - `rtk ./socratink-harness replay` - pass, 8 cases
-  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
-  - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
+  - `./scripts/check-canon-drift.sh` - pass
+  - `.venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
+  - `proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 125 tests
+  - `./socratink-harness replay` - pass, 8 cases
+  - `./socratink-harness routing-proof` - pass, 8 cases
+  - `env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
 
 ## QA Addendum - Truth-Layer Regression Suite
 
@@ -83,24 +83,24 @@
   canonical projections for meaningful cold attempts, case completion, and
   evidence-hold counting.
 - Validation:
-  - `rtk node --test tests/js/event-taxonomy-dashboard-qa.test.mjs` - pass, 7 tests
-  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs` - pass, 12 tests
-  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 132 tests
-  - `rtk .venv/bin/pytest tests/test_workspace_smoke.py -q` - pass, 10 tests
-  - `rtk ./scripts/check-canon-drift.sh` - pass
+  - `node --test tests/js/event-taxonomy-dashboard-qa.test.mjs` - pass, 7 tests
+  - `node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs` - pass, 12 tests
+  - `proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 132 tests
+  - `.venv/bin/pytest tests/test_workspace_smoke.py -q` - pass, 10 tests
+  - `./scripts/check-canon-drift.sh` - pass
 
 ## Checkpoint 6 - Metric Contract Tightening Baseline
 
 - Branch/status before edits:
-  - `rtk git status --short --branch` - `## codex/event-taxonomy-dashboard-v2`, clean worktree
-  - `rtk git log --oneline --decorate --max-count=1` - `0c759e8 feat(dashboard): add event tax...`
+  - `git status --short --branch` - `## codex/event-taxonomy-dashboard-v2`, clean worktree
+  - `git log --oneline --decorate --max-count=1` - `0c759e8 feat(dashboard): add event tax...`
 - Focused pre-change baseline:
-  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs` - pass, 24 tests
+  - `node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs` - pass, 24 tests
 
 ## Checkpoint 7 - Explicit Denominators, Meta Gate, Vocabulary Guard
 
 - RED validation after writing focused tests first:
-  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - expected fail, 13 pass / 10 fail. Failures covered missing `assertPublicVocabularySafe`, missing meta feature flag helpers, `meta_use_rate` still published, missing `critical_path`, blanket metric denominators, and disabled `/meta` still appending `meta_turn`.
+  - `node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - expected fail, 13 pass / 10 fail. Failures covered missing `assertPublicVocabularySafe`, missing meta feature flag helpers, `meta_use_rate` still published, missing `critical_path`, blanket metric denominators, and disabled `/meta` still appending `meta_turn`.
 - Implementation:
   - `lib/observability/dashboard-metrics.mjs` now derives six critical-path product metrics with metric-specific numerator and denominator counts:
     `meaningful_cold_attempt_rate`, `bridge_reach_rate`, `case_complete_rate`,
@@ -111,15 +111,15 @@
   - Public dashboard rendering accepts metric objects and omits unavailable `meta_use_rate`.
   - Public vocabulary guard rejects the deprecated repair-rep phrase unless it is intentionally re-canonized.
 - Focused green validation:
-  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - pass, 35 tests
+  - `node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/meta-command.test.mjs tests/js/prompt-help.test.mjs tests/js/feedback-commands.test.mjs tests/js/http-prompt-meta.test.mjs` - pass, 35 tests
 - Broader validation:
-  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 140 tests
-  - `rtk ./scripts/check-canon-drift.sh` - pass
-  - `rtk .venv/bin/pytest tests/test_workspace_smoke.py -q` - pass, 10 tests
-  - `rtk ./socratink-harness replay` - pass, 8 cases
-  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
-  - `rtk env PORT=8793 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8793 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
-  - `rtk git diff --check` - pass
+  - `proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 140 tests
+  - `./scripts/check-canon-drift.sh` - pass
+  - `.venv/bin/pytest tests/test_workspace_smoke.py -q` - pass, 10 tests
+  - `./socratink-harness replay` - pass, 8 cases
+  - `./socratink-harness routing-proof` - pass, 8 cases
+  - `env PORT=8793 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8793 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
+  - `git diff --check` - pass
 
 ## Checkpoint 8 - Review Fix: Event-Backed Evidence Hold Metric
 
@@ -146,26 +146,26 @@
   `evidence_hold_recorded` when derivation holds a solid spaced reconstruction
   below `solidified`.
 - Validation:
-  - `rtk node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/next-phase.test.mjs tests/js/bridge-registry.test.mjs` - pass, 50 tests
-  - `rtk node --test tests/js/spaced-redrill-evidence-hold.test.mjs` - pass, 1 test
-  - `rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 146 tests
-  - `rtk ./scripts/check-canon-drift.sh` - pass
-  - `rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
-  - `rtk ./socratink-harness replay` - pass, 8 cases
-  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
-  - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
-  - `rtk env PORT=8796 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8796 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
+  - `node --test tests/js/event-taxonomy.test.mjs tests/js/dashboard.test.mjs tests/js/event-taxonomy-dashboard-qa.test.mjs tests/js/next-phase.test.mjs tests/js/bridge-registry.test.mjs` - pass, 50 tests
+  - `node --test tests/js/spaced-redrill-evidence-hold.test.mjs` - pass, 1 test
+  - `proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test` - pass, 146 tests
+  - `./scripts/check-canon-drift.sh` - pass
+  - `.venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
+  - `./socratink-harness replay` - pass, 8 cases
+  - `./socratink-harness routing-proof` - pass, 8 cases
+  - `env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass
+  - `env PORT=8796 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8796 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
 
 ## Checkpoint 8 - Merge-Gate Refresh, 2026-06-05
 
 - Branch/status before refresh:
-  - `rtk git status --short --branch` - branch `codex/metric-contract-meta-gating...origin/codex/metric-contract-meta-gating` with this progress note unstaged
+  - `git status --short --branch` - branch `codex/metric-contract-meta-gating...origin/codex/metric-contract-meta-gating` with this progress note unstaged
 - Revalidated the Checkpoint 8 merge gate after the review-fix implementation was already present:
-  - `rtk ./scripts/check-canon-drift.sh` - pass
-  - `rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
-  - `rtk ./socratink-harness replay` - pass, 8 cases
-  - `rtk ./socratink-harness routing-proof` - pass, 8 cases
-  - `rtk proxy bash -lc "find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test"` - pass, 147 tests
-  - `rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass; saved log under `.qa-runs/socratink-tui/2026-06-05T06-33-14.804Z/session.json`
-  - `rtk env PORT=8798 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `rtk env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8798 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
-  - `rtk git diff --check` - pass
+  - `./scripts/check-canon-drift.sh` - pass
+  - `.venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q` - pass, 24 tests
+  - `./socratink-harness replay` - pass, 8 cases
+  - `./socratink-harness routing-proof` - pass, 8 cases
+  - `proxy bash -lc "find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test"` - pass, 147 tests
+  - `env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never` - pass; saved log under `.qa-runs/socratink-tui/2026-06-05T06-33-14.804Z/session.json`
+  - `env PORT=8798 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow node --no-warnings loop-server.mjs` plus `env SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8798 node --test tests/js/loop-chat-ui.test.mjs` - pass, 19 tests
+  - `git diff --check` - pass

@@ -5,13 +5,13 @@
 ### Baseline Re-run
 
 ```bash
-rtk node --test tests/js/architecture-fitness.test.mjs
+ node --test tests/js/architecture-fitness.test.mjs
 ```
 
 Result: 4 passed.
 
 ```bash
-rtk .venv/bin/pytest tests/test_workspace_smoke.py -q
+ .venv/bin/pytest tests/test_workspace_smoke.py -q
 ```
 
 Result: 10 passed in 38.12s.
@@ -21,7 +21,7 @@ Result: 10 passed in 38.12s.
 Added `tests/js/session-kernel.test.mjs` before production edits.
 
 ```bash
-rtk node --test tests/js/session-kernel.test.mjs
+ node --test tests/js/session-kernel.test.mjs
 ```
 
 Initial result: failed with `ERR_MODULE_NOT_FOUND` for
@@ -53,13 +53,13 @@ hosted wrapper mismatch (`awaiting` missing / hosted state not kernel-wrapped).
 ### Slice Verification
 
 ```bash
-rtk node --test tests/js/session-kernel.test.mjs
+ node --test tests/js/session-kernel.test.mjs
 ```
 
 Result: 3 passed.
 
 ```bash
-rtk node --test tests/js/architecture-fitness.test.mjs
+ node --test tests/js/architecture-fitness.test.mjs
 ```
 
 Result: 4 passed.
@@ -68,7 +68,7 @@ A focused grep for production duplicate default construction returned no
 matches:
 
 ```bash
-rtk rg -n "evidenceHolds: \[\]|const ctx = \{|ctx: \{" app.mjs lib/loop-server/runtime.mjs lib/seda/session-kernel.mjs
+ rg -n "evidenceHolds: \[\]|const ctx = \{|ctx: \{" app.mjs lib/loop-server/runtime.mjs lib/seda/session-kernel.mjs
 ```
 
 Result: no matches.
@@ -76,13 +76,13 @@ Result: no matches.
 ### Final Verification
 
 ```bash
-rtk node --test tests/js/session-kernel.test.mjs
+ node --test tests/js/session-kernel.test.mjs
 ```
 
 Result: 3 passed.
 
 ```bash
-rtk node --test tests/js/architecture-fitness.test.mjs
+ node --test tests/js/architecture-fitness.test.mjs
 ```
 
 Result: 4 passed.
@@ -90,31 +90,31 @@ Result: 4 passed.
 The exact requested command:
 
 ```bash
-rtk find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
+ find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
 ```
 
 was rejected by the local RTK wrapper:
 
 ```text
-rtk: rtk find does not support compound predicates or actions (e.g. -not, -exec). Use `find` directly.
+Note: find does not support compound predicates or actions (e.g. -not, -exec). Use `find` directly.
 ```
 
 Equivalent RTK-prefixed command used:
 
 ```bash
-rtk proxy sh -c "find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test"
+ proxy sh -c "find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test"
 ```
 
 Result: 150 passed.
 
 ```bash
-rtk .venv/bin/pytest tests/test_workspace_smoke.py -q
+ .venv/bin/pytest tests/test_workspace_smoke.py -q
 ```
 
 Result: 10 passed in 35.49s.
 
 ```bash
-rtk ./socratink-harness replay
+ ./socratink-harness replay
 ```
 
 Result: 8 cases passed.
@@ -125,18 +125,18 @@ Hosted server-backed verification:
 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
 SOCRATINK_TUI_FAKE_LLM=1 \
 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-  rtk node --no-warnings loop-server.mjs
+   node --no-warnings loop-server.mjs
 ```
 
 Server started on `http://127.0.0.1:8787/loop` with fake LLM.
 
 ```bash
-SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 rtk node --test tests/js/loop-chat-ui.test.mjs
+SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787  node --test tests/js/loop-chat-ui.test.mjs
 ```
 
 Result: 19 passed.
 
-The loop server process was stopped after verification; `rtk lsof -ti tcp:8787`
+The loop server process was stopped after verification; `lsof -ti tcp:8787`
 returned no listener.
 
 ### Stop-Condition Check

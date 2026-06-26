@@ -1,5 +1,8 @@
 # AGENTS.md
 
+Project: Socratink TUI is the founder-facing terminal and hosted-loop lab for
+evidence-weighted, adaptive learning and SEDA routing correctness.
+
 ## Identity
 
 Socratink TUI is a founder-facing terminal and hosted loop lab for
@@ -18,7 +21,7 @@ not a router input.
 
 ## Start Here
 
-- Use `rtk` before shell commands in this workspace.
+- Use ` ` before shell commands in this workspace.
 - Run `npm run agent:git -- status` before branch, PR, merge, or cleanup work.
 - Use `npm run agent:git -- rescue --message "<why>"` before risky cleanup when
   useful dirty work could be lost.
@@ -66,8 +69,24 @@ not a router input.
 - Live Gemini loop proof: prefer `scripts/verify-loop-gemini.mjs` over
   `/health`.
 
+## Local test
+
+- `npm test`
+- `pytest tests/test_prompt_template.py`
+
 Fix test, lint, type, and harness failures before finishing unless you clearly
 report the remaining blocker.
+
+## Rules and constraints
+
+- IMPORTANT: Keep `nextPhase(events)` as the sole routing owner. Handler code
+  must never choose phase/lane directly.
+- MUST: Use `eventBuilders` from `lib/seda/event-facts.mjs` when appending runtime
+  facts, because routing, traces, and scoring all depend on a uniform fact schema.
+- DON'T mutate `events[]` (`pop`, `shift`, `splice`, `sort`), because `nextPhase`
+  reads `events.at(-1)` for deterministic routing.
+- DON'T add or update prompts in `bridge.py`, because prompt templates are
+  canonicalized in `prompt_templates.py`.
 
 ## Change Rules
 

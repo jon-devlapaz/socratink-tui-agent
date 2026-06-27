@@ -5,6 +5,11 @@ repos:
       - id: gitleaks
   - repo: local
     hooks:
+      - id: agent-worktree-guard
+        name: agent worktree guard
+        entry: npm run agent:git -- guard
+        language: system
+        pass_filenames: false
       - id: eslint-lib
         name: eslint (lib/)
         entry: npm run lint

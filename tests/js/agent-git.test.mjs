@@ -1,8 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   CommandError,
+  agentWorktreeGuard,
+  agentWorktreeStart,
+  validateAgentSlug,
   assertSafeRequestedCommand,
   classifyBranch,
   isProtectedBranch,
@@ -31,6 +38,48 @@ test("agent git protects mainline and release branches", () => {
   assert.equal(isProtectedBranch("prod"), true);
   assert.equal(isProtectedBranch("release/v1"), true);
   assert.equal(isProtectedBranch("feat/prod-ui"), false);
+});
+
+test("agent git validates worktree slugs", () => {
+  assert.equal(validateAgentSlug("bughunt-routing_1"), "bughunt-routing_1");
+  assert.throws(() => validateAgentSlug("../main"), /path separators|slug/);
+  assert.throws(() => validateAgentSlug("bug/hunt"), /path separators|slug/);
+});
+
+test("agent git guard blocks protected branches without integrator override", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-"));
+  execFileSync("git", ["init", "-b", "main"], { cwd: dir, stdio: "ignore" });
+
+  assert.throws(
+    () => agentWorktreeGuard(dir, {}),
+    (error) => error instanceof CommandError && error.code === 2,
+  );
+  assert.deepEqual(agentWorktreeGuard(dir, { SOCRATINK_INTEGRATOR: "1" }), {
+    root: fs.realpathSync(dir),
+    branch: "main",
+    ok: true,
+  });
+});
+
+test("agent git start creates an isolated agent worktree", () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-parent-"));
+  const repo = path.join(parent, "repo");
+  fs.mkdirSync(repo);
+  execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
+  execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, "README.md"), "test\n");
+  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
+
+  const result = agentWorktreeStart(repo, { slug: "bughunt-routing" });
+  assert.equal(result.branch, "agent/bughunt-routing");
+  assert.equal(result.path, fs.realpathSync(path.join(parent, "socratink-agent-bughunt-routing")));
+  assert.equal(result.created, true);
+  assert.equal(
+    execFileSync("git", ["branch", "--show-current"], { cwd: result.path, encoding: "utf8" }).trim(),
+    "agent/bughunt-routing",
+  );
 });
 
 test("agent git blocks destructive command pass-through", () => {

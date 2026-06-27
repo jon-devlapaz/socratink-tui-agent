@@ -2,6 +2,8 @@
 import {
   CommandError,
   assertSafeRequestedCommand,
+  agentWorktreeGuard,
+  agentWorktreeStart,
   cleanupDryRun,
   collectStatus,
   doctor,
@@ -91,12 +93,29 @@ function printRescue(result) {
   console.log("Restore with: git stash list && git stash apply <stash>");
 }
 
+function printStart(result) {
+  console.log(`agent-git start`);
+  console.log(`branch: ${result.branch}`);
+  console.log(`worktree: ${result.path}`);
+  console.log(`created: ${result.created ? "yes" : "no"}`);
+  console.log("");
+  console.log(`Launch agents from: ${result.path}`);
+}
+
+function printGuard(result) {
+  console.log(`agent-git guard`);
+  console.log(`branch: ${result.branch}`);
+  console.log("ok");
+}
+
 function usage() {
   console.log(`Usage: agent-git <command>
 
 Commands:
   doctor [--json]          Verify repo, GitHub, and worktree prerequisites
   status [--json]          Show current branch, dirty state, PR, and checks
+  start <slug> [--json]    Create or reuse ../socratink-agent-<slug> on agent/<slug>
+  guard [--json]           Refuse agent work on protected branches unless SOCRATINK_INTEGRATOR=1
   cleanup --dry-run [--json]
                            Classify branches without deleting anything
   rescue [--message TEXT] [--json]
@@ -124,6 +143,17 @@ function main(argv) {
   if (command === "status") {
     const result = collectStatus();
     json ? printJson(result) : printStatus(result);
+    return;
+  }
+  if (command === "start") {
+    const slug = args.find((arg) => !arg.startsWith("-"));
+    const result = agentWorktreeStart(process.cwd(), { slug });
+    json ? printJson(result) : printStart(result);
+    return;
+  }
+  if (command === "guard") {
+    const result = agentWorktreeGuard();
+    json ? printJson(result) : printGuard(result);
     return;
   }
   if (command === "cleanup") {

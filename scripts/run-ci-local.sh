@@ -8,9 +8,13 @@ cd "$REPO_ROOT"
 echo "==> version, lint, typecheck"
 npm run version:check
 npm run lint
-poetry run mypy vendor/python
-poetry run mypy bridge.py prompt_templates.py bridge_lib
-poetry run mypy scripts
+if [ ! -x ".venv/bin/mypy" ]; then
+  echo "[run-ci-local] mypy missing; running ./scripts/bootstrap-python.sh" >&2
+  ./scripts/bootstrap-python.sh
+fi
+.venv/bin/mypy vendor/python
+.venv/bin/mypy bridge.py prompt_templates.py bridge_lib
+.venv/bin/mypy scripts
 
 echo "==> prompt templates"
 ./scripts/run-python-tests.sh tests/test_prompt_template.py -q
@@ -39,6 +43,9 @@ SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
 
 echo "==> loop chat UI server-backed test"
 LOOP_TEST_PORT="${SOCRATINK_LOOP_TEST_PORT:-8787}"
+CI_ENV_FILE=".qa-runs/validation-entrypoints/missing.env"
+mkdir -p "$(dirname "$CI_ENV_FILE")"
+: > "$CI_ENV_FILE"
 server_pid=""
 cleanup_server() {
   if [ -n "$server_pid" ]; then
@@ -47,7 +54,7 @@ cleanup_server() {
   fi
 }
 
-SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
+SOCRATINK_TUI_ENV_FILE="$CI_ENV_FILE" \
 SOCRATINK_TUI_FAKE_LLM=1 \
 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
 PORT="$LOOP_TEST_PORT" \

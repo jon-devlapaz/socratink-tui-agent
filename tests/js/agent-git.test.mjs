@@ -1,8 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   CommandError,
+  agentVerdict,
+  agentWorktreeGuard,
+  agentWorktreeStart,
+  herdrAgentStartArgs,
+  herdrWorkspaceCreateArgs,
+  validateAgentSlug,
+  writeAgentHandoff,
   assertSafeRequestedCommand,
   classifyBranch,
   isProtectedBranch,
@@ -31,6 +42,163 @@ test("agent git protects mainline and release branches", () => {
   assert.equal(isProtectedBranch("prod"), true);
   assert.equal(isProtectedBranch("release/v1"), true);
   assert.equal(isProtectedBranch("feat/prod-ui"), false);
+});
+
+test("agent git validates worktree slugs", () => {
+  assert.equal(validateAgentSlug("bughunt-routing_1"), "bughunt-routing_1");
+  assert.throws(() => validateAgentSlug("../main"), /path separators|slug/);
+  assert.throws(() => validateAgentSlug("bug/hunt"), /path separators|slug/);
+});
+
+test("agent git guard blocks protected branches without integrator override", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-"));
+  execFileSync("git", ["init", "-b", "main"], { cwd: dir, stdio: "ignore" });
+
+  assert.throws(
+    () => agentWorktreeGuard(dir, {}),
+    (error) => error instanceof CommandError && error.code === 2,
+  );
+  assert.deepEqual(agentWorktreeGuard(dir, { SOCRATINK_INTEGRATOR: "1" }), {
+    root: fs.realpathSync(dir),
+    branch: "main",
+    ok: true,
+  });
+});
+
+test("agent git start creates an isolated agent worktree", () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-parent-"));
+  const repo = path.join(parent, "repo");
+  fs.mkdirSync(repo);
+  execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
+  execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, "README.md"), "test\n");
+  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
+
+  const result = agentWorktreeStart(repo, { slug: "bughunt-routing", herdr: false });
+  assert.equal(result.branch, "agent/bughunt-routing");
+  assert.equal(result.path, fs.realpathSync(path.join(parent, "socratink-agent-bughunt-routing")));
+  assert.equal(result.created, true);
+  assert.equal(
+    execFileSync("git", ["branch", "--show-current"], { cwd: result.path, encoding: "utf8" }).trim(),
+    "agent/bughunt-routing",
+  );
+});
+
+function initRepo(parent) {
+  const repo = path.join(parent, "repo");
+  fs.mkdirSync(repo);
+  execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
+  execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, "README.md"), "test\n");
+  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
+  return repo;
+}
+
+test("agent git verdict blocks missing worktrees", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-missing-")));
+  assert.deepEqual(
+    {
+      recommendation: agentVerdict(repo, { slug: "missing" }).recommendation,
+      reason: agentVerdict(repo, { slug: "missing" }).reason,
+    },
+    { recommendation: "blocked", reason: "missing branch" },
+  );
+});
+
+test("agent git verdict marks unchanged agent branch empty", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-empty-")));
+  agentWorktreeStart(repo, { slug: "empty", herdr: false });
+
+  const verdict = agentVerdict(repo, { slug: "empty" });
+  assert.equal(verdict.recommendation, "empty");
+  assert.equal(verdict.reason, "no branch changes");
+  assert.equal(verdict.ahead, 0);
+  assert.deepEqual(verdict.changedFiles, []);
+});
+
+test("agent git verdict marks committed agent work ready for review", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-review-")));
+  const started = agentWorktreeStart(repo, { slug: "review", herdr: false });
+  fs.writeFileSync(path.join(started.path, "alpha.md"), "finding\n");
+  execFileSync("git", ["add", "alpha.md"], { cwd: started.path });
+  execFileSync("git", ["commit", "-m", "docs: add alpha finding"], { cwd: started.path, stdio: "ignore" });
+
+  const verdict = agentVerdict(repo, { slug: "review" });
+  assert.equal(verdict.recommendation, "review");
+  assert.equal(verdict.reason, "ready for integrator review");
+  assert.equal(verdict.ahead, 1);
+  assert.deepEqual(verdict.changedFiles, ["A\talpha.md"]);
+  assert.match(verdict.commits[0], /docs: add alpha finding/);
+});
+
+test("agent git verdict blocks dirty agent worktrees", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-dirty-")));
+  const started = agentWorktreeStart(repo, { slug: "dirty", herdr: false });
+  fs.writeFileSync(path.join(started.path, "loose.md"), "not committed\n");
+
+  const verdict = agentVerdict(repo, { slug: "dirty" });
+  assert.equal(verdict.recommendation, "blocked");
+  assert.equal(verdict.reason, "dirty worktree");
+  assert.match(verdict.porcelain, /loose\.md/);
+});
+
+test("agent git start uses a no-focus Herdr workspace", () => {
+  assert.deepEqual(herdrWorkspaceCreateArgs({ path: "/tmp/socratink-agent-demo", slug: "demo" }), [
+    "workspace",
+    "create",
+    "--cwd",
+    "/tmp/socratink-agent-demo",
+    "--label",
+    "agent:demo",
+    "--no-focus",
+  ]);
+});
+
+test("agent git writes a task handoff for started agents", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-handoff-"));
+  const handoff = writeAgentHandoff({
+    branch: "agent/alpha-docs",
+    handoffDir: dir,
+    path: "/tmp/socratink-agent-alpha-docs",
+    slug: "alpha-docs",
+    task: "Review docs and consolidate alpha findings",
+  });
+
+  assert.equal(handoff.path, path.join(dir, "handoff-agent-alpha-docs.md"));
+  const text = fs.readFileSync(handoff.path, "utf8");
+  assert.match(text, /# Copyable prompt for next session/);
+  assert.match(text, /Review docs and consolidate alpha findings/);
+  assert.match(text, /Branch: agent\/alpha-docs/);
+  assert.match(text, /Do not push, merge, close PRs, delete branches/);
+});
+
+test("agent git starts Codex from the task handoff inside Herdr", () => {
+  const args = herdrAgentStartArgs({
+    cwd: "/tmp/socratink-agent-alpha-docs",
+    handoffPath: "/tmp/handoff-agent-alpha-docs.md",
+    slug: "alpha-docs",
+    task: "Review docs",
+    workspaceId: "w1S",
+  });
+
+  assert.deepEqual(args.slice(0, 10), [
+    "agent",
+    "start",
+    "agent:alpha-docs",
+    "--cwd",
+    "/tmp/socratink-agent-alpha-docs",
+    "--workspace",
+    "w1S",
+    "--no-focus",
+    "--",
+    "codex",
+  ]);
+  assert.match(args.at(-1), /Read \/tmp\/handoff-agent-alpha-docs\.md/);
+  assert.match(args.at(-1), /Task: Review docs/);
 });
 
 test("agent git blocks destructive command pass-through", () => {

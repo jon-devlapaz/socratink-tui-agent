@@ -22,6 +22,9 @@ not a router input.
 - Run `npm run agent:git -- status` before branch, PR, merge, or cleanup work.
 - Use `npm run agent:git -- rescue --message "<why>"` before risky cleanup when
   useful dirty work could be lost.
+- Subagents must work in `agent/*` worktrees, not this main checkout. Start one
+  with `npm run agent:git -- start <slug> --task "<one focused task>"`; it opens
+  a side Herdr workspace and starts Codex from a temp handoff when available.
 - Main startup chain: `./socratink-tui -> app.mjs -> createSessionKernel() ->
   makePrompt() -> runSedaLoop() -> nextPhase(events)`.
 - Frontend files live under `public/`; SEDA runtime lives under `lib/seda/`;

@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import {
   CommandError,
+  agentVerdict,
   assertSafeRequestedCommand,
+  agentWorktreeGuard,
+  agentWorktreeStart,
   cleanupDryRun,
   collectStatus,
   doctor,
@@ -91,12 +94,70 @@ function printRescue(result) {
   console.log("Restore with: git stash list && git stash apply <stash>");
 }
 
+function printStart(result) {
+  console.log(`agent-git start`);
+  console.log(`branch: ${result.branch}`);
+  console.log(`worktree: ${result.path}`);
+  console.log(`created: ${result.created ? "yes" : "no"}`);
+  if (result.herdr) {
+    console.log(`herdr: ${result.herdr.opened ? "opened" : `skipped (${result.herdr.skipped})`}`);
+    if (result.herdr.agent) {
+      console.log(`agent: ${result.herdr.agent.started ? "started" : `skipped (${result.herdr.agent.skipped})`}`);
+    }
+    if (result.herdr.handoff) console.log(`handoff: ${result.herdr.handoff.path}`);
+  }
+  console.log("");
+  console.log(`Launch agents from: ${result.path}`);
+}
+
+function printGuard(result) {
+  console.log(`agent-git guard`);
+  console.log(`branch: ${result.branch}`);
+  console.log("ok");
+}
+
+function printVerdict(result) {
+  console.log(`agent-git verdict`);
+  console.log(`branch: ${result.branch}`);
+  console.log(`worktree: ${result.path}`);
+  console.log(`base: ${result.baseRef}`);
+  console.log(`dirty: ${result.dirty === null ? "unknown" : result.dirty ? "yes" : "no"}`);
+  console.log(`ahead: ${result.ahead}`);
+  console.log(`recommendation: ${result.recommendation}`);
+  console.log(`reason: ${result.reason}`);
+  if (result.commits.length) {
+    console.log("");
+    console.log("commits:");
+    for (const commit of result.commits) console.log(`  ${commit}`);
+  }
+  if (result.changedFiles.length) {
+    console.log("");
+    console.log("changed files:");
+    for (const file of result.changedFiles) console.log(`  ${file}`);
+  }
+  if (result.diffStat) {
+    console.log("");
+    console.log(result.diffStat);
+  }
+  if (result.porcelain) {
+    console.log("");
+    console.log("dirty status:");
+    console.log(result.porcelain);
+  }
+}
+
 function usage() {
   console.log(`Usage: agent-git <command>
 
 Commands:
   doctor [--json]          Verify repo, GitHub, and worktree prerequisites
   status [--json]          Show current branch, dirty state, PR, and checks
+  start <slug> [--task TEXT] [--no-agent] [--no-herdr] [--json]
+                           Create or reuse ../socratink-agent-<slug> on agent/<slug>
+                           and open a side Herdr workspace when available.
+                           With --task, write a temp handoff and start Codex there.
+  verdict <slug> [--json]  Read agent/<slug> worktree diff and print review verdict
+  guard [--json]           Refuse agent work on protected branches unless SOCRATINK_INTEGRATOR=1
   cleanup --dry-run [--json]
                            Classify branches without deleting anything
   rescue [--message TEXT] [--json]
@@ -124,6 +185,29 @@ function main(argv) {
   if (command === "status") {
     const result = collectStatus();
     json ? printJson(result) : printStatus(result);
+    return;
+  }
+  if (command === "start") {
+    const slug = args.find((arg) => !arg.startsWith("-"));
+    const task = flagValue(args, "--task") || "";
+    const result = agentWorktreeStart(process.cwd(), {
+      slug,
+      herdr: !hasFlag(args, "--no-herdr"),
+      startAgent: Boolean(task) && !hasFlag(args, "--no-agent"),
+      task,
+    });
+    json ? printJson(result) : printStart(result);
+    return;
+  }
+  if (command === "guard") {
+    const result = agentWorktreeGuard();
+    json ? printJson(result) : printGuard(result);
+    return;
+  }
+  if (command === "verdict") {
+    const slug = args.find((arg) => !arg.startsWith("-"));
+    const result = agentVerdict(process.cwd(), { slug });
+    json ? printJson(result) : printVerdict(result);
     return;
   }
   if (command === "cleanup") {

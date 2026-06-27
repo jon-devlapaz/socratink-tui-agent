@@ -135,7 +135,7 @@ test("HTTP dashboard report clear deletes live reports and preserves promoted pa
     const dashboard = await fetch(`${baseUrl}/api/dashboard`);
     assert.equal(dashboard.status, 200);
     const payload = await dashboard.json();
-    assert.equal(payload.case_summary.total, 8);
+    assert.equal(payload.case_summary.total, 9);
     assert.equal(payload.live_runtime.total_recent_sessions, 0);
   } finally {
     await close(server);

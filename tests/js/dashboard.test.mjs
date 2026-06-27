@@ -169,8 +169,8 @@ test("buildDashboardPayload matches promoted case count", () => {
       "learning_cases/traces/**/session.json",
     ],
   });
-  assert.equal(payload.case_summary.total, 8);
-  assert.equal(payload.runs.length, 8);
+  assert.equal(payload.case_summary.total, 9);
+  assert.equal(payload.runs.length, 9);
   assert.ok(payload.runs.every((run) => typeof run.outcome_key === "string"));
   assert.ok(payload.learning_loop.outcomes.stopped_before_bridge >= 1);
   assert.ok(payload.improvement_queue.length >= 1);

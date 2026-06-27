@@ -171,6 +171,7 @@ function syncInvariants(caseRecord, summary) {
   }
 
   caseRecord.expected_invariants = invariants;
+  caseRecord.checks = invariants;
 }
 
 function eventsInclude(eventOrder, type) {
@@ -203,6 +204,7 @@ async function main() {
       const outPath = path.join(outDir, "session.json");
       await fs.writeFile(outPath, `${JSON.stringify(session, null, 2)}\n`);
       caseRecord.session_log = path.relative(WORKSPACE_ROOT, outPath);
+      caseRecord.trace = caseRecord.session_log;
       console.log(`wrote ${caseRecord.session_log}`);
     }
   }

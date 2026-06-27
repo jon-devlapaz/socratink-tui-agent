@@ -513,26 +513,37 @@ def test_learning_case_promotion_contract() -> None:
 
     for required in [
         "case_id",
-        "case_type",
-        "case_source",
-        "promotion_status",
-        "session_log",
-        "concept",
-        "product_question",
-        "observed_failure",
-        "expected_invariant",
-        "expected_invariants",
+        "status",
+        "kind",
+        "source",
+        "claim",
+        "risk",
+        "trace",
+        "checks",
     ]:
         assert required in schema["required"]
-    assert schema["properties"]["expected_invariants"]["properties"]["truth_source"] == {
+    assert schema["$defs"]["replay_checks"]["properties"]["truth_source"] == {
         "const": "training_derivation"
     }
     assert ".qa-runs/` remains the working evidence stream" in readme
     assert "Expected truth can only reference training-store events and derived state" in readme
+    assert "Human fields:" in readme
+    assert "Machine fields:" in readme
     assert "Full re-capture" in readme
 
-    assert len(cases) == 8
+    assert len(cases) == 9
     for case in cases:
+        assert case["status"] in {"active", "candidate", "research_only"}
+        assert case["kind"] in {"golden", "regression", "research"}
+        assert case["source"]
+        assert case["claim"]
+        assert case["risk"]
+        assert case["trace"].startswith("learning_cases/traces/")
+        assert ".qa-runs" not in case["trace"]
+        assert (WORKSPACE_ROOT / case["trace"]).is_file()
+        assert case["checks"]["truth_source"] == "training_derivation"
+        assert case["checks"]["event_order"]
+        # Compatibility aliases stay until all harness readers migrate.
         assert case["promotion_status"].startswith("active_")
         assert case["session_log"].startswith("learning_cases/traces/")
         assert ".qa-runs" not in case["session_log"]
@@ -545,7 +556,7 @@ def test_harness_and_dashboard_run_from_standalone_workspace(tmp_path: Path) -> 
     harness = run_command([str(WORKSPACE_ROOT / "socratink-harness"), "replay"])
     assert harness.returncode == 0, harness.stderr
     assert "Socratink Harness" in harness.stdout
-    assert "8 cases" in harness.stdout
+    assert "9 cases" in harness.stdout
     assert "PASS inner-repair-dialogue-gates-model-bridge-2026-05-26" in harness.stdout
     assert "PASS cold-help-turn-routing-2026-05-28" in harness.stdout
     assert "PASS recovery-close-idle-return-2026-05-28" in harness.stdout
@@ -555,7 +566,7 @@ def test_harness_and_dashboard_run_from_standalone_workspace(tmp_path: Path) -> 
     routing = run_command([str(WORKSPACE_ROOT / "socratink-harness"), "routing-proof"])
     assert routing.returncode == 0, routing.stderr
     assert "Socratink Harness — routing proof" in routing.stdout
-    assert "8 cases" in routing.stdout
+    assert "9 cases" in routing.stdout
     assert "PASS recovery-success-routes-to-repair-2026-05-28" in routing.stdout
 
     bad_command = run_command([str(WORKSPACE_ROOT / "socratink-harness"), "bogus"])
@@ -641,8 +652,8 @@ def test_harness_and_dashboard_run_from_standalone_workspace(tmp_path: Path) -> 
     assert dashboard.returncode == 0, dashboard.stderr
     payload = json.loads(dashboard.stdout)
     assert payload["title"] == "Socratink Learning Loop Dashboard"
-    assert payload["case_summary"]["total"] == 8
-    assert len(payload["runs"]) == 8
+    assert payload["case_summary"]["total"] == 9
+    assert len(payload["runs"]) == 9
     assert payload["learning_loop"]["outcomes"]["stopped_before_bridge"] >= 1
     assert payload["improvement_queue"]
     telemetry = payload["recovery_telemetry"]

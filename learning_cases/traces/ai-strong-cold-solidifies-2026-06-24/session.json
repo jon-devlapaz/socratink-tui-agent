@@ -1,0 +1,712 @@
+{
+  "source_mode": "source_less",
+  "concept": "AI",
+  "learner_goal": "Explain how a model can sound confident but still be wrong about something.",
+  "concept_id": "ai",
+  "route": {
+    "provisional_map": {
+      "metadata": {
+        "source_title": "AI",
+        "core_thesis": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+        "architecture_type": "system_description",
+        "difficulty": "medium",
+        "governing_assumptions": [],
+        "low_density": true
+      },
+      "backbone": [
+        {
+          "id": "b1",
+          "principle": "Understanding the core mechanism of AI text generation and its inherent limitations explains why models can produce confident but incorrect outputs.",
+          "dependent_clusters": [
+            "c1",
+            "c2",
+            "c3",
+            "c4"
+          ]
+        }
+      ],
+      "clusters": [
+        {
+          "id": "c1",
+          "label": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+          "description": "This mechanism explains the fundamental operation of large language models, focusing on their statistical nature rather than human-like understanding.",
+          "subnodes": [
+            {
+              "id": "c1_s1",
+              "label": "How AI Predicts Text",
+              "mechanism": "Large language models operate by processing input text and calculating the statistical probability of the next token (word or sub-word unit) in a sequence, based on vast amounts of training data. This process relies on identifying complex patterns and relationships between tokens, allowing the model to produce coherent and contextually relevant text without forming an internal semantic representation or 'understanding' the content in a human sense.",
+              "learner_scaffold": {
+                "bloom_level": "understand",
+                "learner_move": "Explain how",
+                "task_label": "How AI Predicts Text",
+                "task_cue": "Explain the prediction process",
+                "tailoring_anchor": "AI predicts the next token from patterns in text",
+                "entry_prompt": "Your launch sketch mentioned that AI \"predicts the next token from patterns in text.\" Explain how this prediction process works at a fundamental level to generate coherent language.",
+                "expected_shape": "One to two sentences describing the mechanism.",
+                "sentence_starter": "AI models generate text by...",
+                "blank_hint": "Consider what \"patterns in text\" means for a computer.",
+                "evidence_goal": "Learner describes the statistical, pattern-matching nature of token prediction without implying understanding."
+              },
+              "drill_status": null,
+              "gap_type": null,
+              "gap_description": null,
+              "last_drilled": null
+            }
+          ]
+        },
+        {
+          "id": "c2",
+          "label": "How statistical fluency can lead to AI 'hallucinations'.",
+          "description": "This mechanism explains how the model's focus on generating statistically probable sequences can lead to outputs that are fluent but factually incorrect or nonsensical.",
+          "subnodes": [
+            {
+              "id": "c2_s1",
+              "label": "Why AI Hallucinates",
+              "mechanism": "Models can generate factually incorrect or nonsensical information, known as 'hallucinations,' because their predictions prioritize statistical coherence and fluency over factual accuracy or logical consistency, especially when faced with ambiguous or novel prompts.",
+              "learner_scaffold": {
+                "bloom_level": "understand",
+                "learner_move": "Explain how",
+                "task_label": "Why AI Hallucinates",
+                "task_cue": "Explain how fluency leads to error",
+                "tailoring_anchor": "sound right even when it does not truly understand",
+                "entry_prompt": "Given that AI prioritizes statistical coherence, how can this lead to outputs that \"sound right\" but are factually incorrect or nonsensical, a phenomenon often called 'hallucination'?",
+                "expected_shape": "One to two sentences explaining the mechanism.",
+                "sentence_starter": "AI models can hallucinate when...",
+                "blank_hint": "Think about the difference between statistical likelihood and factual truth.",
+                "evidence_goal": "Learner explains that statistical fluency can override factual accuracy."
+              },
+              "drill_status": null,
+              "gap_type": null,
+              "gap_description": null,
+              "last_drilled": null
+            }
+          ]
+        },
+        {
+          "id": "c3",
+          "label": "The absence of real-world grounding in AI models.",
+          "description": "This mechanism explains how the lack of direct sensory experience limits an AI model's ability to develop common sense or discern truth from falsehood beyond textual correlations.",
+          "subnodes": [
+            {
+              "id": "c3_s1",
+              "label": "AI's Lack of World Grounding",
+              "mechanism": "AI models lack direct sensory experience or real-world grounding, meaning their 'knowledge' is entirely derived from linguistic patterns in their training data. This absence of embodied experience prevents them from developing true common sense or discerning truth from falsehood beyond statistical correlations in text.",
+              "learner_scaffold": {
+                "bloom_level": "understand",
+                "learner_move": "Explain how",
+                "task_label": "AI's Lack of World Grounding",
+                "task_cue": "Explain the impact of no real-world experience",
+                "tailoring_anchor": "does not truly understand",
+                "entry_prompt": "Since AI learns only from text, how does its lack of direct real-world experience contribute to it sometimes generating confident but incorrect information?",
+                "expected_shape": "One to two sentences describing the mechanism.",
+                "sentence_starter": "The absence of real-world grounding means AI...",
+                "blank_hint": "Consider what kind of \"understanding\" is missing without sensory input.",
+                "evidence_goal": "Learner explains how text-only learning limits common sense and truth discernment."
+              },
+              "drill_status": null,
+              "gap_type": null,
+              "gap_description": null,
+              "last_drilled": null
+            }
+          ]
+        },
+        {
+          "id": "c4",
+          "label": "How training data biases influence AI output.",
+          "description": "This mechanism explains how biases present in the training data can be learned and reflected in the model's outputs, leading to confidently presented but incorrect or unfair information.",
+          "subnodes": [
+            {
+              "id": "c4_s1",
+              "label": "How Training Data Bias Affects AI",
+              "mechanism": "Biases and inaccuracies present in the vast datasets used for training AI models can be learned and amplified by the model. This means the model's predictions may reflect these biases, leading to outputs that are confidently presented but are discriminatory, unfair, or factually incorrect based on the skewed patterns it has absorbed.",
+              "learner_scaffold": {
+                "bloom_level": "understand",
+                "learner_move": "Explain how",
+                "task_label": "How Training Data Bias Affects AI",
+                "task_cue": "Explain how data flaws become model flaws",
+                "tailoring_anchor": "sound right even when it does not truly understand",
+                "entry_prompt": "Training data for AI models is vast and can contain biases. How do these biases influence the model's output, potentially leading to confidently wrong or unfair statements?",
+                "expected_shape": "One to two sentences explaining the mechanism.",
+                "sentence_starter": "Biases in training data can cause AI to...",
+                "blank_hint": "Think about what the model learns from skewed patterns.",
+                "evidence_goal": "Learner explains how biases in training data are reflected and amplified in model outputs."
+              },
+              "drill_status": null,
+              "gap_type": null,
+              "gap_description": null,
+              "last_drilled": null
+            }
+          ]
+        }
+      ],
+      "relationships": {
+        "domain_mechanics": [
+          {
+            "from": "c1",
+            "to": "c2",
+            "type": "causal",
+            "mechanism": "The statistical prediction of tokens, while creating fluency, can prioritize coherence over factual accuracy, leading to 'hallucinations'."
+          },
+          {
+            "from": "c1",
+            "to": "c3",
+            "type": "causal",
+            "mechanism": "The reliance on textual patterns for token prediction, without real-world interaction, results in a lack of grounded understanding."
+          },
+          {
+            "from": "c1",
+            "to": "c4",
+            "type": "causal",
+            "mechanism": "The patterns used for token prediction are derived from training data, meaning any biases in that data will be reflected in the model's output."
+          }
+        ],
+        "learning_prerequisites": [
+          {
+            "from": "c1",
+            "to": "c2",
+            "rationale": "Understanding how AI predicts text is necessary to grasp why its statistical fluency can lead to factual errors or 'hallucinations'."
+          },
+          {
+            "from": "c1",
+            "to": "c3",
+            "rationale": "Understanding the text-based nature of AI prediction is foundational to comprehending how a lack of real-world grounding impacts its outputs."
+          },
+          {
+            "from": "c1",
+            "to": "c4",
+            "rationale": "Understanding the process of pattern learning for text prediction is essential to see how biases in the training data propagate into the model's behavior."
+          }
+        ]
+      },
+      "frameworks": []
+    },
+    "first_node": {
+      "id": "c1_s1",
+      "label": "How AI Predicts Text",
+      "mechanism": "Large language models operate by processing input text and calculating the statistical probability of the next token (word or sub-word unit) in a sequence, based on vast amounts of training data. This process relies on identifying complex patterns and relationships between tokens, allowing the model to produce coherent and contextually relevant text without forming an internal semantic representation or 'understanding' the content in a human sense.",
+      "learner_prompt": "Your launch sketch mentioned that AI \"predicts the next token from patterns in text.\" Explain how this prediction process works at a fundamental level to generate coherent language.",
+      "task_label": "How AI Predicts Text",
+      "blank_hint": "Consider what \"patterns in text\" means for a computer.",
+      "evidence_goal": "Learner describes the statistical, pattern-matching nature of token prediction without implying understanding."
+    },
+    "map_displayed": {
+      "framing": "hypothesis map — not graph truth yet",
+      "core_thesis": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+      "backbone": [
+        {
+          "id": "b1",
+          "principle": "Understanding the core mechanism of AI text generation and its inherent limitations explains why models can produce confident but incorrect outputs.",
+          "dependent_clusters": [
+            "c1",
+            "c2",
+            "c3",
+            "c4"
+          ]
+        }
+      ],
+      "rooms": [
+        {
+          "id": "c1_s1",
+          "cluster_id": "c1",
+          "cluster_label": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+          "subnode_label": "How AI Predicts Text",
+          "task_label": "How AI Predicts Text",
+          "status": "active"
+        },
+        {
+          "id": "c2_s1",
+          "cluster_id": "c2",
+          "cluster_label": "How statistical fluency can lead to AI 'hallucinations'.",
+          "subnode_label": "Why AI Hallucinates",
+          "task_label": "Why AI Hallucinates",
+          "status": "locked"
+        },
+        {
+          "id": "c3_s1",
+          "cluster_id": "c3",
+          "cluster_label": "The absence of real-world grounding in AI models.",
+          "subnode_label": "AI's Lack of World Grounding",
+          "task_label": "AI's Lack of World Grounding",
+          "status": "locked"
+        },
+        {
+          "id": "c4_s1",
+          "cluster_id": "c4",
+          "cluster_label": "How training data biases influence AI output.",
+          "subnode_label": "How Training Data Bias Affects AI",
+          "task_label": "How Training Data Bias Affects AI",
+          "status": "locked"
+        }
+      ],
+      "active_subnode_id": "c1_s1",
+      "active_task_label": "How AI Predicts Text"
+    },
+    "retry_count": 0,
+    "retry_reasons": []
+  },
+  "product_loop": {
+    "repair_position": "before_model_bridge",
+    "strong_cold_path": "skip_repair_until_spacing",
+    "graph_truth": "only spaced strong reconstruction may derive solidified",
+    "graph_neutral_events": [
+      "learner_goal_set",
+      "substrate_confirmed",
+      "strong_cold_path"
+    ]
+  },
+  "agent_contract": {
+    "orchestrator": "Socratink Orchestrator",
+    "truth_contract": "Agents propose moves. Training store records events. Derivation decides truth. Graph displays only derived evidence.",
+    "state_owner": "training-store/training-derive"
+  },
+  "events": [
+    {
+      "type": "idle_new_concept",
+      "concept": "AI"
+    },
+    {
+      "type": "learner_goal_set",
+      "learner_goal": "Explain how a model can sound confident but still be wrong about something.",
+      "graph_neutral": true,
+      "score_eligible": false
+    },
+    {
+      "type": "launch_attempt",
+      "concept": "AI",
+      "concept_id": "ai",
+      "learner_goal": "Explain how a model can sound confident but still be wrong about something.",
+      "text": "AI predicts the next token from patterns in text, so it can sound right even when it does not truly understand."
+    },
+    {
+      "type": "substrate_confirmed",
+      "graph_neutral": true,
+      "score_eligible": false,
+      "adequacy": "adequate",
+      "substrate_classification": "fast",
+      "judge_reason": "The learner connects token prediction from patterns to the model sounding correct without understanding, which is a concrete partial causal link."
+    },
+    {
+      "type": "route_generated",
+      "first_node": {
+        "id": "c1_s1",
+        "label": "How AI Predicts Text",
+        "mechanism": "Large language models operate by processing input text and calculating the statistical probability of the next token (word or sub-word unit) in a sequence, based on vast amounts of training data. This process relies on identifying complex patterns and relationships between tokens, allowing the model to produce coherent and contextually relevant text without forming an internal semantic representation or 'understanding' the content in a human sense.",
+        "learner_prompt": "Your launch sketch mentioned that AI \"predicts the next token from patterns in text.\" Explain how this prediction process works at a fundamental level to generate coherent language.",
+        "task_label": "How AI Predicts Text",
+        "blank_hint": "Consider what \"patterns in text\" means for a computer.",
+        "evidence_goal": "Learner describes the statistical, pattern-matching nature of token prediction without implying understanding."
+      },
+      "node_ids": [
+        "c1_s1"
+      ],
+      "provisional_map": {
+        "metadata": {
+          "source_title": "AI",
+          "core_thesis": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+          "architecture_type": "system_description",
+          "difficulty": "medium",
+          "governing_assumptions": [],
+          "low_density": true
+        },
+        "backbone": [
+          {
+            "id": "b1",
+            "principle": "Understanding the core mechanism of AI text generation and its inherent limitations explains why models can produce confident but incorrect outputs.",
+            "dependent_clusters": [
+              "c1",
+              "c2",
+              "c3",
+              "c4"
+            ]
+          }
+        ],
+        "clusters": [
+          {
+            "id": "c1",
+            "label": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+            "description": "This mechanism explains the fundamental operation of large language models, focusing on their statistical nature rather than human-like understanding.",
+            "subnodes": [
+              {
+                "id": "c1_s1",
+                "label": "How AI Predicts Text",
+                "mechanism": "Large language models operate by processing input text and calculating the statistical probability of the next token (word or sub-word unit) in a sequence, based on vast amounts of training data. This process relies on identifying complex patterns and relationships between tokens, allowing the model to produce coherent and contextually relevant text without forming an internal semantic representation or 'understanding' the content in a human sense.",
+                "learner_scaffold": {
+                  "bloom_level": "understand",
+                  "learner_move": "Explain how",
+                  "task_label": "How AI Predicts Text",
+                  "task_cue": "Explain the prediction process",
+                  "tailoring_anchor": "AI predicts the next token from patterns in text",
+                  "entry_prompt": "Your launch sketch mentioned that AI \"predicts the next token from patterns in text.\" Explain how this prediction process works at a fundamental level to generate coherent language.",
+                  "expected_shape": "One to two sentences describing the mechanism.",
+                  "sentence_starter": "AI models generate text by...",
+                  "blank_hint": "Consider what \"patterns in text\" means for a computer.",
+                  "evidence_goal": "Learner describes the statistical, pattern-matching nature of token prediction without implying understanding."
+                },
+                "drill_status": null,
+                "gap_type": null,
+                "gap_description": null,
+                "last_drilled": null
+              }
+            ]
+          },
+          {
+            "id": "c2",
+            "label": "How statistical fluency can lead to AI 'hallucinations'.",
+            "description": "This mechanism explains how the model's focus on generating statistically probable sequences can lead to outputs that are fluent but factually incorrect or nonsensical.",
+            "subnodes": [
+              {
+                "id": "c2_s1",
+                "label": "Why AI Hallucinates",
+                "mechanism": "Models can generate factually incorrect or nonsensical information, known as 'hallucinations,' because their predictions prioritize statistical coherence and fluency over factual accuracy or logical consistency, especially when faced with ambiguous or novel prompts.",
+                "learner_scaffold": {
+                  "bloom_level": "understand",
+                  "learner_move": "Explain how",
+                  "task_label": "Why AI Hallucinates",
+                  "task_cue": "Explain how fluency leads to error",
+                  "tailoring_anchor": "sound right even when it does not truly understand",
+                  "entry_prompt": "Given that AI prioritizes statistical coherence, how can this lead to outputs that \"sound right\" but are factually incorrect or nonsensical, a phenomenon often called 'hallucination'?",
+                  "expected_shape": "One to two sentences explaining the mechanism.",
+                  "sentence_starter": "AI models can hallucinate when...",
+                  "blank_hint": "Think about the difference between statistical likelihood and factual truth.",
+                  "evidence_goal": "Learner explains that statistical fluency can override factual accuracy."
+                },
+                "drill_status": null,
+                "gap_type": null,
+                "gap_description": null,
+                "last_drilled": null
+              }
+            ]
+          },
+          {
+            "id": "c3",
+            "label": "The absence of real-world grounding in AI models.",
+            "description": "This mechanism explains how the lack of direct sensory experience limits an AI model's ability to develop common sense or discern truth from falsehood beyond textual correlations.",
+            "subnodes": [
+              {
+                "id": "c3_s1",
+                "label": "AI's Lack of World Grounding",
+                "mechanism": "AI models lack direct sensory experience or real-world grounding, meaning their 'knowledge' is entirely derived from linguistic patterns in their training data. This absence of embodied experience prevents them from developing true common sense or discerning truth from falsehood beyond statistical correlations in text.",
+                "learner_scaffold": {
+                  "bloom_level": "understand",
+                  "learner_move": "Explain how",
+                  "task_label": "AI's Lack of World Grounding",
+                  "task_cue": "Explain the impact of no real-world experience",
+                  "tailoring_anchor": "does not truly understand",
+                  "entry_prompt": "Since AI learns only from text, how does its lack of direct real-world experience contribute to it sometimes generating confident but incorrect information?",
+                  "expected_shape": "One to two sentences describing the mechanism.",
+                  "sentence_starter": "The absence of real-world grounding means AI...",
+                  "blank_hint": "Consider what kind of \"understanding\" is missing without sensory input.",
+                  "evidence_goal": "Learner explains how text-only learning limits common sense and truth discernment."
+                },
+                "drill_status": null,
+                "gap_type": null,
+                "gap_description": null,
+                "last_drilled": null
+              }
+            ]
+          },
+          {
+            "id": "c4",
+            "label": "How training data biases influence AI output.",
+            "description": "This mechanism explains how biases present in the training data can be learned and reflected in the model's outputs, leading to confidently presented but incorrect or unfair information.",
+            "subnodes": [
+              {
+                "id": "c4_s1",
+                "label": "How Training Data Bias Affects AI",
+                "mechanism": "Biases and inaccuracies present in the vast datasets used for training AI models can be learned and amplified by the model. This means the model's predictions may reflect these biases, leading to outputs that are confidently presented but are discriminatory, unfair, or factually incorrect based on the skewed patterns it has absorbed.",
+                "learner_scaffold": {
+                  "bloom_level": "understand",
+                  "learner_move": "Explain how",
+                  "task_label": "How Training Data Bias Affects AI",
+                  "task_cue": "Explain how data flaws become model flaws",
+                  "tailoring_anchor": "sound right even when it does not truly understand",
+                  "entry_prompt": "Training data for AI models is vast and can contain biases. How do these biases influence the model's output, potentially leading to confidently wrong or unfair statements?",
+                  "expected_shape": "One to two sentences explaining the mechanism.",
+                  "sentence_starter": "Biases in training data can cause AI to...",
+                  "blank_hint": "Think about what the model learns from skewed patterns.",
+                  "evidence_goal": "Learner explains how biases in training data are reflected and amplified in model outputs."
+                },
+                "drill_status": null,
+                "gap_type": null,
+                "gap_description": null,
+                "last_drilled": null
+              }
+            ]
+          }
+        ],
+        "relationships": {
+          "domain_mechanics": [
+            {
+              "from": "c1",
+              "to": "c2",
+              "type": "causal",
+              "mechanism": "The statistical prediction of tokens, while creating fluency, can prioritize coherence over factual accuracy, leading to 'hallucinations'."
+            },
+            {
+              "from": "c1",
+              "to": "c3",
+              "type": "causal",
+              "mechanism": "The reliance on textual patterns for token prediction, without real-world interaction, results in a lack of grounded understanding."
+            },
+            {
+              "from": "c1",
+              "to": "c4",
+              "type": "causal",
+              "mechanism": "The patterns used for token prediction are derived from training data, meaning any biases in that data will be reflected in the model's output."
+            }
+          ],
+          "learning_prerequisites": [
+            {
+              "from": "c1",
+              "to": "c2",
+              "rationale": "Understanding how AI predicts text is necessary to grasp why its statistical fluency can lead to factual errors or 'hallucinations'."
+            },
+            {
+              "from": "c1",
+              "to": "c3",
+              "rationale": "Understanding the text-based nature of AI prediction is foundational to comprehending how a lack of real-world grounding impacts its outputs."
+            },
+            {
+              "from": "c1",
+              "to": "c4",
+              "rationale": "Understanding the process of pattern learning for text prediction is essential to see how biases in the training data propagate into the model's behavior."
+            }
+          ]
+        },
+        "frameworks": []
+      },
+      "map_displayed": {
+        "framing": "hypothesis map — not graph truth yet",
+        "core_thesis": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+        "backbone": [
+          {
+            "id": "b1",
+            "principle": "Understanding the core mechanism of AI text generation and its inherent limitations explains why models can produce confident but incorrect outputs.",
+            "dependent_clusters": [
+              "c1",
+              "c2",
+              "c3",
+              "c4"
+            ]
+          }
+        ],
+        "rooms": [
+          {
+            "id": "c1_s1",
+            "cluster_id": "c1",
+            "cluster_label": "AI models generate text by statistically predicting the most probable next word based on learned patterns, not by comprehending meaning.",
+            "subnode_label": "How AI Predicts Text",
+            "task_label": "How AI Predicts Text",
+            "status": "active"
+          },
+          {
+            "id": "c2_s1",
+            "cluster_id": "c2",
+            "cluster_label": "How statistical fluency can lead to AI 'hallucinations'.",
+            "subnode_label": "Why AI Hallucinates",
+            "task_label": "Why AI Hallucinates",
+            "status": "locked"
+          },
+          {
+            "id": "c3_s1",
+            "cluster_id": "c3",
+            "cluster_label": "The absence of real-world grounding in AI models.",
+            "subnode_label": "AI's Lack of World Grounding",
+            "task_label": "AI's Lack of World Grounding",
+            "status": "locked"
+          },
+          {
+            "id": "c4_s1",
+            "cluster_id": "c4",
+            "cluster_label": "How training data biases influence AI output.",
+            "subnode_label": "How Training Data Bias Affects AI",
+            "task_label": "How Training Data Bias Affects AI",
+            "status": "locked"
+          }
+        ],
+        "active_subnode_id": "c1_s1",
+        "active_task_label": "How AI Predicts Text"
+      },
+      "substrate_adequacy": "adequate",
+      "retry_count": 0,
+      "retry_reasons": []
+    },
+    {
+      "type": "cold_attempt",
+      "text": "It basically looks at all the words it has seen before and calculates which word usually comes next. It's like a super advanced version of autocomplete that uses math to guess the most likely sequence.",
+      "evaluation": {
+        "agent_response": "That's a really clear way to put it! You've captured the essence of how these models operate. It really is like a highly sophisticated autocomplete, driven by statistical patterns rather than human-like comprehension.",
+        "generative_commitment": true,
+        "answer_mode": "attempt",
+        "score_eligible": true,
+        "help_request_reason": "none",
+        "classification": "solid",
+        "gap_description": null,
+        "routing": "NEXT",
+        "response_tier": 4,
+        "response_band": "clear",
+        "tier_reason": "The learner accurately describes the statistical, pattern-matching nature of AI text prediction and avoids implying human-like understanding, meeting all key criteria.",
+        "required_ideas_present": [
+          "calculates_probability",
+          "pattern_recognition",
+          "training_data_source",
+          "predicts_tokens",
+          "no_semantic_understanding"
+        ],
+        "required_ideas_missing": []
+      },
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "strong_cold_path",
+      "graph_neutral": true,
+      "reason": "cold_reconstruction_solid",
+      "next_step": "spaced_redrill",
+      "kc_id": "c1_s1"
+    },
+    {
+      "type": "spacing_advanced",
+      "from": "2026-05-15T10:00:00.000Z",
+      "to": "2026-05-16T06:00:00.000Z"
+    },
+    {
+      "type": "spaced_redrill",
+      "text": "Basically, it just predicts the next most likely word based on patterns it saw in training. Since it's just math and probability, it can generate a very convincing-sounding sentence even if the facts inside it are totally wrong.",
+      "evaluation": {
+        "agent_response": "That's a clear and complete picture! You've nailed how AI models predict text by statistically calculating the next most likely word based on patterns from training data, and how that process doesn't involve human-like understanding, even when the output sounds convincing.",
+        "generative_commitment": true,
+        "answer_mode": "attempt",
+        "score_eligible": true,
+        "help_request_reason": "none",
+        "classification": "solid",
+        "gap_description": null,
+        "routing": "NEXT",
+        "response_tier": 5,
+        "response_band": "tetris",
+        "tier_reason": "The learner accurately and completely described the mechanism of AI text prediction, including the statistical, pattern-matching nature and the absence of true understanding, in their own words, fulfilling all aspects of the evidence goal for a redrill.",
+        "required_ideas_present": [
+          "input_processing",
+          "statistical_probability",
+          "pattern_matching",
+          "no_understanding"
+        ],
+        "required_ideas_missing": []
+      },
+      "kc_id": "c1_s1"
+    }
+  ],
+  "derived": [
+    {
+      "event": "spaced_redrill",
+      "nodes": {
+        "c1_s1": {
+          "state": "solidified",
+          "next_action": null,
+          "strongest_turn_text": "Basically, it just predicts the next most likely word based on patterns it saw in training. Since it's just math and probability, it can generate a very convincing-sounding sentence even if the facts inside it are totally wrong.",
+          "gaps": [],
+          "solidify_unlocks_at": null,
+          "last_attempt_at": "2026-05-16T06:00:00.000Z",
+          "attempt_count": 2,
+          "repair_count": 0
+        }
+      },
+      "concept_status": {
+        "badge": "solidified",
+        "composition": {
+          "untested": 0,
+          "primed": 0,
+          "needs_repair": 0,
+          "solidified": 1,
+          "total": 1
+        }
+      }
+    }
+  ],
+  "evidence_holds": [],
+  "llm_calls": [
+    {
+      "agent": "Re-Drill Agent",
+      "agent_id": "redrill",
+      "job": "Vary spaced reconstruction pressure after spacing is available.",
+      "required_outputs": [
+        "spaced_prompt"
+      ],
+      "may_propose_events": [
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Repeating the same wording so the learner can mimic instead of reconstruct.",
+      "stage": "spaced_prompt",
+      "provider": "orchestrator",
+      "model": "contract",
+      "latency_ms": 0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    {
+      "agent": "Evidence Judge",
+      "agent_id": "evidence_judge",
+      "job": "Classify attempts for the orchestrator without mutating graph truth.",
+      "required_outputs": [
+        "classification",
+        "gap_description",
+        "routing",
+        "score_eligible",
+        "generative_commitment"
+      ],
+      "may_propose_events": [
+        "cold_attempt",
+        "gap_drill",
+        "spaced_redrill"
+      ],
+      "truth_permission": "none",
+      "failure_mode_to_guard": "Letting an LLM classification override training derivation.",
+      "stage": "spaced_redrill",
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "latency_ms": 5628.774542012252,
+      "usage": {
+        "input_tokens": 2625,
+        "output_tokens": 214
+      }
+    }
+  ],
+  "training": {
+    "concept_id": "ai",
+    "schema_version": 1,
+    "source_mode": "source_less",
+    "grounding": "learner_sketch",
+    "source_ref": null,
+    "sketch": {
+      "text": "AI predicts the next token from patterns in text, so it can sound right even when it does not truly understand.",
+      "at": "2026-05-15T10:00:00.000Z"
+    },
+    "node_records": {
+      "c1_s1": {
+        "attempts": [
+          {
+            "id": "cold-1",
+            "at": "2026-05-15T10:00:00.000Z",
+            "user_text": "It basically looks at all the words it has seen before and calculates which word usually comes next. It's like a super advanced version of autocomplete that uses math to guess the most likely sequence.",
+            "classification": "strong",
+            "gaps": [],
+            "grader_version": "rehydrated",
+            "kind": "cold"
+          },
+          {
+            "id": "spaced-1",
+            "at": "2026-05-16T06:00:00.000Z",
+            "user_text": "Basically, it just predicts the next most likely word based on patterns it saw in training. Since it's just math and probability, it can generate a very convincing-sounding sentence even if the facts inside it are totally wrong.",
+            "classification": "strong",
+            "gaps": [],
+            "grader_version": "gemini-2.5-flash",
+            "kind": "spaced"
+          }
+        ],
+        "repairs": []
+      }
+    }
+  }
+}

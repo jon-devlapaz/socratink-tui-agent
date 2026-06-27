@@ -16,7 +16,7 @@ function usage() {
     '  ./socratink-harness replay',
     '  ./socratink-harness routing-proof',
     '',
-    'replay — assert expected_invariants on promoted learning cases.',
+    'replay — assert checks on promoted learning cases.',
     'routing-proof — verify nextPhase can route each promoted trace event log.',
   ].join('\n');
 }
@@ -31,10 +31,11 @@ async function loadCases() {
 }
 
 async function loadSession(caseRecord) {
-  if (!caseRecord.session_log) {
+  const sessionLog = caseRecord.trace || caseRecord.session_log;
+  if (!sessionLog) {
     throw new Error(`${caseRecord.case_id}: session_log-required`);
   }
-  const sessionPath = path.join(WORKSPACE_ROOT, caseRecord.session_log);
+  const sessionPath = path.join(WORKSPACE_ROOT, sessionLog);
   return JSON.parse(await fs.readFile(sessionPath, 'utf8'));
 }
 
@@ -50,7 +51,7 @@ function check(condition, message, failures) {
 
 function replayCase(caseRecord, session) {
   const failures = [];
-  const invariants = caseRecord.expected_invariants || {};
+  const invariants = caseRecord.checks || caseRecord.expected_invariants || {};
   const firstNodeId = getFirstNodeId(session, caseRecord.case_id);
   const eventOrder = Array.isArray(session.events)
     ? session.events.map((event) => event.type)

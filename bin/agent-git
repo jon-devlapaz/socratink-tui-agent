@@ -98,6 +98,9 @@ function printStart(result) {
   console.log(`branch: ${result.branch}`);
   console.log(`worktree: ${result.path}`);
   console.log(`created: ${result.created ? "yes" : "no"}`);
+  if (result.herdr) {
+    console.log(`herdr: ${result.herdr.opened ? "opened" : `skipped (${result.herdr.skipped})`}`);
+  }
   console.log("");
   console.log(`Launch agents from: ${result.path}`);
 }
@@ -114,7 +117,9 @@ function usage() {
 Commands:
   doctor [--json]          Verify repo, GitHub, and worktree prerequisites
   status [--json]          Show current branch, dirty state, PR, and checks
-  start <slug> [--json]    Create or reuse ../socratink-agent-<slug> on agent/<slug>
+  start <slug> [--no-herdr] [--json]
+                           Create or reuse ../socratink-agent-<slug> on agent/<slug>
+                           and open a side Herdr workspace when available
   guard [--json]           Refuse agent work on protected branches unless SOCRATINK_INTEGRATOR=1
   cleanup --dry-run [--json]
                            Classify branches without deleting anything
@@ -147,7 +152,7 @@ function main(argv) {
   }
   if (command === "start") {
     const slug = args.find((arg) => !arg.startsWith("-"));
-    const result = agentWorktreeStart(process.cwd(), { slug });
+    const result = agentWorktreeStart(process.cwd(), { slug, herdr: !hasFlag(args, "--no-herdr") });
     json ? printJson(result) : printStart(result);
     return;
   }

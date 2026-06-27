@@ -9,6 +9,7 @@ import {
   CommandError,
   agentWorktreeGuard,
   agentWorktreeStart,
+  herdrWorkspaceCreateArgs,
   validateAgentSlug,
   assertSafeRequestedCommand,
   classifyBranch,
@@ -72,7 +73,7 @@ test("agent git start creates an isolated agent worktree", () => {
   execFileSync("git", ["add", "README.md"], { cwd: repo });
   execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
 
-  const result = agentWorktreeStart(repo, { slug: "bughunt-routing" });
+  const result = agentWorktreeStart(repo, { slug: "bughunt-routing", herdr: false });
   assert.equal(result.branch, "agent/bughunt-routing");
   assert.equal(result.path, fs.realpathSync(path.join(parent, "socratink-agent-bughunt-routing")));
   assert.equal(result.created, true);
@@ -80,6 +81,18 @@ test("agent git start creates an isolated agent worktree", () => {
     execFileSync("git", ["branch", "--show-current"], { cwd: result.path, encoding: "utf8" }).trim(),
     "agent/bughunt-routing",
   );
+});
+
+test("agent git start uses a no-focus Herdr workspace", () => {
+  assert.deepEqual(herdrWorkspaceCreateArgs({ path: "/tmp/socratink-agent-demo", slug: "demo" }), [
+    "workspace",
+    "create",
+    "--cwd",
+    "/tmp/socratink-agent-demo",
+    "--label",
+    "agent:demo",
+    "--no-focus",
+  ]);
 });
 
 test("agent git blocks destructive command pass-through", () => {

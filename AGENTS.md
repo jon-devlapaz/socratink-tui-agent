@@ -23,8 +23,8 @@ not a router input.
 - Use `npm run agent:git -- rescue --message "<why>"` before risky cleanup when
   useful dirty work could be lost.
 - Subagents must work in `agent/*` worktrees, not this main checkout. Start one
-  with `npm run agent:git -- start <slug>` and launch the agent from the printed
-  worktree path.
+  with `npm run agent:git -- start <slug>`; it opens a side Herdr workspace when
+  available.
 - Main startup chain: `./socratink-tui -> app.mjs -> createSessionKernel() ->
   makePrompt() -> runSedaLoop() -> nextPhase(events)`.
 - Frontend files live under `public/`; SEDA runtime lives under `lib/seda/`;

@@ -707,7 +707,7 @@ form.addEventListener("submit", async (event) => {
   input.value = "";
   resizeComposerInput();
   try {
-    if (continueTurn && !text) {
+    if (continueTurn) {
       await sendContinueTurn();
     } else {
       await sendTurn(text);

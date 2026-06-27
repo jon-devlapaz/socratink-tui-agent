@@ -242,7 +242,8 @@ test("loop static assets use terminal chrome and phase styling", () => {
   assert.match(js, /substrate_gate/);
   assert.match(js, /isContinueAwaiting/);
   assert.match(js, /sendContinueTurn/);
-  assert.match(js, /continueTurn && !text/);
+  assert.match(js, /if \(continueTurn\)/);
+  assert.doesNotMatch(js, /continueTurn && !text/);
   assert.match(js, /appendUser:\s*false/);
   assert.match(js, /awaitingBeforeSubmit/);
   assert.match(js, /showAwaitingPrompt\(awaitingBeforeSubmit\)/);

@@ -95,6 +95,18 @@ test("session response sets caseComplete on terminal repair abandon", () => {
   assert.equal(abandoned.caseComplete, true);
   assert.equal(abandoned.complete, false);
 
+  const pendingRecovery = sessionResponse(
+    {
+      ...baseSession,
+      events: [
+        { type: "repair_recovery_started", graph_neutral: true },
+        { type: "repair_abandoned", graph_neutral: true, next_step: "recovery_prompt" },
+      ],
+    },
+    [],
+  );
+  assert.equal(pendingRecovery.caseComplete, false);
+
   const recovered = sessionResponse(
     {
       ...baseSession,

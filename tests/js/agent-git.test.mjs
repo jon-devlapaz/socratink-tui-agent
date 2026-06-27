@@ -7,6 +7,7 @@ import path from "node:path";
 
 import {
   CommandError,
+  agentVerdict,
   agentWorktreeGuard,
   agentWorktreeStart,
   herdrAgentStartArgs,
@@ -83,6 +84,66 @@ test("agent git start creates an isolated agent worktree", () => {
     execFileSync("git", ["branch", "--show-current"], { cwd: result.path, encoding: "utf8" }).trim(),
     "agent/bughunt-routing",
   );
+});
+
+function initRepo(parent) {
+  const repo = path.join(parent, "repo");
+  fs.mkdirSync(repo);
+  execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
+  execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, "README.md"), "test\n");
+  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
+  return repo;
+}
+
+test("agent git verdict blocks missing worktrees", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-missing-")));
+  assert.deepEqual(
+    {
+      recommendation: agentVerdict(repo, { slug: "missing" }).recommendation,
+      reason: agentVerdict(repo, { slug: "missing" }).reason,
+    },
+    { recommendation: "blocked", reason: "missing branch" },
+  );
+});
+
+test("agent git verdict marks unchanged agent branch empty", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-empty-")));
+  agentWorktreeStart(repo, { slug: "empty", herdr: false });
+
+  const verdict = agentVerdict(repo, { slug: "empty" });
+  assert.equal(verdict.recommendation, "empty");
+  assert.equal(verdict.reason, "no branch changes");
+  assert.equal(verdict.ahead, 0);
+  assert.deepEqual(verdict.changedFiles, []);
+});
+
+test("agent git verdict marks committed agent work ready for review", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-review-")));
+  const started = agentWorktreeStart(repo, { slug: "review", herdr: false });
+  fs.writeFileSync(path.join(started.path, "alpha.md"), "finding\n");
+  execFileSync("git", ["add", "alpha.md"], { cwd: started.path });
+  execFileSync("git", ["commit", "-m", "docs: add alpha finding"], { cwd: started.path, stdio: "ignore" });
+
+  const verdict = agentVerdict(repo, { slug: "review" });
+  assert.equal(verdict.recommendation, "review");
+  assert.equal(verdict.reason, "ready for integrator review");
+  assert.equal(verdict.ahead, 1);
+  assert.deepEqual(verdict.changedFiles, ["A\talpha.md"]);
+  assert.match(verdict.commits[0], /docs: add alpha finding/);
+});
+
+test("agent git verdict blocks dirty agent worktrees", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-dirty-")));
+  const started = agentWorktreeStart(repo, { slug: "dirty", herdr: false });
+  fs.writeFileSync(path.join(started.path, "loose.md"), "not committed\n");
+
+  const verdict = agentVerdict(repo, { slug: "dirty" });
+  assert.equal(verdict.recommendation, "blocked");
+  assert.equal(verdict.reason, "dirty worktree");
+  assert.match(verdict.porcelain, /loose\.md/);
 });
 
 test("agent git start uses a no-focus Herdr workspace", () => {

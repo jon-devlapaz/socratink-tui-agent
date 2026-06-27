@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {
   CommandError,
+  agentVerdict,
   assertSafeRequestedCommand,
   agentWorktreeGuard,
   agentWorktreeStart,
@@ -115,6 +116,36 @@ function printGuard(result) {
   console.log("ok");
 }
 
+function printVerdict(result) {
+  console.log(`agent-git verdict`);
+  console.log(`branch: ${result.branch}`);
+  console.log(`worktree: ${result.path}`);
+  console.log(`base: ${result.baseRef}`);
+  console.log(`dirty: ${result.dirty === null ? "unknown" : result.dirty ? "yes" : "no"}`);
+  console.log(`ahead: ${result.ahead}`);
+  console.log(`recommendation: ${result.recommendation}`);
+  console.log(`reason: ${result.reason}`);
+  if (result.commits.length) {
+    console.log("");
+    console.log("commits:");
+    for (const commit of result.commits) console.log(`  ${commit}`);
+  }
+  if (result.changedFiles.length) {
+    console.log("");
+    console.log("changed files:");
+    for (const file of result.changedFiles) console.log(`  ${file}`);
+  }
+  if (result.diffStat) {
+    console.log("");
+    console.log(result.diffStat);
+  }
+  if (result.porcelain) {
+    console.log("");
+    console.log("dirty status:");
+    console.log(result.porcelain);
+  }
+}
+
 function usage() {
   console.log(`Usage: agent-git <command>
 
@@ -125,6 +156,7 @@ Commands:
                            Create or reuse ../socratink-agent-<slug> on agent/<slug>
                            and open a side Herdr workspace when available.
                            With --task, write a temp handoff and start Codex there.
+  verdict <slug> [--json]  Read agent/<slug> worktree diff and print review verdict
   guard [--json]           Refuse agent work on protected branches unless SOCRATINK_INTEGRATOR=1
   cleanup --dry-run [--json]
                            Classify branches without deleting anything
@@ -170,6 +202,12 @@ function main(argv) {
   if (command === "guard") {
     const result = agentWorktreeGuard();
     json ? printJson(result) : printGuard(result);
+    return;
+  }
+  if (command === "verdict") {
+    const slug = args.find((arg) => !arg.startsWith("-"));
+    const result = agentVerdict(process.cwd(), { slug });
+    json ? printJson(result) : printVerdict(result);
     return;
   }
   if (command === "cleanup") {

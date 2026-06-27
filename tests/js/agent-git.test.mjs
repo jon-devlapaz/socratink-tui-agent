@@ -9,8 +9,10 @@ import {
   CommandError,
   agentWorktreeGuard,
   agentWorktreeStart,
+  herdrAgentStartArgs,
   herdrWorkspaceCreateArgs,
   validateAgentSlug,
+  writeAgentHandoff,
   assertSafeRequestedCommand,
   classifyBranch,
   isProtectedBranch,
@@ -93,6 +95,49 @@ test("agent git start uses a no-focus Herdr workspace", () => {
     "agent:demo",
     "--no-focus",
   ]);
+});
+
+test("agent git writes a task handoff for started agents", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-handoff-"));
+  const handoff = writeAgentHandoff({
+    branch: "agent/alpha-docs",
+    handoffDir: dir,
+    path: "/tmp/socratink-agent-alpha-docs",
+    slug: "alpha-docs",
+    task: "Review docs and consolidate alpha findings",
+  });
+
+  assert.equal(handoff.path, path.join(dir, "handoff-agent-alpha-docs.md"));
+  const text = fs.readFileSync(handoff.path, "utf8");
+  assert.match(text, /# Copyable prompt for next session/);
+  assert.match(text, /Review docs and consolidate alpha findings/);
+  assert.match(text, /Branch: agent\/alpha-docs/);
+  assert.match(text, /Do not push, merge, close PRs, delete branches/);
+});
+
+test("agent git starts Codex from the task handoff inside Herdr", () => {
+  const args = herdrAgentStartArgs({
+    cwd: "/tmp/socratink-agent-alpha-docs",
+    handoffPath: "/tmp/handoff-agent-alpha-docs.md",
+    slug: "alpha-docs",
+    task: "Review docs",
+    workspaceId: "w1S",
+  });
+
+  assert.deepEqual(args.slice(0, 10), [
+    "agent",
+    "start",
+    "agent:alpha-docs",
+    "--cwd",
+    "/tmp/socratink-agent-alpha-docs",
+    "--workspace",
+    "w1S",
+    "--no-focus",
+    "--",
+    "codex",
+  ]);
+  assert.match(args.at(-1), /Read \/tmp\/handoff-agent-alpha-docs\.md/);
+  assert.match(args.at(-1), /Task: Review docs/);
 });
 
 test("agent git blocks destructive command pass-through", () => {

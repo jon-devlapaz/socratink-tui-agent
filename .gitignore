@@ -25,3 +25,5 @@ learning_cases/traces/*/*T*/
 .code-review-graph/
 
 .mypy_cache/
+
+post-mortems/

@@ -16,6 +16,7 @@ import {
   goldenStatus,
   herdrAgentStartArgs,
   herdrWorkspaceCreateArgs,
+  rescue,
   validateAgentSlug,
   writeAgentHandoff,
   assertSafeRequestedCommand,
@@ -98,8 +99,9 @@ test("agent git start creates an isolated agent worktree", () => {
   execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
   execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
   execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, ".gitignore"), ".agent/\n");
   fs.writeFileSync(path.join(repo, "README.md"), "test\n");
-  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["add", ".gitignore", "README.md"], { cwd: repo });
   execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
 
   const result = agentWorktreeStart(repo, { slug: "bughunt-routing", herdr: false });
@@ -150,14 +152,60 @@ test("agent git golden reports agent residue", () => {
   assert.match(result.blockers.join("\n"), /local agent\/codex branch/);
 });
 
+test("agent git rescue skips clean worktrees", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-rescue-clean-")));
+
+  const result = rescue(repo);
+
+  assert.equal(result.skipped, true);
+  assert.equal(result.rescueDir, null);
+  assert.equal(result.stashed, false);
+  assert.match(result.stashOutput, /clean/);
+  assert.equal(fs.existsSync(path.join(repo, ".agent", "rescue")), false);
+});
+
+test("agent git rescue archives patches and stashes dirty work", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-rescue-dirty-")));
+  fs.writeFileSync(path.join(repo, "tracked.bin"), Buffer.from([0, 1, 2, 3]));
+  execFileSync("git", ["add", "tracked.bin"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "add tracked binary"], { cwd: repo, stdio: "ignore" });
+  fs.appendFileSync(path.join(repo, "README.md"), "dirty\n");
+  fs.writeFileSync(path.join(repo, "tracked.bin"), Buffer.from([4, 5, 6, 7]));
+  fs.writeFileSync(path.join(repo, "loose.bin"), Buffer.from([0, 1, 2, 3]));
+
+  const result = rescue(repo, { message: "test rescue" });
+
+  assert.equal(result.skipped, false);
+  assert.equal(result.stashed, true);
+  assert.match(result.stashMessage, /test rescue/);
+  assert.equal(fs.existsSync(path.join(result.rescueDir, "status.txt")), true);
+  assert.match(fs.readFileSync(path.join(result.rescueDir, "worktree.patch"), "utf8"), /dirty/);
+  assert.match(fs.readFileSync(path.join(result.rescueDir, "worktree.patch"), "utf8"), /GIT binary patch/);
+  assert.match(fs.readFileSync(path.join(result.rescueDir, "untracked-files.txt"), "utf8"), /loose\.bin/);
+  assert.equal(execFileSync("git", ["status", "--porcelain=v1"], { cwd: repo, encoding: "utf8" }), "");
+  assert.match(execFileSync("git", ["stash", "list"], { cwd: repo, encoding: "utf8" }), /agent-git rescue/);
+});
+
+test("agent git rescue fails on diff errors", () => {
+  const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-rescue-diff-fail-")));
+  fs.appendFileSync(path.join(repo, "README.md"), "dirty\n");
+  execFileSync("git", ["config", "diff.external", "/definitely/missing/diff-tool"], { cwd: repo });
+
+  assert.throws(
+    () => rescue(repo),
+    (error) => error instanceof CommandError && /git diff --binary failed/.test(error.message),
+  );
+});
+
 function initRepo(parent) {
   const repo = path.join(parent, "repo");
   fs.mkdirSync(repo);
   execFileSync("git", ["init", "-b", "main"], { cwd: repo, stdio: "ignore" });
   execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
   execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, ".gitignore"), ".agent/\n");
   fs.writeFileSync(path.join(repo, "README.md"), "test\n");
-  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["add", ".gitignore", "README.md"], { cwd: repo });
   execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
   return repo;
 }

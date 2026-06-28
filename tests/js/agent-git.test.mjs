@@ -7,6 +7,7 @@ import path from "node:path";
 
 import {
   CommandError,
+  agentFinish,
   agentVerdict,
   assertCleanWorktree,
   agentWorktreeGuard,
@@ -112,6 +113,20 @@ function initRepo(parent) {
   return repo;
 }
 
+function initRepoWithOrigin(parent) {
+  const origin = path.join(parent, "origin.git");
+  const repo = path.join(parent, "repo");
+  execFileSync("git", ["init", "--bare", "-b", "main", origin], { stdio: "ignore" });
+  execFileSync("git", ["clone", origin, repo], { stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "agent@example.com"], { cwd: repo });
+  execFileSync("git", ["config", "user.name", "Agent Test"], { cwd: repo });
+  fs.writeFileSync(path.join(repo, "README.md"), "test\n");
+  execFileSync("git", ["add", "README.md"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "init"], { cwd: repo, stdio: "ignore" });
+  execFileSync("git", ["push", "-u", "origin", "main"], { cwd: repo, stdio: "ignore" });
+  return repo;
+}
+
 test("agent git verdict blocks missing worktrees", () => {
   const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-verdict-missing-")));
   assert.deepEqual(
@@ -158,6 +173,32 @@ test("agent git verdict blocks dirty agent worktrees", () => {
   assert.equal(verdict.recommendation, "blocked");
   assert.equal(verdict.reason, "dirty worktree");
   assert.match(verdict.porcelain, /loose\.md/);
+});
+
+test("agent git finish removes merged agent residue", () => {
+  const repo = initRepoWithOrigin(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-finish-")));
+  const started = agentWorktreeStart(repo, { slug: "done", herdr: false });
+  fs.writeFileSync(path.join(started.path, "done.md"), "done\n");
+  execFileSync("git", ["add", "done.md"], { cwd: started.path });
+  execFileSync("git", ["commit", "-m", "docs: finish agent work"], { cwd: started.path, stdio: "ignore" });
+  execFileSync("git", ["push", "-u", "origin", "agent/done"], { cwd: started.path, stdio: "ignore" });
+  execFileSync("git", ["merge", "--no-ff", "agent/done", "-m", "Merge agent/done"], {
+    cwd: repo,
+    stdio: "ignore",
+  });
+  execFileSync("git", ["push", "origin", "main"], { cwd: repo, stdio: "ignore" });
+
+  const result = agentFinish(repo, { slug: "done", verifyPr: false });
+
+  assert.equal(result.removedWorktree, true);
+  assert.equal(result.deletedLocalBranch, true);
+  assert.equal(result.deletedRemoteBranch, true);
+  assert.equal(fs.existsSync(started.path), false);
+  assert.throws(() => execFileSync("git", ["show-ref", "--verify", "--quiet", "refs/heads/agent/done"], { cwd: repo }));
+  assert.throws(() => execFileSync("git", ["ls-remote", "--exit-code", "--heads", "origin", "agent/done"], { cwd: repo }));
+  assert.equal(result.status.branch, "main");
+  assert.equal(result.status.dirty, false);
+  assert.equal(result.status.aheadBehind, "0\t0");
 });
 
 test("agent git start uses a no-focus Herdr workspace", () => {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {
   CommandError,
+  agentFinish,
   agentVerdict,
   assertSafeRequestedCommand,
   agentWorktreeGuard,
@@ -110,6 +111,17 @@ function printStart(result) {
   console.log(`Launch agents from: ${result.path}`);
 }
 
+function printFinish(result) {
+  console.log(`agent-git finish`);
+  console.log(`branch: ${result.branch}`);
+  if (result.pr) console.log(`pr: #${result.pr.number} merged ${result.pr.url}`);
+  console.log(`worktree removed: ${result.removedWorktree ? "yes" : "no"}`);
+  console.log(`local branch deleted: ${result.deletedLocalBranch ? "yes" : "no"}`);
+  console.log(`remote branch deleted: ${result.deletedRemoteBranch ? "yes" : "no"}`);
+  console.log("");
+  printStatus(result.status);
+}
+
 function printGuard(result) {
   console.log(`agent-git guard`);
   console.log(`branch: ${result.branch}`);
@@ -157,6 +169,7 @@ Commands:
                            and open a side Herdr workspace when available.
                            With --task, write a temp handoff and start Codex there.
   verdict <slug> [--json]  Read agent/<slug> worktree diff and print review verdict
+  finish <slug> [--json]   After a merged PR, update main and remove that agent worktree/branch
   guard [--json]           Refuse agent work on protected branches unless SOCRATINK_INTEGRATOR=1
   cleanup --dry-run [--json]
                            Classify branches without deleting anything
@@ -208,6 +221,12 @@ function main(argv) {
     const slug = args.find((arg) => !arg.startsWith("-"));
     const result = agentVerdict(process.cwd(), { slug });
     json ? printJson(result) : printVerdict(result);
+    return;
+  }
+  if (command === "finish") {
+    const slug = args.find((arg) => !arg.startsWith("-"));
+    const result = agentFinish(process.cwd(), { slug });
+    json ? printJson(result) : printFinish(result);
     return;
   }
   if (command === "cleanup") {

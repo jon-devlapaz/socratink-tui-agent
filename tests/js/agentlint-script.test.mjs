@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmod, mkdtemp, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -33,6 +33,18 @@ function runAgentlint(binDir, extraEnv = {}) {
 function runAgentlintWithPath(pathValue, extraEnv = {}) {
   return spawnSync(process.execPath, [SCRIPT, "--gate"], {
     cwd: WORKSPACE_ROOT,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      ...extraEnv,
+      PATH: pathValue,
+    },
+  });
+}
+
+function runAgentlintInCwd(cwd, pathValue, extraEnv = {}) {
+  return spawnSync(process.execPath, [SCRIPT, "--gate"], {
+    cwd,
     encoding: "utf8",
     env: {
       ...process.env,
@@ -76,13 +88,19 @@ test("agentlint gate fails when score cannot be parsed", async () => {
   assert.match(result.stderr, /could not parse AgentLint score for gate mode/);
 });
 
-test("agentlint gate falls back to repo-local agentlinter", () => {
+test("agentlint gate falls back to repo-local agentlinter", async () => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "socratink-agentlint-cwd-"));
+  const localBinDir = path.join(cwd, "node_modules", ".bin");
+  await mkdir(localBinDir, { recursive: true });
+  const localAgentlinter = path.join(localBinDir, "agentlinter");
+  await writeFile(localAgentlinter, "#!/bin/sh\nprintf '%s\\n' 'Overall Score: 75/100'\n", "utf8");
+  await chmod(localAgentlinter, 0o755);
+
   const nodeBinDir = path.dirname(process.execPath);
-  const result = runAgentlintWithPath(`${nodeBinDir}${path.delimiter}/usr/bin${path.delimiter}/bin`);
+  const result = runAgentlintInCwd(cwd, `${nodeBinDir}${path.delimiter}/usr/bin${path.delimiter}/bin`);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /AgentLinter/);
-  assert.match(result.stdout, /\[agentlint\] gate score=\d+\/100 min=75\/100/);
+  assert.match(result.stdout, /\[agentlint\] gate score=75\/100 min=75\/100/);
 });
 
 test("agentlint gate fails fast when configured binary is missing", () => {

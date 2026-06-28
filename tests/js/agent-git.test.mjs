@@ -166,7 +166,11 @@ test("agent git rescue skips clean worktrees", () => {
 
 test("agent git rescue archives patches and stashes dirty work", () => {
   const repo = initRepo(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-rescue-dirty-")));
+  fs.writeFileSync(path.join(repo, "tracked.bin"), Buffer.from([0, 1, 2, 3]));
+  execFileSync("git", ["add", "tracked.bin"], { cwd: repo });
+  execFileSync("git", ["commit", "-m", "add tracked binary"], { cwd: repo, stdio: "ignore" });
   fs.appendFileSync(path.join(repo, "README.md"), "dirty\n");
+  fs.writeFileSync(path.join(repo, "tracked.bin"), Buffer.from([4, 5, 6, 7]));
   fs.writeFileSync(path.join(repo, "loose.bin"), Buffer.from([0, 1, 2, 3]));
 
   const result = rescue(repo, { message: "test rescue" });
@@ -176,6 +180,7 @@ test("agent git rescue archives patches and stashes dirty work", () => {
   assert.match(result.stashMessage, /test rescue/);
   assert.equal(fs.existsSync(path.join(result.rescueDir, "status.txt")), true);
   assert.match(fs.readFileSync(path.join(result.rescueDir, "worktree.patch"), "utf8"), /dirty/);
+  assert.match(fs.readFileSync(path.join(result.rescueDir, "worktree.patch"), "utf8"), /GIT binary patch/);
   assert.match(fs.readFileSync(path.join(result.rescueDir, "untracked-files.txt"), "utf8"), /loose\.bin/);
   assert.equal(execFileSync("git", ["status", "--porcelain=v1"], { cwd: repo, encoding: "utf8" }), "");
   assert.match(execFileSync("git", ["stash", "list"], { cwd: repo, encoding: "utf8" }), /agent-git rescue/);

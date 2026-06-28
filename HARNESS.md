@@ -22,7 +22,7 @@ card is [`AGENTS.md`](AGENTS.md).
 | **Strategy** | Graph honesty, phase catalog, canon boundaries | `AGENTS.md`, `CONTEXT.md`, `pedagogical_agents/contracts.json`, prompt versions in `prompt_templates.py` |
 | **Substrate** | Orchestration, event log, routing, bridge calls | `app.mjs` (`HANDLERS`), `lib/seda/run-loop.mjs`, `lib/seda/next-phase.mjs`, `lib/seda/handlers/`, `lib/bridge/client.mjs`, `lib/bridge/registry.json`, `bridge.py` |
 | **App** | Founder-facing session UX | `./socratink-tui`, scripted fixtures under `fixtures/` |
-| **Observability** | Read-only truth over runs | `session.json`, `./socratink-harness replay`, `./socratink-dashboard`, `lib/observability/dashboard-metrics.mjs`, `DOGFOODING.md` |
+| **Observability** | Read-only truth over runs | `session.json`, `./socratink-harness replay`, `./socratink-harness dashboard`, `lib/observability/dashboard-metrics.mjs`, `DOGFOODING.md` |
 
 The interactive TUI is an **app** on the harness. Do not treat UI copy or LLM prose as
 the source of routing truth.
@@ -120,7 +120,7 @@ handlers without emitting an event that `nextPhase` understands.
 | Reviewer / Evaluator | `bridge.py`: `evaluate-attempt`, `repair-dialogue`, `repair-scaffold` |
 | Task governance (proceed / rework / stop) | Classification, `bridge_ready`, `next_dialogue_action`, caps |
 | Validation app | Scripted fixtures + `SOCRATINK_TUI_FAKE_LLM` |
-| Read-only observability | `socratink-harness replay`, `socratink-dashboard --json` |
+| Read-only observability | `socratink-harness replay`, `socratink-harness dashboard --json` |
 | `moss_*` metrics (target) | `tui_*` counters from replay cases (rework, abandon, strong-cold rate) — optional future |
 
 **Not ported from Moss** (by design): six dev-agent lanes, task-board claiming, expert
@@ -134,7 +134,7 @@ promoted traces in `learning_cases/`.
 | `SOCRATINK_TUI_LOG_ROOT/<ts>/session.json` | Full fact chain, `derived`, `llm_calls`, `product_loop` |
 | `./socratink-harness replay` | Assert `expected_invariants` on promoted cases (`learning_cases/cases.jsonl`) |
 | `./socratink-harness routing-proof` | Verify `nextPhase` routes each promoted trace (`lib/seda/routing-proofs.mjs`) |
-| `./socratink-dashboard --json` | Founder summaries for dogfooding |
+| `./socratink-harness dashboard --json` | Founder summaries for dogfooding |
 | `DOGFOODING.md` | Closed loop: replay → dashboard → triage JSON |
 
 Replay checks include `event_order`, `final_node_state`, forbidden events/stages, and

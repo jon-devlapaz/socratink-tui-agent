@@ -35,7 +35,7 @@ executable (`pytest`, `node --test`, `./socratink-harness replay`).
 | **Implementation** | `./socratink-tui`, handlers, bridge subprocess | Scripted fixtures, fake LLM smoke |
 | **Component verification** | Fake judge contract, policy golden matrix, session broadcast derive | [`tests/test_fake_repair_dialogue_golden.py`](tests/test_fake_repair_dialogue_golden.py), [`tests/js/session-record.test.mjs`](tests/js/session-record.test.mjs) |
 | **Sub-system verification** | Full SEDA path on fixtures | `SOCRATINK_TUI_FAKE_LLM=1 ./socratink-tui --scripted fixtures/...` |
-| **System validation** | End-to-end workspace smoke, founder dashboard | [`tests/test_workspace_smoke.py`](tests/test_workspace_smoke.py), `./socratink-dashboard --json` |
+| **System validation** | End-to-end workspace smoke, founder dashboard | [`tests/test_workspace_smoke.py`](tests/test_workspace_smoke.py), `./socratink-harness dashboard --json` |
 | **Operations & maintenance** | Promoted traces under `learning_cases/traces/`, session logs | Replay green before merge; dashboard triage |
 
 ## Verification vs validation
@@ -146,7 +146,7 @@ Handler turn  →  append event(s)     (fact)
               →  nextPhase(events)    (orchestrator)
 ```
 
-Observability tools are **read-only**: `./socratink-harness replay`, `./socratink-dashboard --json`.
+Observability tools are **read-only**: `./socratink-harness replay`, `./socratink-harness dashboard --json`.
 
 ## Related docs
 

@@ -76,20 +76,41 @@ node scripts/ab-live-experiment.mjs \
 Reads `REPORT.md` under `.qa-runs/ab-live/<timestamp>/` for cold classification,
 repair turns, bridge readiness, final evidence state, and LLM latency per variant.
 
-## Run
+## Command surface
 
-```bash
-./socratink-tui
-```
-
-## Hosted loop (faithful chat UI)
-
-Same SEDA + `bridge.py` over HTTP — for Railway/sandbox, not Vercel:
+Learner `/loop`:
 
 ```bash
 ./socratink-loop-server
 # http://127.0.0.1:8787/loop
 ```
+
+Terminal smoke:
+
+```bash
+./socratink-tui
+```
+
+Proof gates:
+
+```bash
+./socratink-harness replay
+./socratink-harness routing-proof
+./socratink-harness dashboard --json
+```
+
+Founder ops:
+
+```bash
+./socratink start
+./socratink run --cartridge novice-immune-memory --runs 3
+```
+
+Low-level Node targets stay implementation details unless a script needs them.
+
+## Hosted loop (faithful chat UI)
+
+Same SEDA + `bridge.py` over HTTP — for Railway/sandbox, not Vercel.
 
 Deploy and `app.socratink.ai/loop` proxy: **`deploy/LOOP-HOSTING.md`**.  
 Power-user dogfood (MVD checklist + invite copy): **`deploy/MINIMUM-VIABLE-DEPLOYMENT.md`**.  

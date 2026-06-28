@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WORKSPACE_ROOT))
 
 
 def _write_diagnostic(path: Path, *, raw_text: str | None) -> None:

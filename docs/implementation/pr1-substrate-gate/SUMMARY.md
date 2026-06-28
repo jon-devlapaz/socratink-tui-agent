@@ -44,15 +44,10 @@ not score-eligible evidence.
   than hiding them in one response.
 - PR2 hosted pacing was intentionally separate from PR1.
 
-## Historical Packets
+## Pruned Packets
 
-The old lane files are kept only for detailed provenance:
+Detailed lane packets and lane reports were pruned after this summary captured
+the useful provenance.
 
-- `ORCHESTRATION.md`
-- `codex-pr1-lane-1.md`
-- `codex-pr1-lane-2.md`
-- `codex-pr1-lane-3.md`
-- `lane-1-report.md`
-- `lane-3-report.md`
-
-Treat those files as historical instructions, not current implementation scope.
+Treat this summary as the PR1 historical reference, not as current
+implementation scope.

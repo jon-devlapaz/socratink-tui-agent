@@ -49,6 +49,12 @@ Node handler  →  callBridge(action, payload)
 Errors are fail-closed: handlers using `callBridge` throw; route generation uses
 `callBridgeResult` for retryable `SmallestRouteCapExceeded`.
 
+Saved bridge diagnostics can be replayed against the current schema parser:
+
+```bash
+scripts/bridge-contract-replay.py .qa-runs/<run>/bridge-diagnostics/<file>.json
+```
+
 ## Per-action detail
 
 ### `generate-route`

@@ -573,6 +573,7 @@ def test_harness_and_dashboard_run_from_standalone_workspace(tmp_path: Path) -> 
     assert bad_command.returncode == 2
     assert "./socratink-harness replay" in bad_command.stdout
     assert "./socratink-harness routing-proof" in bad_command.stdout
+    assert "./socratink-harness dashboard [--json]" in bad_command.stdout
 
     missing_log_root = tmp_path / "missing-log-workspace"
     cases_dir = missing_log_root / "learning_cases"
@@ -648,7 +649,7 @@ def test_harness_and_dashboard_run_from_standalone_workspace(tmp_path: Path) -> 
     assert "FAIL routing-proof-failure" in routing_failure.stdout
     assert "unknown event type: not_a_real_event" in routing_failure.stdout
 
-    dashboard = run_command([str(WORKSPACE_ROOT / "socratink-dashboard"), "--json"])
+    dashboard = run_command([str(WORKSPACE_ROOT / "socratink-harness"), "dashboard", "--json"])
     assert dashboard.returncode == 0, dashboard.stderr
     payload = json.loads(dashboard.stdout)
     assert payload["title"] == "Socratink Learning Loop Dashboard"

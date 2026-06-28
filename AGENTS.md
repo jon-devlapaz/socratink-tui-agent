@@ -74,7 +74,6 @@ not a router input.
 - Default local test: `npm test`.
 - Python prompt/template tests: `pytest tests/test_prompt_template.py`.
 - Full local CI mirror before release: `npm run ci:local`.
-- Agent/config validation: `scripts/run-checks.sh`.
 - Agent lint (agent-specific): `npm run agentlint`.
 - Agent lint gate (CI): `npm run agentlint:gate`.
 - Live Gemini loop proof: prefer `scripts/verify-loop-gemini.mjs` over

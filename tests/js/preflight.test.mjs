@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 import { resolveTuiPaths, preflightTuiPaths } from "../../lib/config/paths.mjs";
 
@@ -64,19 +64,6 @@ test("loop server wrapper owns stale listener cleanup before exec", () => {
   assert.match(wrapper, /port \$\{PORT\} still in use/);
   assert.match(wrapper, /exit 1/);
   assert.match(wrapper, /exec node --no-warnings loop-server\.mjs/);
-});
-
-test("riverflow wrapper forwards all args to external tool", () => {
-  if (!existsSync(new URL("../../riverflow", import.meta.url))) {
-    return;
-  }
-  const wrapper = readFileSync(new URL("../../riverflow", import.meta.url), "utf8");
-  const syntax = spawnSync("bash", ["-n", "riverflow"], {
-    cwd: new URL("../..", import.meta.url),
-    encoding: "utf8",
-  });
-  assert.equal(syntax.status, 0, syntax.stderr);
-  assert.match(wrapper, /"\/Users\/jondev\/dev\/tools\/riverflow\/riverflow" "\$@"/);
 });
 
 test(".env.example lists operator-facing advanced knobs", () => {

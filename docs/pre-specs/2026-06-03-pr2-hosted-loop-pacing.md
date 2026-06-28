@@ -164,6 +164,6 @@ post-map turns feel paced (qualitative).
 ## References
 
 - ADR-0001 implementation order (PR2 line)
-- PR1 lane 3 brief: `docs/implementation/pr1-substrate-gate/codex-pr1-lane-3.md` (PR2 out of scope)
+- PR1 substrate gate summary: `docs/implementation/pr1-substrate-gate/SUMMARY.md` (PR2 out of scope)
 - Dogfood: affirm-then-repair whiplash on hosted loop (2026-06 conversation)
 - `AGENTS.md` — `advanceSession` batching note

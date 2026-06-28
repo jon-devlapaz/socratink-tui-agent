@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 
 import { registry } from '../lib/bridge/registry.mjs';
+import { buildDashboardPayload } from '../lib/observability/dashboard-metrics.mjs';
 import { proveRoutingChain } from '../lib/seda/routing-proofs.mjs';
 
 const WORKSPACE_ROOT = process.cwd();
@@ -15,9 +16,11 @@ function usage() {
     'Usage:',
     '  ./socratink-harness replay',
     '  ./socratink-harness routing-proof',
+    '  ./socratink-harness dashboard [--json]',
     '',
     'replay — assert checks on promoted learning cases.',
     'routing-proof — verify nextPhase can route each promoted trace event log.',
+    'dashboard — read-only founder summaries over promoted traces.',
   ].join('\n');
 }
 
@@ -288,23 +291,42 @@ function printRoutingProofReport(results) {
   });
 }
 
+function printDashboard(payload) {
+  console.log(payload.title);
+  console.log(`${payload.case_summary.total} promoted cases`);
+  console.log('');
+  console.log('Recovery telemetry');
+  for (const [key, value] of Object.entries(payload.recovery_telemetry)) {
+    console.log(`  ${key}: ${value}`);
+  }
+}
+
 async function main() {
   const command = process.argv[2];
-  if (command !== 'replay' && command !== 'routing-proof') {
+  if (!['replay', 'routing-proof', 'dashboard'].includes(command)) {
     console.log(usage());
     process.exitCode = command ? 2 : 0;
     return;
   }
   const cases = await loadCases();
-  const results = [];
+  const sessions = [];
   for (const caseRecord of cases) {
-    const session = await loadSession(caseRecord);
-    results.push(
-      command === 'routing-proof'
-        ? routingProofCase(caseRecord, session)
-        : replayCase(caseRecord, session),
-    );
+    sessions.push(await loadSession(caseRecord));
   }
+  if (command === 'dashboard') {
+    const payload = buildDashboardPayload({ cases, sessions });
+    if (process.argv.includes('--json')) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      printDashboard(payload);
+    }
+    return;
+  }
+  const results = cases.map((caseRecord, index) => (
+    command === 'routing-proof'
+      ? routingProofCase(caseRecord, sessions[index])
+      : replayCase(caseRecord, sessions[index])
+  ));
   if (command === 'routing-proof') {
     printRoutingProofReport(results);
   } else {

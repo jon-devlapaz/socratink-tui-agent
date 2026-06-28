@@ -30,6 +30,17 @@ function runAgentlint(binDir, extraEnv = {}) {
   });
 }
 
+function runAgentlintWithPath(pathValue) {
+  return spawnSync(process.execPath, [SCRIPT, "--gate"], {
+    cwd: WORKSPACE_ROOT,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      PATH: pathValue,
+    },
+  });
+}
+
 test("agentlint gate accepts score at calibrated threshold", async () => {
   const binDir = await fakeAgentlintPlan("Overall Score: 75/100");
   const result = runAgentlint(binDir);
@@ -62,4 +73,12 @@ test("agentlint gate fails when score cannot be parsed", async () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /could not parse AgentLint score for gate mode/);
+});
+
+test("agentlint gate fails fast when agentlint-plan is missing", () => {
+  const result = runAgentlintWithPath("/usr/bin:/bin");
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /failed to run agentlint-plan/);
+  assert.match(result.stderr, /Install agentlint-plan or set AGENTLINT_PLAN_BIN/);
 });

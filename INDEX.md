@@ -25,7 +25,13 @@
 - [`app.mjs`](app.mjs):
   CLI entrypoint and startup chain.
 - [`socratink-tui`](socratink-tui):
-  CLI executable wrapper.
+  Terminal loop wrapper.
+- [`socratink-harness`](socratink-harness):
+  Replay, routing-proof, and dashboard wrapper.
+- [`socratink-loop-server`](socratink-loop-server):
+  Hosted learner loop wrapper.
+- [`socratink`](socratink):
+  Founder ops wrapper.
 - `.github/workflows/`: CI and gate workflows.
 - [`plans/`](plans/README.md):
   Working plan snapshot.

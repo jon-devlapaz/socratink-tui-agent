@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 const args = new Set(process.argv.slice(2));
 const gate = args.has("--gate");
 const minScore = Number(process.env.AGENTLINT_MIN_SCORE || 75);
+const command = process.env.AGENTLINT_PLAN_BIN || "agentlint-plan";
 
 const calibration = `
 
@@ -34,14 +35,10 @@ function run(command, args = []) {
   });
 }
 
-let result = run("agentlint-plan");
-if (result.error?.code === "ENOENT") {
-  console.error("[agentlint] agentlint-plan not found; falling back to npx agentlinter");
-  result = run("npx", ["--yes", "agentlinter"]);
-}
-
+const result = run(command);
 if (result.error) {
-  console.error(`[agentlint] failed to run: ${result.error.message}`);
+  const installHint = result.error.code === "ENOENT" ? " Install agentlint-plan or set AGENTLINT_PLAN_BIN." : "";
+  console.error(`[agentlint] failed to run ${command}: ${result.error.message}.${installHint}`);
   process.exit(1);
 }
 

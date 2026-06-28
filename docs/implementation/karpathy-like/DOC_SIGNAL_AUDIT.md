@@ -25,12 +25,7 @@ cleanup should be compression and status labeling, not removal.
 | `docs/implementation/karpathy-like/BASELINE.md` | 11 | keep support | Keep | Current audit baseline with owner and guard map. |
 | `docs/implementation/karpathy-like/DOC_SIGNAL_RUBRIC.md` | 12 | keep canonical/support | Keep | Current rubric with direct decision rules. |
 | `docs/implementation/karpathy-like/REPORT.md` | 10 | keep support | Keep | Current report with validation evidence and residual risks. |
-| `docs/implementation/pr1-substrate-gate/ORCHESTRATION.md` | 5 | rewrite/archive | Compress | Useful only as historical lane provenance; no current decision rule. |
-| `docs/implementation/pr1-substrate-gate/codex-pr1-lane-1.md` | 6 | rewrite/archive | Compress into PR1 summary | Old task packet; specific enough to be useful history, but not current guidance. |
-| `docs/implementation/pr1-substrate-gate/codex-pr1-lane-2.md` | 6 | rewrite/archive | Compress into PR1 summary | Old task packet with useful scope boundaries; label historical or summarize. |
-| `docs/implementation/pr1-substrate-gate/codex-pr1-lane-3.md` | 6 | rewrite/archive | Compress into PR1 summary | Old lane packet; contains stale server command assumptions. |
-| `docs/implementation/pr1-substrate-gate/lane-1-report.md` | 6 | rewrite/archive | Merge into PR1 summary | Evidence exists, but links point at an old sibling worktree path. |
-| `docs/implementation/pr1-substrate-gate/lane-3-report.md` | 6 | rewrite/archive | Merge into PR1 summary | Evidence exists, but stale absolute paths reduce current signal. |
+| `docs/implementation/pr1-substrate-gate/SUMMARY.md` | 8 | keep support | Keep | PR1 lane packets and reports were collapsed here; old detailed files were pruned to remove stale local paths and task packets. |
 | `docs/implementation/pr2-hosted-loop-pacing/REPORT.md` | 10 | keep support | Keep | Strong current/historical proof of hosted pacing boundaries and validation. |
 | `docs/implementation/session-kernel-goal/GOAL.md` | 7 | keep support | Relabel status | Useful architecture goal; should say whether implemented, superseded, or pending. |
 | `docs/implementation/session-kernel-goal/PROGRESS.md` | 8 | keep support | Compress later | Evidence-rich but long; a shorter summary plus retained command trail would be clearer. |
@@ -94,4 +89,3 @@ lives under `tests/`.
 - **Highest-priority rewrite/archive candidate 1:** `docs/implementation/lab-workbench-progress.md` (Score 10) — Relabel as historical progress log after the next major `/lab` update to prevent reader confusion about pending work.
 - **Highest-priority rewrite/archive candidate 2:** `docs/greenfield-ai-native-implementation-plan.md` (Score 9) — Archive under `docs/implementation/provenance/` once the next core-loop SDK adapter changes are finalized.
 - **Highest-priority keep with freshness check:** `docs/INDEX.md` (Score 10) — Needs a freshness check and direct update to list the newly added ADR and architecture docs.
-

@@ -1,6 +1,6 @@
 # Debloat Assessment — socratink-tui-agent
 
-**Repository:** `/Users/jondev/dev/socratink/prod/socratink-tui-agent`  
+**Repository:** `socratink-tui-agent`
 **Prepared:** 2026-06-08  
 **Supersedes:** generic pygount hand-off (`/private/tmp/debloat-assessment.md`)
 

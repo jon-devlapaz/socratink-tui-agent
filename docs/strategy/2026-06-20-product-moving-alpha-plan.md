@@ -57,11 +57,21 @@ again without the graph lying.
 
 ## Borrow Only These Patterns
 
-- From event-sourced agent systems: append facts, project reviews, replay before
-  claims.
-- From LLM observability tools: trace -> label failure -> change prompt -> rerun.
-- From learning systems: adapt to weak skills, but count only reconstruction as
-  evidence.
+- Architecture alpha: borrow append-only facts, deterministic projections,
+  replay checks, and boundary contracts from event-sourced and CQRS systems.
+- Observability alpha: borrow trace -> label failure -> change prompt -> rerun
+  from LLM eval tools.
+- Pedagogy alpha: borrow weak-skill adaptation, failure-cause reporting, and
+  learner confusion notes as context only.
+
+Do not borrow new graph truth. Skill models, annotations, summaries, citations,
+help, repair, and lab reports stay graph-neutral unless a learner reconstructs
+the idea through the evidence path.
+
+The overlap between the alpha lanes is founder-lab run review: project raw run
+artifacts into one readable recommendation, then change one prompt or product
+beat and rerun. Use existing run folders and report JSON. Do not add a new
+route, store, or score.
 
 ## Next Slice
 

@@ -13,6 +13,7 @@ import {
   assertCleanWorktree,
   agentWorktreeGuard,
   agentWorktreeStart,
+  goldenStatus,
   herdrAgentStartArgs,
   herdrWorkspaceCreateArgs,
   validateAgentSlug,
@@ -122,6 +123,31 @@ test("agent git start refuses dirty source checkouts", () => {
   );
   assert.throws(() => assertCleanWorktree(repo), /dirty checkout/);
   assert.equal(fs.existsSync(path.join(parent, "socratink-agent-dirty-source")), false);
+});
+
+test("agent git golden accepts a clean main checkout", () => {
+  const repo = initRepoWithOrigin(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-golden-clean-")));
+
+  const result = goldenStatus(repo, { gh: false });
+
+  assert.equal(result.golden, true);
+  assert.deepEqual(result.blockers, []);
+  assert.equal(result.branch, "main");
+  assert.equal(result.dirty, false);
+  assert.equal(result.aheadBehind, "0\t0");
+});
+
+test("agent git golden reports agent residue", () => {
+  const repo = initRepoWithOrigin(fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-golden-residue-")));
+  const started = agentWorktreeStart(repo, { slug: "leftover", herdr: false });
+
+  const result = goldenStatus(repo, { gh: false });
+
+  assert.equal(result.golden, false);
+  assert.deepEqual(result.extraWorktrees.map((entry) => entry.path), [started.path]);
+  assert.deepEqual(result.localAgentBranches, ["agent/leftover"]);
+  assert.match(result.blockers.join("\n"), /extra worktree/);
+  assert.match(result.blockers.join("\n"), /local agent\/codex branch/);
 });
 
 function initRepo(parent) {

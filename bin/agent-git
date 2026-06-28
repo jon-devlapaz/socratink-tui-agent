@@ -10,6 +10,7 @@ import {
   cleanupDryRun,
   collectStatus,
   doctor,
+  goldenStatus,
   rescue,
 } from "../lib/agent-git/core.mjs";
 
@@ -68,6 +69,58 @@ function printStatus(status) {
       return acc;
     }, {});
     console.log(`checks: ${Object.entries(buckets).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+  }
+}
+
+function printGolden(result) {
+  console.log("agent-git golden");
+  console.log(`golden: ${result.golden ? "yes" : "no"}`);
+  console.log(`repo: ${result.root}`);
+  console.log(`branch: ${result.branch}`);
+  console.log(`default: ${result.base}`);
+  console.log(`dirty: ${result.dirty ? "yes" : "no"}`);
+  if (result.aheadBehind) console.log(`origin/${result.base}: behind ${result.behind}, ahead ${result.ahead}`);
+  console.log(`open prs: ${result.ghAvailable === false ? "unknown" : result.openPrs.length}`);
+  console.log(`extra worktrees: ${result.extraWorktrees.length}`);
+  console.log(`local agent/codex branches: ${result.localAgentBranches.length}`);
+  console.log(`remote agent/codex branches: ${result.remoteAgentBranches.length}`);
+  console.log(`stashes: ${result.stashes.length}`);
+
+  if (!result.blockers.length) return;
+  console.log("");
+  console.log("blockers:");
+  for (const blocker of result.blockers) console.log(`  ${blocker}`);
+  if (result.openPrs.length) {
+    console.log("");
+    console.log("open prs:");
+    for (const pr of result.openPrs) console.log(`  #${pr.number} ${pr.headRefName} ${pr.title}`);
+  }
+  if (result.extraWorktrees.length) {
+    console.log("");
+    console.log("extra worktrees:");
+    for (const worktree of result.extraWorktrees) {
+      console.log(`  ${worktree.path}${worktree.branch ? ` [${worktree.branch}]` : ""}`);
+    }
+  }
+  if (result.localAgentBranches.length) {
+    console.log("");
+    console.log("local agent/codex branches:");
+    for (const branch of result.localAgentBranches) console.log(`  ${branch}`);
+  }
+  if (result.remoteAgentBranches.length) {
+    console.log("");
+    console.log("remote agent/codex branches:");
+    for (const branch of result.remoteAgentBranches) console.log(`  origin/${branch}`);
+  }
+  if (result.stashes.length) {
+    console.log("");
+    console.log("stashes:");
+    for (const stash of result.stashes) console.log(`  ${stash}`);
+  }
+  if (result.porcelain) {
+    console.log("");
+    console.log("dirty status:");
+    console.log(result.porcelain);
   }
 }
 
@@ -165,6 +218,7 @@ function usage() {
 Commands:
   doctor [--json]          Verify repo, GitHub, and worktree prerequisites
   status [--json]          Show current branch, dirty state, PR, and checks
+  golden [--json]          Verify the post-cleanup golden end zone
   start <slug> [--task TEXT] [--no-agent] [--no-herdr] [--json]
                            Create or reuse ../socratink-agent-<slug> on agent/<slug>
                            and open a side Herdr workspace when available.
@@ -200,6 +254,11 @@ function main(argv) {
   if (command === "status") {
     const result = collectStatus();
     json ? printJson(result) : printStatus(result);
+    return;
+  }
+  if (command === "golden") {
+    const result = goldenStatus();
+    json ? printJson(result) : printGolden(result);
     return;
   }
   if (command === "start") {

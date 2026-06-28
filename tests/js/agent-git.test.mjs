@@ -174,6 +174,7 @@ test("agent git writes a task handoff for started agents", () => {
   assert.match(text, /Review docs and consolidate alpha findings/);
   assert.match(text, /Branch: agent\/alpha-docs/);
   assert.match(text, /Do not push, merge, close PRs, delete branches/);
+  assert.match(text, /Finish with one commit, or report blocked; do not leave a dirty worktree/);
 });
 
 test("agent git starts Codex from the task handoff inside Herdr", () => {

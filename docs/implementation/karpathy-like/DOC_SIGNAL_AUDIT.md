@@ -69,3 +69,29 @@ lives under `tests/`.
    directly serve product correctness.
 4. Do not use `.qa-runs/`, `.supergoal/`, `.workflow/`, `.code-review-graph/`, or
    local caches as canonical truth.
+
+## 2026-06-28T06:24:21Z doc signal audit
+
+| Path | Score | Band | Recommendation | Rationale | Suggested next action |
+| --- | ---: | --- | --- | --- | --- |
+| `docs/adr/0001-substrate-gate-before-route.md` | 10 | keep canonical/support | Keep | Names current SEDA phase mapping rules and UI requirements. | Link from `INDEX.md` start here section. |
+| `docs/adr/0002-agent-git-control-plane.md` | 12 | keep canonical/support | Keep | Defines critical safety wrapper commands and golden end zone rules. | Ensure subagents read this on startup. |
+| `docs/adr/ADR-fake-bridge-vcr-stub.md` | 12 | keep canonical/support | Keep | Explicitly defines lookup-table fallback design and exact check commands. | Keep lookup fixture coverage tests updated. |
+| `docs/founder-lab-todo.md` | 11 | keep canonical/support | Keep | Bounded console checklist, MVP surface definitions, and hardening tasks. | Audit task completion on next `/lab` release. |
+| `docs/bugs/2026-06-01-live-persona-run-bugs.md` | 12 | keep support | Keep as historical bugs | Detailed reproduction, fix boundary, and verification targets for SEDA QA. | Leave in bugs directory for regression history. |
+| `docs/rubrics/loop-v1.md` | 10 | keep canonical/support | Keep | Clear evaluation criteria schema mapping and prompt adjustment guide. | Keep aligned with `evals/founder-lab/` schema updates. |
+| `docs/architecture/hosted-session-persistence.md` | 11 | keep canonical/support | Keep | Sets authority boundary, facts needed for SEDA resume, and directory layout. | Link to `HARNESS.md` for orchestrator-rehydration reference. |
+| `docs/architecture/seda-event-facts.md` | 12 | keep canonical/support | Keep | Authoritative definition of neutral/score SEDA events and builders list. | Run drift checks when updating eventbuilders. |
+| `docs/greenfield-ai-native-implementation-plan.md` | 9 | keep support | Keep as design pattern | Good rules on replaceable vendor client adapters and prompt registry. | Label as historical proposal once next core loop version is established. |
+| `docs/INDEX.md` | 10 | keep canonical/support | Keep | Essential navigation map pointing directly to rules and architecture. | Freshness check when new documents are added or archived. |
+| `docs/prompt-usage-map.md` | 11 | keep canonical/support | Keep | Mermaid flowchart mapping phases to prompt templates and handlers. | Sync map when introducing new bridge actions. |
+| `docs/implementation/lab-workbench-progress.md` | 10 | keep support | Keep as progress log | Short, verified record of founder runs dialogue rendering. | Relabel historical after next major workbench feature release. |
+| `docs/implementation/karpathy-like/debloat-assessment.md` | 12 | keep canonical/support | Keep | Repo-native pygount skips, JSON/Markdown weight analysis, and do-not-do list. | Enforce skips in CI script checks. |
+| `docs/strategy/2026-06-20-product-moving-alpha-plan.md` | 12 | keep canonical/support | Keep | Clear alpha directions, cuts, do-now priority, and verification requirements. | Use as active spine reference for next product milestone. |
+
+### Priority Actions
+
+- **Highest-priority rewrite/archive candidate 1:** `docs/implementation/lab-workbench-progress.md` (Score 10) — Relabel as historical progress log after the next major `/lab` update to prevent reader confusion about pending work.
+- **Highest-priority rewrite/archive candidate 2:** `docs/greenfield-ai-native-implementation-plan.md` (Score 9) — Archive under `docs/implementation/provenance/` once the next core-loop SDK adapter changes are finalized.
+- **Highest-priority keep with freshness check:** `docs/INDEX.md` (Score 10) — Needs a freshness check and direct update to list the newly added ADR and architecture docs.
+

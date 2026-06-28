@@ -9,6 +9,7 @@ import {
   CommandError,
   agentFinish,
   agentVerdict,
+  agentWriteGuard,
   assertCleanWorktree,
   agentWorktreeGuard,
   agentWorktreeStart,
@@ -63,6 +64,28 @@ test("agent git guard blocks protected branches without integrator override", ()
   assert.deepEqual(agentWorktreeGuard(dir, { SOCRATINK_INTEGRATOR: "1" }), {
     root: fs.realpathSync(dir),
     branch: "main",
+    ok: true,
+  });
+});
+
+test("agent git write guard blocks protected branches without integrator override", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-write-guard-"));
+  execFileSync("git", ["init", "-b", "main"], { cwd: dir, stdio: "ignore" });
+
+  assert.throws(
+    () => agentWriteGuard(dir, {}),
+    (error) => error instanceof CommandError && error.code === 2 && /file edits/.test(error.message),
+  );
+  assert.deepEqual(agentWriteGuard(dir, { SOCRATINK_INTEGRATOR: "1" }), {
+    root: fs.realpathSync(dir),
+    branch: "main",
+    ok: true,
+  });
+
+  execFileSync("git", ["checkout", "-b", "agent/safe"], { cwd: dir, stdio: "ignore" });
+  assert.deepEqual(agentWriteGuard(dir, {}), {
+    root: fs.realpathSync(dir),
+    branch: "agent/safe",
     ok: true,
   });
 });
@@ -228,6 +251,7 @@ test("agent git writes a task handoff for started agents", () => {
   assert.match(text, /# Copyable prompt for next session/);
   assert.match(text, /Review docs and consolidate alpha findings/);
   assert.match(text, /Branch: agent\/alpha-docs/);
+  assert.match(text, /Run npm run agent:git -- guard-write/);
   assert.match(text, /Do not push, merge, close PRs, delete branches/);
   assert.match(text, /Finish with one commit, or report blocked; do not leave a dirty worktree/);
 });

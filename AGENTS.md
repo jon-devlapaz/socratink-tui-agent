@@ -32,6 +32,7 @@ not a router input.
 - Golden end zone after merges/cleanup: `main` only, dirty no, `origin/main`
   behind 0 ahead 0, no open PRs, no extra worktrees, no local agent/codex
   branches, and no remote `origin/agent/*` or `origin/codex/*` branches.
+- After a merged PR, use `npm run agent:git -- finish <slug>` to return there.
 - Main startup chain: `./socratink-tui -> app.mjs -> createSessionKernel() ->
   makePrompt() -> runSedaLoop() -> nextPhase(events)`.
 - Frontend files live under `public/`; SEDA runtime lives under `lib/seda/`;

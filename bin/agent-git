@@ -3,6 +3,7 @@ import {
   CommandError,
   agentFinish,
   agentVerdict,
+  agentWriteGuard,
   assertSafeRequestedCommand,
   agentWorktreeGuard,
   agentWorktreeStart,
@@ -171,6 +172,7 @@ Commands:
   verdict <slug> [--json]  Read agent/<slug> worktree diff and print review verdict
   finish <slug> [--json]   After a merged PR, update main and remove that agent worktree/branch
   guard [--json]           Refuse agent work on protected branches unless SOCRATINK_INTEGRATOR=1
+  guard-write [--json]     Refuse agent file edits on protected branches unless SOCRATINK_INTEGRATOR=1
   cleanup --dry-run [--json]
                            Classify branches without deleting anything
   rescue [--message TEXT] [--json]
@@ -214,6 +216,11 @@ function main(argv) {
   }
   if (command === "guard") {
     const result = agentWorktreeGuard();
+    json ? printJson(result) : printGuard(result);
+    return;
+  }
+  if (command === "guard-write") {
+    const result = agentWriteGuard();
     json ? printJson(result) : printGuard(result);
     return;
   }

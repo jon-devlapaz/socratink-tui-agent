@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 
 const args = new Set(process.argv.slice(2));
 const gate = args.has("--gate");
 const minScore = Number(process.env.AGENTLINT_MIN_SCORE || 75);
-const command = process.env.AGENTLINT_PLAN_BIN || "agentlint-plan";
+const explicitCommand = process.env.AGENTLINT_PLAN_BIN;
+const localAgentlinter = path.join(process.cwd(), "node_modules", ".bin", "agentlinter");
+const commands = explicitCommand ? [explicitCommand] : ["agentlint-plan", localAgentlinter, "agentlinter"];
 
 const calibration = `
 
@@ -35,10 +38,25 @@ function run(command, args = []) {
   });
 }
 
-const result = run(command);
-if (result.error) {
-  const installHint = result.error.code === "ENOENT" ? " Install agentlint-plan or set AGENTLINT_PLAN_BIN." : "";
-  console.error(`[agentlint] failed to run ${command}: ${result.error.message}.${installHint}`);
+let result;
+let command;
+const missing = [];
+for (const candidate of commands) {
+  command = candidate;
+  result = run(candidate);
+  if (!result.error) {
+    break;
+  }
+  if (result.error.code === "ENOENT" && !explicitCommand) {
+    missing.push(candidate);
+    continue;
+  }
+  const installHint = result.error.code === "ENOENT" ? " Install agentlint-plan or npm install." : "";
+  console.error(`[agentlint] failed to run ${candidate}: ${result.error.message}.${installHint}`);
+  process.exit(1);
+}
+if (result?.error) {
+  console.error(`[agentlint] failed to run AgentLint; tried: ${missing.join(", ")}`);
   process.exit(1);
 }
 

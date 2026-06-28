@@ -30,12 +30,13 @@ function runAgentlint(binDir, extraEnv = {}) {
   });
 }
 
-function runAgentlintWithPath(pathValue) {
+function runAgentlintWithPath(pathValue, extraEnv = {}) {
   return spawnSync(process.execPath, [SCRIPT, "--gate"], {
     cwd: WORKSPACE_ROOT,
     encoding: "utf8",
     env: {
       ...process.env,
+      ...extraEnv,
       PATH: pathValue,
     },
   });
@@ -75,10 +76,21 @@ test("agentlint gate fails when score cannot be parsed", async () => {
   assert.match(result.stderr, /could not parse AgentLint score for gate mode/);
 });
 
-test("agentlint gate fails fast when agentlint-plan is missing", () => {
-  const result = runAgentlintWithPath("/usr/bin:/bin");
+test("agentlint gate falls back to repo-local agentlinter", () => {
+  const nodeBinDir = path.dirname(process.execPath);
+  const result = runAgentlintWithPath(`${nodeBinDir}${path.delimiter}/usr/bin${path.delimiter}/bin`);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AgentLinter/);
+  assert.match(result.stdout, /\[agentlint\] gate score=\d+\/100 min=75\/100/);
+});
+
+test("agentlint gate fails fast when configured binary is missing", () => {
+  const result = runAgentlintWithPath("/usr/bin:/bin", {
+    AGENTLINT_PLAN_BIN: path.join(os.tmpdir(), "missing-agentlint-plan"),
+  });
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /failed to run agentlint-plan/);
-  assert.match(result.stderr, /Install agentlint-plan or set AGENTLINT_PLAN_BIN/);
+  assert.match(result.stderr, /failed to run .*missing-agentlint-plan/);
+  assert.match(result.stderr, /Install agentlint-plan or npm install/);
 });

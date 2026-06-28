@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "agentlinter": "^0.3.3",
     "eslint": "^9.28.0",
     "globals": "^16.2.0",
     "typescript-eslint": "^8.34.0"

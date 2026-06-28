@@ -51,7 +51,7 @@ async function main() {
 
   const cases = await loadCases();
   const sessionPaths = new Set(
-    cases.map((caseRecord) => path.join(WORKSPACE_ROOT, caseRecord.session_log)),
+    cases.map((caseRecord) => path.join(WORKSPACE_ROOT, caseRecord.trace || caseRecord.session_log)),
   );
 
   const results = [];

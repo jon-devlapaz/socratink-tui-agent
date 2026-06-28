@@ -27,10 +27,11 @@ async function loadCases() {
 }
 
 async function loadSession(caseRecord) {
-  if (!caseRecord.session_log) {
+  const sessionLog = caseRecord.trace || caseRecord.session_log;
+  if (!sessionLog) {
     throw new Error(`${caseRecord.case_id}: session_log-required`);
   }
-  const sessionPath = path.join(WORKSPACE_ROOT, caseRecord.session_log);
+  const sessionPath = path.join(WORKSPACE_ROOT, sessionLog);
   return JSON.parse(await fs.readFile(sessionPath, "utf8"));
 }
 

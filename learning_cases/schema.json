@@ -4,19 +4,38 @@
   "type": "object",
   "required": [
     "case_id",
-    "case_type",
-    "case_source",
-    "promotion_status",
-    "session_log",
-    "concept",
-    "product_question",
-    "observed_failure",
-    "expected_invariant",
-    "expected_invariants"
+    "status",
+    "kind",
+    "source",
+    "claim",
+    "risk",
+    "trace",
+    "checks"
   ],
   "properties": {
     "case_id": {
       "type": "string"
+    },
+    "status": {
+      "enum": ["active", "candidate", "research_only"]
+    },
+    "kind": {
+      "enum": ["golden", "regression", "research"]
+    },
+    "source": {
+      "enum": ["human_dogfood", "scripted_fixture", "simulated_learner", "regression_trace"]
+    },
+    "claim": {
+      "type": "string"
+    },
+    "risk": {
+      "type": "string"
+    },
+    "trace": {
+      "type": "string"
+    },
+    "checks": {
+      "$ref": "#/$defs/replay_checks"
     },
     "case_type": {
       "enum": ["golden", "regression", "research"]
@@ -49,12 +68,15 @@
       "type": "string"
     },
     "expected_invariants": {
+      "$ref": "#/$defs/replay_checks"
+    }
+  },
+  "$defs": {
+    "replay_checks": {
       "type": "object",
       "required": [
         "event_order",
         "final_node_state",
-        "spaced_evaluator_classification",
-        "evidence_hold_required",
         "truth_source"
       ],
       "properties": {
@@ -67,11 +89,56 @@
         "final_node_state": {
           "enum": ["primed", "needs repair", "solidified"]
         },
+        "cold_evaluator_classification": {
+          "type": "string"
+        },
         "spaced_evaluator_classification": {
           "type": "string"
         },
         "evidence_hold_required": {
           "type": "boolean"
+        },
+        "repair_count": {
+          "type": "number"
+        },
+        "repair_dialogue_turn_count": {
+          "type": "number"
+        },
+        "first_repair_dialogue_bridge_ready": {
+          "type": "boolean"
+        },
+        "last_repair_dialogue_bridge_ready": {
+          "type": "boolean"
+        },
+        "post_bridge_transfer_check_required": {
+          "type": "boolean"
+        },
+        "recovery_events_graph_neutral": {
+          "type": "boolean"
+        },
+        "repair_recovery_turn_count": {
+          "type": "number"
+        },
+        "recovery_closed_outcome": {
+          "type": "string"
+        },
+        "forbidden_recovery_outcomes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbidden_events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbidden_llm_stages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "truth_source": {
           "const": "training_derivation"

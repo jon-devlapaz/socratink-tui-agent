@@ -1,19 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
 test("ab live experiment dry-run writes manifest and report", () => {
   const outDir = mkdtempSync(path.join(tmpdir(), "ab-live-dry-run-"));
+  const variantB = mkdtempSync(path.join(tmpdir(), "ab-live-variant-b-"));
+  writeFileSync(path.join(variantB, "app.mjs"), "");
+  writeFileSync(path.join(variantB, "prompt_templates.py"), "");
   const result = spawnSync(
     "node",
     [
       "scripts/ab-live-experiment.mjs",
       "--dry-run",
       "--variant-b",
-      ".",
+      variantB,
       "--fixtures",
       "fixtures/source_less_script.json",
       "--out",
@@ -34,4 +37,15 @@ test("ab live experiment dry-run writes manifest and report", () => {
   assert.deepEqual(report.summaries, []);
   assert.ok(report.prompt_versions.a.evaluator);
   assert.ok(report.prompt_versions.b.evaluator);
+});
+
+test("ab live experiment rejects identical variant paths", () => {
+  const result = spawnSync(
+    "node",
+    ["scripts/ab-live-experiment.mjs", "--dry-run"],
+    { encoding: "utf8" },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /variant paths must differ/);
 });

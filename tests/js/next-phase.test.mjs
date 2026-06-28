@@ -30,7 +30,6 @@ test("DIRECT_PHASE table is honored for direct event types", () => {
     post_bridge_transfer_decision: "post_bridge_transfer",
     post_bridge_transfer_check: "spacing",
     post_bridge_transfer_skipped: "spacing",
-    gap_drill: "spacing",
     spacing_advanced: "spaced_redrill",
     spaced_redrill: "idle",
     evidence_hold_recorded: "idle",

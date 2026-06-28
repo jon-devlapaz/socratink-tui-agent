@@ -93,7 +93,7 @@ If `evidence_hold_rate` cannot be reconstructed from current events without addi
 
 ## Checkpoints
 
-1. Run `rtk git status --short` and baseline validation for the relevant current tests.
+1. Run `git status --short` and baseline validation for the relevant current tests.
 2. Add taxonomy contract tests before implementation.
 3. Implement the envelope/adapter and append-site compatibility in one bounded slice.
 4. Adapt dashboard metric definitions and derivation.
@@ -112,12 +112,12 @@ Keep a short progress log at `docs/implementation/event-taxonomy-dashboard-v2/PR
 Run:
 
 ```bash
-rtk ./scripts/check-canon-drift.sh
-rtk .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q
-rtk proxy find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
-rtk ./socratink-harness replay
-rtk ./socratink-harness routing-proof
-rtk env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never
+ ./scripts/check-canon-drift.sh
+ .venv/bin/pytest tests/test_prompt_template.py tests/test_workspace_smoke.py -q
+find tests/js -name '*.test.mjs' ! -name 'loop-chat-ui.test.mjs' -print | sort | xargs node --test
+ ./socratink-harness replay
+ ./socratink-harness routing-proof
+ env SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow ./socratink-tui --scripted fixtures/source_less_script.json --color=never
 ```
 
 Narrower pytest gates are acceptable only if unchanged areas do not need full smoke coverage. Document the rationale in the progress log.

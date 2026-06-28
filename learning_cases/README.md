@@ -11,14 +11,47 @@ ignored `.qa-runs/` folders. `.qa-runs/` remains the working evidence stream;
 this folder contains the small set of portable traces that should replay on a
 fresh checkout.
 
-## Case Types
+## Case shape
+
+Use the short labels first. The old labels remain as compatibility aliases for
+current replay and dashboard readers.
+
+```json
+{
+  "case_id": "ai-strong-cold-solidifies-2026-06-24",
+  "status": "active",
+  "kind": "golden",
+  "source": "simulated_learner",
+  "claim": "A solid cold attempt may skip repair and solidify only after spaced evidence.",
+  "risk": "The loop may waste learner effort by forcing ceremonial repair.",
+  "trace": "learning_cases/traces/ai-strong-cold-solidifies-2026-06-24/session.json",
+  "checks": {
+    "event_order": ["cold_attempt", "strong_cold_path", "spacing_advanced", "spaced_redrill"],
+    "final_node_state": "solidified",
+    "truth_source": "training_derivation"
+  }
+}
+```
+
+Human fields:
+
+- `claim`: what this case protects
+- `risk`: what could regress if the case fails
+- `trace`: the saved session record
+
+Machine fields:
+
+- `checks`: replay assertions over events, derived graph state, evaluator labels,
+  forbidden events, or forbidden LLM stages
+
+## Case kinds
 
 - `golden`: stable invariant that must keep working. Do not add these until the
   behavior is settled.
 - `regression`: known failure that must not return.
 - `research`: qualitative product signal. Not a gate.
 
-## Case Sources
+## Case sources
 
 - `human_dogfood`
 - `scripted_fixture`
@@ -48,14 +81,14 @@ already contains derived state from that boundary.
 Model Bridge or gap-drill stages were not called after `repair_abandoned` or
 after a strong-cold skip. They are not evidence of learner understanding.
 
-## Promotion Rule
+## Promotion rule
 
 Every promoted case must answer:
 
-- What failure or invariant does this protect?
+- What claim does this protect?
+- What risk would return if it failed?
 - What trace produced it?
-- What is the expected event order?
-- Which derived state must hold?
+- What checks make the claim falsifiable?
 - Why is this a regression, golden, or research case?
 
 ## Refresh broadcast (after session-record changes)
@@ -70,4 +103,7 @@ node scripts/refresh-trace-broadcast.mjs
 
 This re-derives `product_loop` from saved `events[]` only. **Full re-capture**
 (a new scripted `./socratink-tui` run replacing `session.json`) is required only
-when `expected_invariants.event_order` should change — not for broadcast fixes.
+when `checks.event_order` should change — not for broadcast fixes.
+
+`expected_invariants` and `session_log` are compatibility aliases for current
+tools. New cases should be read as `checks` and `trace`.

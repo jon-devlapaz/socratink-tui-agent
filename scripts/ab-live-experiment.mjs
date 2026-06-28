@@ -216,6 +216,10 @@ async function main() {
       process.exit(1);
     }
   }
+  if (options.variantA === options.variantB) {
+    console.error(`variant paths must differ: ${options.variantA}`);
+    process.exit(1);
+  }
 
   const stamp = new Date().toISOString().replaceAll(":", "-");
   const experimentDir =

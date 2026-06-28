@@ -19,6 +19,7 @@ const VERSION_MJS = path.join(ROOT, "lib/loop-server/version.mjs");
 const INDEX_HTML = path.join(ROOT, "public/loop/index.html");
 const LOOP_JS = path.join(ROOT, "public/loop/loop.js");
 const PACKAGE_JSON = path.join(ROOT, "package.json");
+const PACKAGE_LOCK_JSON = path.join(ROOT, "package-lock.json");
 
 const LOOP_VERSION_RE = /^v0\.(\d{2})$/;
 
@@ -100,11 +101,20 @@ function updatePackageJson(version) {
   writeFileSync(PACKAGE_JSON, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
+function updatePackageLockJson(version) {
+  const pkg = JSON.parse(readFileSync(PACKAGE_LOCK_JSON, "utf8"));
+  const semver = loopVersionToSemver(version);
+  pkg.version = semver;
+  if (pkg.packages?.[""]) pkg.packages[""].version = semver;
+  writeFileSync(PACKAGE_LOCK_JSON, `${JSON.stringify(pkg, null, 2)}\n`);
+}
+
 export function readSyncedVersions() {
   const versionMjs = readCurrentVersion();
   const indexHtml = readFileSync(INDEX_HTML, "utf8");
   const loopJs = readFileSync(LOOP_JS, "utf8");
   const pkg = JSON.parse(readFileSync(PACKAGE_JSON, "utf8"));
+  const lock = JSON.parse(readFileSync(PACKAGE_LOCK_JSON, "utf8"));
 
   const indexMatch = indexHtml.match(
     /<span id="version-pill"[^>]*>(v0\.\d{2})<\/span>/,
@@ -116,6 +126,8 @@ export function readSyncedVersions() {
     indexHtml: indexMatch?.[1] ?? null,
     loopJs: loopJsMatch?.[1] ?? null,
     packageJson: pkg.version ?? null,
+    packageLockJson: lock.version ?? null,
+    packageLockRoot: lock.packages?.[""]?.version ?? null,
     packageJsonExpected: loopVersionToSemver(versionMjs),
   };
 }
@@ -139,6 +151,16 @@ export function assertVersionsSynced() {
       `package.json (${versions.packageJson}) !== ${versions.packageJsonExpected}`,
     );
   }
+  if (versions.packageLockJson !== versions.packageJsonExpected) {
+    mismatches.push(
+      `package-lock.json (${versions.packageLockJson}) !== ${versions.packageJsonExpected}`,
+    );
+  }
+  if (versions.packageLockRoot !== versions.packageJsonExpected) {
+    mismatches.push(
+      `package-lock.json packages[\"\"].version (${versions.packageLockRoot}) !== ${versions.packageJsonExpected}`,
+    );
+  }
 
   if (mismatches.length > 0) {
     throw new Error(
@@ -155,6 +177,7 @@ export function applyLoopVersion(version) {
   updateIndexHtml(version);
   updateLoopJs(version);
   updatePackageJson(version);
+  updatePackageLockJson(version);
   return version;
 }
 

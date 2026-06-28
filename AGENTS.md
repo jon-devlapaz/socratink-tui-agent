@@ -28,6 +28,7 @@ not a router input.
 - Subagents must work in `agent/*` worktrees, not this main checkout. Start one
   with `npm run agent:git -- start <slug> --task "<one focused task>"`; it opens
   a side Herdr workspace and starts Codex from a temp handoff when available.
+  `start` refuses dirty checkouts; commit, stash, or rescue first.
 - Golden end zone after merges/cleanup: `main` only, dirty no, `origin/main`
   behind 0 ahead 0, no open PRs, no extra worktrees, no local agent/codex
   branches, and no remote `origin/agent/*` or `origin/codex/*` branches.

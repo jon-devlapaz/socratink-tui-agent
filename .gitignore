@@ -23,3 +23,5 @@ learning_cases/traces/**/.capture-run/
 learning_cases/traces/*/*T*/
 
 .code-review-graph/
+
+.mypy_cache/

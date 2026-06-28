@@ -8,6 +8,7 @@ import path from "node:path";
 import {
   CommandError,
   agentVerdict,
+  assertCleanWorktree,
   agentWorktreeGuard,
   agentWorktreeStart,
   herdrAgentStartArgs,
@@ -84,6 +85,19 @@ test("agent git start creates an isolated agent worktree", () => {
     execFileSync("git", ["branch", "--show-current"], { cwd: result.path, encoding: "utf8" }).trim(),
     "agent/bughunt-routing",
   );
+});
+
+test("agent git start refuses dirty source checkouts", () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), "agent-git-dirty-start-"));
+  const repo = initRepo(parent);
+  fs.appendFileSync(path.join(repo, "README.md"), "dirty\n");
+
+  assert.throws(
+    () => agentWorktreeStart(repo, { slug: "dirty-source", herdr: false }),
+    /dirty checkout/,
+  );
+  assert.throws(() => assertCleanWorktree(repo), /dirty checkout/);
+  assert.equal(fs.existsSync(path.join(parent, "socratink-agent-dirty-source")), false);
 });
 
 function initRepo(parent) {

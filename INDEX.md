@@ -1,29 +1,31 @@
 # Project Index
 
-- [`AGENTS.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/AGENTS.md): Repo
+- [`AGENTS.md`](AGENTS.md): Repo
   operating instructions for agents.
-- [`README.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/README.md):
+- [`README.md`](README.md):
   Human onboarding and project overview.
-- [`CHANGELOG.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/CHANGELOG.md):
+- [`CHANGELOG.md`](CHANGELOG.md):
   Update history with reason and impact.
-- [`CONTEXT.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/CONTEXT.md):
+- [`CONTEXT.md`](CONTEXT.md):
   Product vocabulary and proof vocabulary.
-- [`HARNESS.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/HARNESS.md):
+- [`HARNESS.md`](HARNESS.md):
   Harness substrate contracts and invariants.
-- [`HARNESS-TRACEABILITY.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/HARNESS-TRACEABILITY.md):
+- [`HARNESS-TRACEABILITY.md`](HARNESS-TRACEABILITY.md):
   Release ladder and merge checklist.
-- [`HARNESS-BRIDGE-REGISTRY.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/HARNESS-BRIDGE-REGISTRY.md):
+- [`HARNESS-BRIDGE-REGISTRY.md`](HARNESS-BRIDGE-REGISTRY.md):
   Bridge action registry and mapping.
-- [`docs/adr/0002-agent-git-control-plane.md`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/docs/adr/0002-agent-git-control-plane.md):
+- [`docs/INDEX.md`](docs/INDEX.md): Documentation map for architecture, ADRs,
+  strategy, and implementation notes.
+- [`docs/adr/0002-agent-git-control-plane.md`](docs/adr/0002-agent-git-control-plane.md):
   Git control plane guidance.
-- [`lib/seda/`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/lib/seda/):
+- [`lib/seda/`](lib/seda/):
   SEDA event and phase runtime.
-- [`prompt_templates.py`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/prompt_templates.py):
+- [`prompt_templates.py`](prompt_templates.py):
   LLM prompt source of truth.
-- [`app.mjs`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/app.mjs):
+- [`app.mjs`](app.mjs):
   CLI entrypoint and startup chain.
-- [`socratink-tui`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/socratink-tui):
+- [`socratink-tui`](socratink-tui):
   CLI executable wrapper.
 - `.github/workflows/`: CI and gate workflows.
-- [`plans/`](/Users/jondev/dev/socratink/prod/socratink-tui-agent/plans/README.md):
+- [`plans/`](plans/README.md):
   Working plan snapshot.

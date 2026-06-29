@@ -9,7 +9,7 @@
       "training-derive"
     ],
     "see_also": [
-      "HARNESS.md",
+      ".mex/context/seda-harness.md",
       "lib/seda/cold-gating.mjs",
       "lib/seda/repair-policy.mjs"
     ]
@@ -69,7 +69,7 @@
         "implementation": "ai_service.generate_smallest_provisional_map",
         "prompt_path": "vendor/python/app_prompts/generate-smallest-route-system-v1.txt",
         "prompt_version": "v1",
-        "prompt_sha256": "f611bd6016115ac7579b362b055c50580ae6f71b067a8e8809731cca65bd7537"
+        "prompt_sha256": "9f9c6a06c1e9dc330a9a42f2c3f38adf3b6655fbf9f86f6d02634b3dc53e7859"
       }
     },
     "substrate-gate": {

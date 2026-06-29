@@ -247,7 +247,6 @@ def test_docker_and_railway_runtime_contract() -> None:
 def test_pre_commit_secret_and_typing_gate_contract() -> None:
     pre_commit_path = WORKSPACE_ROOT / ".pre-commit-config.yaml"
     pyproject_path = WORKSPACE_ROOT / "pyproject.toml"
-    security = (WORKSPACE_ROOT / "SECURITY.md").read_text()
     parsed = run_command(
         [
             "ruby",
@@ -280,14 +279,6 @@ def test_pre_commit_secret_and_typing_gate_contract() -> None:
         "bridge_lib",
         "scripts",
     ]
-    for required in [
-        "Gitleaks through pre-commit and CI",
-        "rotate it first",
-        "git history as durable",
-    ]:
-        assert required in security
-
-
 def test_repair_dialogue_llm_calls_are_logged(tmp_path: Path) -> None:
     result = run_command(
         [

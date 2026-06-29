@@ -2,7 +2,7 @@
  * The `ctx` blackboard: in-flight working state shared across SEDA phase
  * handlers, parallel to the append-only `events[]` fact chain.
  *
- * Closed-loop note (see HARNESS.md / plan "Principle 2"): `events[]` is the
+ * Closed-loop note (see `.mex/context/seda-harness.md`): `events[]` is the
  * authoritative routing/truth record that `nextPhase` and replay read. `ctx` is
  * mutable convenience state for the current process only. A field is safe to
  * keep ctx-only if it is telemetry/infra OR fully reconstructable from

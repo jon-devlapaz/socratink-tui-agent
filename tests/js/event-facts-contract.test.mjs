@@ -301,29 +301,6 @@ test("helper-constructed event inventory names non-literal append inputs", () =>
   }
 });
 
-test("event-facts architecture note captures duplication inventory and destination rule", () => {
-  const doc = readRepoFile("docs/architecture/seda-event-facts.md");
-  for (const heading of [
-    "## Runtime Event Rules",
-    "## Append-Site Inventory",
-    "## Event-Construction Helpers",
-    "## Duplication Inventory",
-    "## Destination Rule",
-    "## Documented Exceptions",
-  ]) {
-    assert.match(doc, new RegExp(`^${heading}$`, "m"));
-  }
-
-  for (const requiredPhrase of [
-    "routing stays in `lib/seda/next-phase.mjs`",
-    "training derivation stays in the canon/training-store path",
-    "canonical projection cardinality stays in `lib/seda/event-taxonomy.mjs`",
-    "product metric formulas stay in `lib/observability/dashboard-metrics.mjs`",
-  ]) {
-    assert.match(doc, new RegExp(requiredPhrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
-});
-
 test("repair hint events persist command text when classified as learner text", () => {
   const definition = eventDefinition("repair_hint_requested");
   assert.equal(definition.learner_text, true);

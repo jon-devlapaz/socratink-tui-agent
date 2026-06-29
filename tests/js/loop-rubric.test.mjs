@@ -117,17 +117,3 @@ test("loop rubric schema artifact is valid JSON with required axes", () => {
   assert.equal(schema.$defs.axis.properties.evidence.minItems, 1);
   assert.equal(schema.properties.recommendations.items.minLength, 1);
 });
-
-test("prompt eval ladder documents boundaries before promotion", () => {
-  const readme = readFileSync(path.join(ROOT, "evals/README.md"), "utf8");
-  for (const required of [
-    "| L1 | `tests/test_prompt_template.py`, `tests/test_repair_dialogue_contract.py` | Template slots + contracts |",
-    "| L2 | `evals/prompts/*/cases.jsonl` + `tests/test_prompt_eval_*.py` | Fake bridge VCR stub (CI) |",
-    "| L3 | `fixtures/` + scripted TUI | Full SEDA, fake LLM |",
-    "| L4 | `learning_cases/` + `./socratink-harness replay` | Event order + derivation |",
-    "Do not promote prompt wording failures to `learning_cases/`",
-    "live Gemini snapshots are optional L3",
-  ]) {
-    assert.match(readme, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
-});

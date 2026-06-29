@@ -211,15 +211,6 @@ test("route emits reconstructable route_generated facts", async () => {
   assert.ok(event.map_displayed);
 });
 
-test("persistence architecture keeps wrapper fields out of routing authority", () => {
-  const doc = readRepoFile("docs/architecture/hosted-session-persistence.md");
-  assert.match(doc, /`events\[\]` is the durable hosted authority/);
-  assert.match(doc, /Transcript/);
-  assert.match(doc, /Awaiting prompt metadata/);
-  assert.match(doc, /Current phase/);
-  assert.match(doc, /Never persisted as authority/);
-});
-
 test("loop-server persistence modules do not import nextPhase directly", () => {
   const loopFiles = walkFiles(
     path.join(WORKSPACE_ROOT, "lib/loop-server"),

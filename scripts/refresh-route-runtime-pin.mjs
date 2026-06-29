@@ -46,7 +46,6 @@ async function main() {
   routeRuntime.prompt_sha256 = digest;
   await fs.writeFile(REGISTRY_PATH, `${JSON.stringify(registry, null, 2)}\n`);
   console.log(`Updated route_runtime.prompt_sha256 → ${digest}`);
-  console.log("Run: node scripts/refresh-bridge-registry-doc.mjs");
 }
 
 await main();

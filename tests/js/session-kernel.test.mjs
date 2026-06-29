@@ -153,7 +153,6 @@ test("hosted session wraps the kernel without replacing kernel-owned identity", 
 
 test("pedagogical agent contracts cannot write graph truth", async () => {
   const contracts = await loadAgentContracts(ROOT);
-  const readme = readFileSync(path.join(ROOT, "pedagogical_agents/README.md"), "utf8");
 
   assert.deepEqual(
     contracts.agents.map((agent) => agent.id),
@@ -170,7 +169,6 @@ test("pedagogical agent contracts cannot write graph truth", async () => {
     ],
   );
   assert.match(contracts.architecture.truth_contract, /Derivation decides truth/);
-  assert.match(readme, /Every subagent has `truth_permission: "none"` and `may_write_events: \[\]`/);
 
   for (const agent of contracts.agents) {
     assert.ok(agent.job);

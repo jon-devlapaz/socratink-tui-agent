@@ -26,7 +26,7 @@ function rubric(overrides = {}) {
 
 test("founder lab contract pins the minimal console surface", () => {
   const doc = readFileSync(
-    new URL("../../docs/founder-lab-todo.md", import.meta.url),
+    new URL("../../.mex/ACTIVE.md", import.meta.url),
     "utf8",
   );
   for (const label of [

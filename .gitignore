@@ -7,14 +7,15 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .qa-runs/
+.qa-runs.archive-*/
 .playwright-cli/
 .demo-map-vis/
 .cursor/
 .cursorrules
-.mex/
 .opencode/
 .poolside/
 .supergoal/
+.workflow/
 .agent/
 .hermes/
 .serena/

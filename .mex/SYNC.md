@@ -6,7 +6,7 @@ Use the repo gate:
 npm run mex:check
 ```
 
-This runs `mex check --quiet` and the repo-local semantic truth overlay in
+This runs `mex check --json` and the repo-local semantic truth overlay in
 `scripts/check-mex-truth.mjs`.
 
 For a dry-run sync prompt from Mex:

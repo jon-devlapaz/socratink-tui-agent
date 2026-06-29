@@ -1,6 +1,7 @@
 ---
 name: router
 description: Session bootstrap and navigation hub. Read at the start of every session before any task. Contains project state, routing table, and behavioural contract.
+routing:
   - target: context/product-todos.md
     condition: when planning product direction, prioritizing features, or evaluating strategic fit
   - target: ACTIVE.md
@@ -9,7 +10,6 @@ description: Session bootstrap and navigation hub. Read at the start of every se
     condition: when evaluating Founder Lab loop runs or changing the loop rubric
   - target: context/release-ladder.md
     condition: when choosing verification gates, release checks, or merge readiness
-
   - target: context/seda.md
     condition: when changing phases, events, handlers, pacing, or routing
   - target: context/hosted-session-persistence.md

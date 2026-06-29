@@ -55,7 +55,7 @@ function resolveClaims(claim, filePath) {
     return [path.join(mexRoot, claim)];
   }
   if (claim.startsWith("./")) {
-    return [path.join(root, claim)];
+    return [local];
   }
   if (path.isAbsolute(claim)) {
     return [claim];
@@ -115,12 +115,7 @@ function assertNoForbiddenAgentContext() {
     /docs\/design\/socratink-ux\.md/,
     /\bDESIGN\.md\b/,
   ];
-  const files = [
-    path.join(root, "AGENTS.md"),
-    path.join(root, "scripts", "agentlint.mjs"),
-    ...walk(path.join(root, "vendor", "python", "app_prompts")).filter((file) => file.endsWith(".txt")),
-    ...walk(mexRoot).filter((file) => file.endsWith(".md")),
-  ];
+  const files = agentContextFiles();
   for (const filePath of files) {
     const text = fs.readFileSync(filePath, "utf8");
     const relFile = path.relative(root, filePath);
@@ -131,6 +126,15 @@ function assertNoForbiddenAgentContext() {
       }
     }
   }
+}
+
+function agentContextFiles() {
+  return [
+    path.join(root, "AGENTS.md"),
+    path.join(root, "scripts", "agentlint.mjs"),
+    ...walk(path.join(root, "vendor", "python", "app_prompts")).filter((file) => file.endsWith(".txt")),
+    ...walk(mexRoot).filter((file) => file.endsWith(".md")),
+  ];
 }
 
 const mex = spawnSync(path.join(root, "node_modules", ".bin", "mex"), ["check", "--json"], {
@@ -170,7 +174,7 @@ if (!fs.existsSync(mexRoot)) {
 assertNoForbiddenAgentContext();
 
 const seen = new Set();
-for (const filePath of walk(mexRoot).filter((file) => file.endsWith(".md"))) {
+for (const filePath of agentContextFiles()) {
   const text = fs.readFileSync(filePath, "utf8");
   const relFile = path.relative(root, filePath);
   for (const { claim, index } of pathClaims(text)) {

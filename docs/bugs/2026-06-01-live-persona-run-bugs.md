@@ -1,6 +1,6 @@
 # Bug Capture: Live Persona Run Completion And QA Harness Timing
 
-Status: resolved in working tree, pending commit/deploy
+Status: resolved and historical
 Date captured: 2026-06-01 local / 2026-06-02 UTC
 Date resolved: 2026-06-02
 Source signal: local live Gemini persona run against `/loop`

@@ -81,7 +81,7 @@ this directory.
 | Terminology regression (`floor`, `caseComplete`, …) | Canonical docs + grep surface | **guard** | `tests/js/architecture-anti-drift.test.mjs` |
 | Hosted loop UI test scope creep | `loop-chat-ui.test.mjs` mixed into “all JS” mentally | **guard** | Keep server-backed test separate in docs |
 | Vendored canon + Python seam | `lib/canon/`, `vendor/python/` | **leave-alone** | `./scripts/check-canon-drift.sh` |
-| `.workflow/learning-loop-persona-findings/` | 12 files, ~129 lines; referenced by doc-signal audit | **optional trim** | Grep for references before delete; not on critical path |
+| `.workflow/` local workflow artifacts | Removed from tracked tree; ignored for future local packets | **done** | Keep workflow scratch state out of canonical repo history. |
 | Stale `docs/implementation/*` plans | Historical PR/orchestration write-ups | **optional trim** | Archive only after confirming no agent links |
 
 ---
@@ -138,8 +138,8 @@ git ls-files '*.json' -z | xargs -0 wc -l | sort -n | tail -15
 3. **Prune stale implementation reports** under `docs/implementation/` when a
    goal is marked done and `BASELINE.md` / `REPORT.md` supersede them. Prefer
    a single “archived” note at the top over moving files.
-4. **Review `.workflow/learning-loop-persona-findings/`** after persona-validation
-   loop stabilizes; delete only if nothing links to it.
+4. **Keep `.workflow/` ignored** for future local workflow packets unless a
+   packet is deliberately promoted into canonical docs.
 
 *Verification:* `rg` for path references; no test harness dependency expected.
 

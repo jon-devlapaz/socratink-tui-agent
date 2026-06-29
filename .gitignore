@@ -16,6 +16,7 @@ __pycache__/
 .opencode/
 .poolside/
 .supergoal/
+.workflow/
 .agent/
 .hermes/
 .serena/

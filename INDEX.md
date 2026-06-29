@@ -33,5 +33,3 @@
 - [`socratink`](socratink):
   Founder ops wrapper.
 - `.github/workflows/`: CI and gate workflows.
-- [`plans/`](plans/README.md):
-  Working plan snapshot.

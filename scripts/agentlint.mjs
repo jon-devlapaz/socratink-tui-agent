@@ -17,17 +17,17 @@ Treat AgentLint as an advisory agent-workability audit, not a release gate.
 
 Good fixes to keep:
 - canonical local test entrypoint: npm test
-- secret scanning and SECURITY.md
+- secret scanning
 - pytest cost markers
 - small navigation/docs improvements when they reduce real agent confusion
 
 Do not chase by default:
 - git-history rewrites for personal email findings
-- generic HANDOFF.md or CHANGELOG.md churn
+- generic handoff or changelog churn
 - test-required commit-pair workflows that duplicate the release ladder
 - broad AGENTS.md rewrites unless repeated agent failures justify them
 
-Canonical gates still live in HARNESS-TRACEABILITY.md.
+Canonical gates live in .mex/context/release-ladder.md.
 `;
 
 function run(command, args = []) {

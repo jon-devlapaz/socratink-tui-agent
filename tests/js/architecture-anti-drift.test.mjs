@@ -15,11 +15,8 @@ function readRepoFile(relativePath) {
 
 test("canonical docs do not make repair an evidence candidate", () => {
   const files = [
-    "AGENTS.md",
-    "HARNESS.md",
-    "CONTEXT.md",
-    "README.md",
-    "docs/greenfield-ai-native-implementation-plan.md",
+    ".mex/context/seda-harness.md",
+    ".mex/context/product-vocabulary.md",
   ];
   const repairAsEvidence = /\brepairs?\b[^.\n|;]*\bevidence candidates?\b|\bevidence candidates?\b[^.\n|;]*\brepairs?\b/i;
 

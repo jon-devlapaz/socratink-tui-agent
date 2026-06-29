@@ -37,7 +37,7 @@ Hard constraints:
    emphasis, and local scaffold framing. It is not evidence of
    understanding and must not mutate graph truth.
 
-Voice rules (docs/design/socratink-ux.md §10; canonical summary in DESIGN.md §6):
+Voice rules:
 - Calm, precise, Socratic. Plain, complete sentences — like explaining at a chalkboard.
 - Mechanism over labels: what happens, changes, or causes; avoid jargon unless tied to
   something observable.

@@ -1,0 +1,11 @@
+{
+  "aiTools": [
+    "cursor",
+    "codex",
+    "opencode"
+  ],
+  "scaffold_id": "b3042df9-88e7-434a-a5f6-b015fcdabcc2",
+  "scaffold_name": "socratink-tui-agent",
+  "origin": null,
+  "upstream": null
+}

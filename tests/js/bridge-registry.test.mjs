@@ -6,10 +6,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  extractGeneratedSummary,
-  renderRegistrySummary,
-} from "../../lib/bridge/render-registry-doc.mjs";
-import {
   bridgeActionIds,
   getBridgeAction,
   registry,
@@ -131,12 +127,4 @@ test("evaluate-attempt modes define per-drill contracts", () => {
 test("registry transport points at bridge client", () => {
   assert.equal(registry.transport.client, "lib/bridge/client.mjs");
   assert.equal(registry.transport.entry, "bridge.py");
-});
-
-test("HARNESS-BRIDGE-REGISTRY.md generated summary matches registry", () => {
-  const docPath = path.join(WORKSPACE_ROOT, "HARNESS-BRIDGE-REGISTRY.md");
-  const markdown = readFileSync(docPath, "utf8");
-  const embedded = extractGeneratedSummary(markdown);
-  const expected = renderRegistrySummary(registry);
-  assert.equal(embedded, expected);
 });

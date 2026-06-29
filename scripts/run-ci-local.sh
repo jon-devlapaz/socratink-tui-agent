@@ -7,6 +7,7 @@ cd "$REPO_ROOT"
 
 echo "==> version, lint, typecheck"
 npm run version:check
+npm run mex:check
 npm run lint
 if [ ! -x ".venv/bin/mypy" ]; then
   echo "[run-ci-local] mypy missing; running ./scripts/bootstrap-python.sh" >&2

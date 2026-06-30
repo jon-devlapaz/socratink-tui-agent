@@ -1,5 +1,6 @@
 ---
 name: hosted-session-persistence
+type: context
 description: Authority boundary for hosted loop session storage and rehydration. Load when changing loop persistence, resume, adapter metadata, or transcript handling.
 triggers:
   - "hosted persistence"
@@ -15,7 +16,7 @@ edges:
     condition: when persisted state could affect evidence or derived graph truth
   - target: context/architecture.md
     condition: when persistence changes the hosted loop flow
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Hosted session persistence

@@ -1,5 +1,6 @@
 ---
 name: bridge
+type: context
 description: Python LLM bridge contract, action registry, provider setup, diagnostics, and prompt wiring.
 triggers:
   - "bridge"
@@ -19,7 +20,7 @@ edges:
     condition: when changing bridge.py actions or registry contracts
   - target: patterns/debug-bridge-failure.md
     condition: when bridge calls fail, time out, or return invalid output
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Bridge

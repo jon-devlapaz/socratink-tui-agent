@@ -1,3 +1,10 @@
+---
+name: sync
+type: sync
+description: Sync and validation commands for the Mex scaffold.
+last_updated: 2026-06-30
+---
+
 # Sync this scaffold
 
 Use the repo gate:

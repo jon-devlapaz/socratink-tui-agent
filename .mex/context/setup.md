@@ -1,5 +1,6 @@
 ---
 name: setup
+type: context
 description: Dev environment setup and commands. Load when setting up the project for the first time or when environment issues arise.
 triggers:
   - "setup"
@@ -17,7 +18,7 @@ edges:
     condition: when configuring LLM providers, fake mode, or bridge diagnostics
   - target: patterns/debug-bridge-failure.md
     condition: when live or fake LLM calls fail during setup
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Setup

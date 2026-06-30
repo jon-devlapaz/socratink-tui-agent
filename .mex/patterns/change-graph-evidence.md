@@ -1,5 +1,6 @@
 ---
 name: change-graph-evidence
+type: pattern
 description: Change evidence eligibility, training derivation, graph state, or mastery copy.
 triggers:
   - "evidence"
@@ -11,7 +12,7 @@ edges:
     condition: always load before changing evidence or graph state
   - target: context/seda.md
     condition: when graph behavior depends on event type or phase order
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Change Graph Evidence

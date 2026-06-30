@@ -105,6 +105,75 @@ function reportMexIssues(report) {
   }
 }
 
+const allowedMexTypes = new Set(["active", "agents", "context", "pattern", "router", "setup", "sync"]);
+
+function expectedMexMetadata(filePath) {
+  const relFile = path.relative(mexRoot, filePath);
+  const basename = path.basename(filePath, ".md").toLowerCase();
+  if (relFile.startsWith(`context${path.sep}`)) return { name: basename, type: "context" };
+  if (relFile.startsWith(`patterns${path.sep}`)) {
+    if (basename === "index") return { name: "pattern-index", type: "pattern" };
+    if (basename === "readme") return { name: "patterns", type: "pattern" };
+    return { name: basename, type: "pattern" };
+  }
+  return { name: basename, type: basename };
+}
+
+function parseFrontmatterFields(text) {
+  const match = /^---\n([\s\S]*?)\n---\n/.exec(text);
+  if (!match) return null;
+  const fields = {};
+  const duplicates = [];
+  for (const line of match[1].split("\n")) {
+    const field = /^([A-Za-z0-9_-]+):\s*(.+?)\s*$/.exec(line);
+    if (!field) continue;
+    if (fields[field[1]]) duplicates.push(field[1]);
+    fields[field[1]] = field[2].replace(/^["']|["']$/g, "");
+  }
+  return { fields, duplicates };
+}
+
+function isIsoDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+  if (!match) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return (
+    date.getUTCFullYear() === Number(match[1]) &&
+    date.getUTCMonth() + 1 === Number(match[2]) &&
+    date.getUTCDate() === Number(match[3])
+  );
+}
+
+function assertMexFrontmatter() {
+  for (const filePath of walk(mexRoot).filter((file) => file.endsWith(".md"))) {
+    const text = fs.readFileSync(filePath, "utf8");
+    const relFile = path.relative(root, filePath);
+    const frontmatter = parseFrontmatterFields(text);
+    if (!frontmatter) {
+      fail(`${relFile}:1 missing frontmatter`);
+      continue;
+    }
+    const { fields, duplicates } = frontmatter;
+    for (const key of duplicates) fail(`${relFile}:1 duplicate frontmatter field ${key}`);
+    for (const key of ["name", "type", "description", "last_updated"]) {
+      if (!fields[key]) fail(`${relFile}:1 missing frontmatter field ${key}`);
+    }
+    if (fields.last_updated && !isIsoDate(fields.last_updated)) {
+      fail(`${relFile}:1 frontmatter last_updated must be YYYY-MM-DD`);
+    }
+    const expected = expectedMexMetadata(filePath);
+    if (fields.name && fields.name !== expected.name) {
+      fail(`${relFile}:1 frontmatter name ${fields.name} should be ${expected.name}`);
+    }
+    if (fields.type && fields.type !== expected.type) {
+      fail(`${relFile}:1 frontmatter type ${fields.type} should be ${expected.type}`);
+    }
+    if (fields.type && !allowedMexTypes.has(fields.type)) {
+      fail(`${relFile}:1 unsupported frontmatter type ${fields.type}`);
+    }
+  }
+}
+
 function assertNoForbiddenAgentContext() {
   const forbidden = [
     /\bCONTEXT\.md\b/,
@@ -243,6 +312,7 @@ if (!fs.existsSync(mexRoot)) {
 
 assertNoForbiddenAgentContext();
 assertMexOverlay();
+assertMexFrontmatter();
 
 const seen = new Set();
 for (const filePath of agentContextFiles()) {

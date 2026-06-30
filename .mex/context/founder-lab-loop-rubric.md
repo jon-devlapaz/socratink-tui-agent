@@ -1,7 +1,8 @@
 ---
 name: founder-lab-loop-rubric
+type: context
 description: Rubric for evaluating Founder Lab loop runs as operator evidence.
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Founder Lab Loop Rubric v1

@@ -1,3 +1,10 @@
+---
+name: setup
+type: setup
+description: Setup notes for rebuilding or checking the Mex scaffold.
+last_updated: 2026-06-30
+---
+
 # Set up this scaffold
 
 This scaffold is already populated for Socratink TUI.

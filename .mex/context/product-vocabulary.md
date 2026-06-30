@@ -1,5 +1,6 @@
 ---
 name: product-vocabulary
+type: context
 description: Product glossary and confirmed terminology for Socratink learning-loop concepts.
 last_updated: 2026-06-30
 ---

@@ -1,5 +1,6 @@
 ---
 name: product-todos
+type: context
 description: Open product questions, action items, and strategic insights surfaced from analysis and dogfooding. Read when planning product direction, prioritizing work, or evaluating whether a feature addresses a real bottleneck.
 triggers:
   - "product"
@@ -18,7 +19,7 @@ edges:
     condition: when a todo will result in a new design decision
   - target: context/graph-honesty.md
     condition: when a todo touches evidence, scoring, or mastery claims
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Product Todos

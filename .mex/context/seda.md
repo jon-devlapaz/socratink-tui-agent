@@ -1,5 +1,6 @@
 ---
 name: seda
+type: context
 description: SEDA event-loop routing contract for phases, handlers, event facts, and pacing.
 triggers:
   - "seda"
@@ -17,7 +18,7 @@ edges:
     condition: when a phase handler calls an LLM bridge action
   - target: patterns/change-seda-event.md
     condition: when adding or changing an event, phase, or routing branch
-last_updated: 2026-06-23
+last_updated: 2026-06-30
 ---
 
 # SEDA

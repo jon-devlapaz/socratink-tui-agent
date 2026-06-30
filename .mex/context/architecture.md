@@ -1,5 +1,6 @@
 ---
 name: architecture
+type: context
 description: How the major pieces of this project connect and flow. Load when working on system design, integrations, or understanding how components interact.
 triggers:
   - "architecture"
@@ -18,7 +19,7 @@ edges:
     condition: when specific technology details are needed
   - target: context/decisions.md
     condition: when understanding why the architecture is structured this way
-last_updated: 2026-06-23
+last_updated: 2026-06-30
 ---
 
 # Architecture

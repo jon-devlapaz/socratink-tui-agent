@@ -1,5 +1,6 @@
 ---
 name: memory-check-retrieval-spec
+type: context
 description: Deferred product spec for making same-session Memory Check more pedagogically robust without implementing it yet.
 status: deferred
 triggers:

@@ -1,5 +1,6 @@
 ---
 name: stack
+type: context
 description: Technology stack, library choices, and the reasoning behind them. Load when working with specific technologies or making decisions about libraries and tools.
 triggers:
   - "library"
@@ -16,7 +17,7 @@ edges:
     condition: when installing, configuring, or running the stack
   - target: context/conventions.md
     condition: when understanding how to use a technology in this codebase
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Stack
@@ -52,6 +53,6 @@ last_updated: 2026-06-29
 
 ## Version Constraints
 
-- Package version is `0.55.0`; loop version sync is handled with `npm run bump:loop` / `npm run version:check`.
+- Package version is `0.56.0`; loop version sync is handled with `npm run bump:loop` / `npm run version:check`.
 - ESLint packages are pinned around `^9.28.0`; keep config compatible with flat ESLint 9.
 - Python version is not declared in this scaffold; use `./scripts/bootstrap-python.sh` to create the repo-supported environment.

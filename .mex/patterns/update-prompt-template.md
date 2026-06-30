@@ -1,5 +1,6 @@
 ---
 name: update-prompt-template
+type: pattern
 description: Change versioned prompt templates or dynamic prompt slots safely.
 triggers:
   - "prompt_templates.py"
@@ -11,7 +12,7 @@ edges:
     condition: prompt templates feed bridge actions
   - target: patterns/update-bridge-action.md
     condition: when prompt IO changes the bridge response or request shape
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Update Prompt Template

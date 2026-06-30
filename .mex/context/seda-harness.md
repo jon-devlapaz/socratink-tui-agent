@@ -1,3 +1,9 @@
+---
+name: seda-harness
+description: Harness substrate invariants and SEDA loop mapping.
+last_updated: 2026-06-30
+---
+
 # Socratink TUI Harness
 
 This document maps the TUI’s **SEDA** (staged event-driven) loop to closed-loop harness

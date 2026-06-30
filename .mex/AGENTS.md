@@ -1,7 +1,7 @@
 ---
 name: agents
 description: Always-loaded Mex scaffold anchor. Read after root AGENTS.md bootloader. Keeps routing and scaffold-growth rules only.
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Socratink TUI Mex scaffold
@@ -13,7 +13,8 @@ docs keep compact contracts. The current work surface, routed context,
 recurring patterns, release-gate guidance, and deferred product notes live here.
 
 Root `AGENTS.md` is only the bootloader and safety card. Read `.mex/ROUTER.md`
-and load only the routed context files for the task.
+and load only the routed context files for the task. If the task is vague or
+empty, read `.mex/ACTIVE.md` and use its current hardening tasks.
 
 ## Scaffold growth
 

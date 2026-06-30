@@ -1,3 +1,9 @@
+---
+name: product-vocabulary
+description: Product glossary and confirmed terminology for Socratink learning-loop concepts.
+last_updated: 2026-06-30
+---
+
 # Socratink Loop
 
 Founder-facing adaptive learning loop: learners reconstruct mechanisms from memory;

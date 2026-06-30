@@ -128,6 +128,76 @@ function assertNoForbiddenAgentContext() {
   }
 }
 
+function hasFrontmatter(text) {
+  return text.startsWith("---\n") && text.indexOf("\n---\n", 4) !== -1;
+}
+
+function frontmatterValue(text, key) {
+  if (!hasFrontmatter(text)) return "";
+  const end = text.indexOf("\n---\n", 4);
+  const body = text.slice(4, end);
+  const match = new RegExp(`^${key}:\\s*(.+)$`, "m").exec(body);
+  return match?.[1]?.trim() ?? "";
+}
+
+function routerTargets() {
+  const routerPath = path.join(mexRoot, "ROUTER.md");
+  const text = fs.readFileSync(routerPath, "utf8");
+  const targets = new Set();
+
+  for (const match of text.matchAll(/^\s*-\s*target:\s*([^\n]+)/gm)) {
+    targets.add(cleanClaim(match[1]));
+  }
+  for (const { claim } of pathClaims(text)) {
+    if (claim.startsWith("context/") || claim.startsWith("patterns/") || claim.startsWith(".mex/")) {
+      targets.add(claim.replace(/^\.mex\//, ""));
+    }
+  }
+  return targets;
+}
+
+function assertMexOverlay() {
+  const contextFiles = walk(path.join(mexRoot, "context")).filter((file) => file.endsWith(".md"));
+  const patternFiles = walk(path.join(mexRoot, "patterns")).filter((file) => file.endsWith(".md"));
+  const routedTargets = routerTargets();
+
+  for (const filePath of [...contextFiles, ...patternFiles]) {
+    const basename = path.basename(filePath);
+    if (basename === "INDEX.md" || basename === "README.md") continue;
+    const text = fs.readFileSync(filePath, "utf8");
+    if (!hasFrontmatter(text)) {
+      fail(`${path.relative(root, filePath)} is missing frontmatter`);
+    }
+  }
+
+  const indexPath = path.join(mexRoot, "patterns", "INDEX.md");
+  const indexText = fs.readFileSync(indexPath, "utf8");
+  for (const filePath of patternFiles) {
+    const basename = path.basename(filePath);
+    if (basename === "INDEX.md" || basename === "README.md") continue;
+    if (!indexText.includes(`](${basename})`)) {
+      fail(`${path.relative(root, filePath)} is missing from .mex/patterns/INDEX.md`);
+    }
+  }
+
+  for (const target of routedTargets) {
+    if (!target.startsWith("context/") && !target.startsWith("patterns/") && !target.endsWith(".md")) continue;
+    const candidates = resolveClaims(target, path.join(mexRoot, "ROUTER.md"));
+    if (!candidates.some((candidate) => fs.existsSync(candidate))) {
+      fail(`.mex/ROUTER.md references missing target ${target}`);
+    }
+  }
+
+  for (const filePath of contextFiles) {
+    const relMex = path.relative(mexRoot, filePath);
+    const text = fs.readFileSync(filePath, "utf8");
+    const status = frontmatterValue(text, "status");
+    if (!routedTargets.has(relMex) && status !== "deferred") {
+      fail(`${path.relative(root, filePath)} is not routed in .mex/ROUTER.md or marked status: deferred`);
+    }
+  }
+}
+
 function agentContextFiles() {
   return [
     path.join(root, "AGENTS.md"),
@@ -172,6 +242,7 @@ if (!fs.existsSync(mexRoot)) {
 }
 
 assertNoForbiddenAgentContext();
+assertMexOverlay();
 
 const seen = new Set();
 for (const filePath of agentContextFiles()) {

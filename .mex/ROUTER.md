@@ -6,8 +6,16 @@ routing:
     condition: when planning product direction, prioritizing features, or evaluating strategic fit
   - target: ACTIVE.md
     condition: when asking what is current, active, in progress, or next
+  - target: patterns/cloud-agent-session.md
+    condition: when Cursor, Codex, or another cloud agent starts from a vague or empty prompt
   - target: context/founder-lab-loop-rubric.md
     condition: when evaluating Founder Lab loop runs or changing the loop rubric
+  - target: context/architecture.md
+    condition: when understanding how the system works
+  - target: context/product-vocabulary.md
+    condition: when checking product vocabulary or glossary terms
+  - target: context/seda-harness.md
+    condition: when checking harness substrate invariants
   - target: context/release-ladder.md
     condition: when choosing verification gates, release checks, or merge readiness
   - target: context/seda.md
@@ -28,7 +36,7 @@ routing:
     condition: when setting up the dev environment or running the project for the first time
   - target: patterns/INDEX.md
     condition: when starting a task — check the pattern index for a matching pattern file
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Session Bootstrap
@@ -79,6 +87,7 @@ outside `.mex/`.
 | Task type | Load |
 |-----------|------|
 | Current work, active objective, or next task | `.mex/ACTIVE.md` |
+| Cursor, Codex, or cloud agent starts from a vague or empty prompt | `patterns/cloud-agent-session.md` + `.mex/ACTIVE.md` |
 | Founder Lab loop rubric or persona-run evaluation | `context/founder-lab-loop-rubric.md` |
 | Understanding how the system works | `context/architecture.md` |
 | Product vocabulary or glossary terms | `context/product-vocabulary.md` |

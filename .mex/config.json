@@ -1,5 +1,6 @@
 {
   "aiTools": [
+    "cloud",
     "cursor",
     "codex",
     "opencode"

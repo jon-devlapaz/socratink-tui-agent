@@ -9,8 +9,9 @@ agent context.
 ## Start here
 
 1. Read `.mex/ROUTER.md`.
-2. Load only the `.mex/context/` and `.mex/patterns/` files routed for the task.
-3. Before file edits, run `npm run agent:git -- guard-write`.
+2. If the task is vague or empty, read `.mex/ACTIVE.md` and use its current hardening tasks.
+3. Load only the `.mex/context/` and `.mex/patterns/` files routed for the task.
+4. Before file edits, run `npm run agent:git -- guard-write`.
 
 ## Safety rules
 

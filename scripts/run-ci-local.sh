@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "==> version, lint, typecheck"
+npm run agentlint:gate
 npm run version:check
 npm run mex:check
 npm run lint

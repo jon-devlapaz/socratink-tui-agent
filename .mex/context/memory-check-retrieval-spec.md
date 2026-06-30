@@ -1,6 +1,7 @@
 ---
 name: memory-check-retrieval-spec
 description: Deferred product spec for making same-session Memory Check more pedagogically robust without implementing it yet.
+status: deferred
 triggers:
   - "memory check"
   - "retrieval veil"
@@ -15,7 +16,7 @@ edges:
     condition: when deriving or evaluating memory-check prompts with the LLM
   - target: context/seda.md
     condition: when wiring the phase boundary
-last_updated: 2026-06-25
+last_updated: 2026-06-30
 ---
 
 # Memory Check Retrieval Spec

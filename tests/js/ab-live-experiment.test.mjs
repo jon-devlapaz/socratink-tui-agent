@@ -42,7 +42,7 @@ test("ab live experiment dry-run writes manifest and report", () => {
 test("ab live experiment rejects identical variant paths", () => {
   const result = spawnSync(
     "node",
-    ["scripts/ab-live-experiment.mjs", "--dry-run"],
+    ["scripts/ab-live-experiment.mjs", "--dry-run", "--variant-b", path.resolve(".")],
     { encoding: "utf8" },
   );
 

@@ -1,7 +1,8 @@
 ---
 name: active
+type: active
 description: Current work surface. Keep only the active objective, constraints, verification target, and short promotion queue.
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Active

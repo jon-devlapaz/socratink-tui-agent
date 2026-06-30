@@ -1,5 +1,6 @@
 ---
 name: release-ladder
+type: context
 description: Verification tiers and merge gates for Socratink TUI changes. Load when choosing which checks prove a change.
 triggers:
   - "release"
@@ -15,7 +16,7 @@ edges:
     condition: when the change touches bridge actions, prompt templates, providers, or fake/live parity
   - target: context/graph-honesty.md
     condition: when the change touches score eligibility, evidence, replay, or mastery claims
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Release ladder

@@ -1,5 +1,6 @@
 ---
 name: change-seda-event
+type: pattern
 description: Add or change a SEDA event, phase, handler route, or pacing branch without breaking the event-clock contract.
 triggers:
   - "new event"
@@ -11,7 +12,7 @@ edges:
     condition: always load before changing SEDA routing
   - target: context/graph-honesty.md
     condition: when the event is evidence-related or graph-neutral
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Change SEDA Event

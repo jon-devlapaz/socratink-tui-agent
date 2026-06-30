@@ -1,5 +1,6 @@
 ---
 name: debug-bridge-failure
+type: pattern
 description: Diagnose bridge subprocess failures, provider auth/config mistakes, timeouts, and non-JSON output.
 triggers:
   - "BridgeNonJson"
@@ -13,7 +14,7 @@ edges:
     condition: when env vars or provider setup may be wrong
   - target: patterns/update-bridge-action.md
     condition: when the failure is caused by a changed bridge contract
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Debug Bridge Failure

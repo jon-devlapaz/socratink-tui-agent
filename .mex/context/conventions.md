@@ -1,5 +1,6 @@
 ---
 name: conventions
+type: context
 description: How code is written in this project — naming, structure, patterns, and style. Load when writing new code or reviewing existing code.
 triggers:
   - "convention"
@@ -15,7 +16,7 @@ edges:
     condition: when conventions involve events, routing, handlers, or phase names
   - target: context/graph-honesty.md
     condition: when conventions involve evidence, scoring, or learner-facing mastery language
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Conventions
@@ -35,6 +36,7 @@ last_updated: 2026-06-29
 - Browser loop UI lives in `public/loop/`; do not look for React app directories before `rg --files` proves they exist.
 - Bridge contracts are machine-readable in `lib/bridge/registry.json`.
 - Product vocabulary belongs in `.mex/context/product-vocabulary.md`; verification ladder belongs in `.mex/context/release-ladder.md`.
+- Mex Markdown files use minimal frontmatter: `name`, `type`, `description`, and `last_updated`. Keep `type` to the existing scaffold roles; do not add an OKF schema layer.
 
 ## Patterns
 

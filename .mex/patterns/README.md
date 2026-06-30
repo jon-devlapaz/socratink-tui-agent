@@ -1,3 +1,10 @@
+---
+name: patterns
+type: pattern
+description: Guidance for creating and maintaining task-specific Mex patterns.
+last_updated: 2026-06-30
+---
+
 # Patterns
 
 This folder contains task-specific guidance — the things you would tell your agent if you were sitting next to it. Not generic instructions. Project-specific accumulated wisdom.

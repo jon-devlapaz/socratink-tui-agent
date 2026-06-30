@@ -1,5 +1,6 @@
 ---
 name: seda-harness
+type: context
 description: Harness substrate invariants and SEDA loop mapping.
 last_updated: 2026-06-30
 ---

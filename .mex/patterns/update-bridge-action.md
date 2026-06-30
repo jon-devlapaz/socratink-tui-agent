@@ -1,5 +1,6 @@
 ---
 name: update-bridge-action
+type: pattern
 description: Change a bridge.py LLM action, response shape, provider behavior, or registry entry.
 triggers:
   - "bridge action"
@@ -11,7 +12,7 @@ edges:
     condition: always load before changing bridge contracts
   - target: context/seda.md
     condition: when bridge fields affect emitted events or routing
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 ---
 
 # Update Bridge Action

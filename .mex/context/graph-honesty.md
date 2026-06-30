@@ -1,5 +1,6 @@
 ---
 name: graph-honesty
+type: context
 description: Evidence, scoring, graph derivation, and learner-facing truth rules.
 triggers:
   - "graph"
@@ -17,7 +18,7 @@ edges:
     condition: when evaluator or repair-dialogue bridge fields are being interpreted
   - target: patterns/change-graph-evidence.md
     condition: when changing evidence eligibility, derivation, or mastery copy
-last_updated: 2026-06-23
+last_updated: 2026-06-30
 ---
 
 # Graph Honesty

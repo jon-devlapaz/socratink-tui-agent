@@ -1,5 +1,6 @@
 ---
 name: decisions
+type: context
 description: Key architectural and technical decisions with reasoning. Load when making design choices or understanding why something is built a certain way.
 triggers:
   - "why do we"
@@ -16,7 +17,7 @@ edges:
     condition: when a decision relates to bridge subprocess actions or providers
   - target: context/graph-honesty.md
     condition: when a decision relates to evidence, scoring, or derived graph truth
-last_updated: 2026-06-23
+last_updated: 2026-06-30
 ---
 
 # Decisions

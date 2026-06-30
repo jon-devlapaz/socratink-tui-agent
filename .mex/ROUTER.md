@@ -1,5 +1,6 @@
 ---
 name: router
+type: router
 description: Session bootstrap and navigation hub. Read at the start of every session before any task. Contains project state, routing table, and behavioural contract.
 routing:
   - target: context/product-todos.md

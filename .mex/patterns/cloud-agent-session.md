@@ -1,5 +1,6 @@
 ---
 name: cloud-agent-session
+type: pattern
 description: Bootstrap Cursor, Codex, and other cloud agents when the prompt is vague or empty.
 triggers:
   - "cloud agent"

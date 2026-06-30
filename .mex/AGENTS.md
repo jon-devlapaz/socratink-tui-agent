@@ -1,5 +1,6 @@
 ---
 name: agents
+type: agents
 description: Always-loaded Mex scaffold anchor. Read after root AGENTS.md bootloader. Keeps routing and scaffold-growth rules only.
 last_updated: 2026-06-30
 ---

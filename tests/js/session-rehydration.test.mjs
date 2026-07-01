@@ -48,7 +48,10 @@ const routeEvent = {
   type: "route_generated",
   first_node: firstNode,
   node_ids: ["c1_s1"],
-  provisional_map: { nodes: [firstNode], edges: [] },
+  provisional_map: {
+    thesis: "Immune memory leaves specialized cells for a faster later response.",
+    subnodes: [firstNode],
+  },
   map_displayed: { nodes: [{ id: "c1_s1", active: true }], edges: [] },
   substrate_adequacy: "adequate",
   retry_count: 0,
@@ -306,6 +309,93 @@ test("complete record can be built after rehydrating training and evidence holds
   assert.equal(record.training.node_records.c1_s1.attempts.length, 2);
   assert.equal(record.training.node_records.c1_s1.repairs.length, 1);
   assert.equal(record.evidence_holds[0].state, "primed");
+  assert.equal(record.evidence_claim_trace.claim, "same_session_primed");
+  assert.equal(
+    record.evidence_claim_trace.learner_facing,
+    "Useful practice. Not stable yet.",
+  );
+  assert.deepEqual(record.evidence_claim_trace.disqualifiers, [
+    "not_two_strong_attempts",
+  ]);
+  assert.equal(record.evidence_claim_trace.evidence[0].state, null);
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[0].event_type,
+    "cold_attempt",
+  );
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[0].evaluator_label,
+    "shallow",
+  );
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[0].store_class,
+    "partial",
+  );
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[1].event_type,
+    "spaced_redrill",
+  );
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[1].evaluator_label,
+    "solid",
+  );
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[1].store_class,
+    "strong",
+  );
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[1].contamination,
+    "recent_bridge_visible",
+  );
+});
+
+test("two strong no-help reconstructions derive durable evidence trace", async () => {
+  const strongColdEvent = {
+    ...coldEvent,
+    text: "Memory cells remain after first exposure and expand quickly later.",
+    evaluation: {
+      ...coldEvent.evaluation,
+      classification: "solid",
+      agent_response: "Solid.",
+    },
+  };
+  const completeEvents = [
+    ...baseEvents(),
+    strongColdEvent,
+    { type: "strong_cold_path", kc_id: "c1_s1" },
+    { type: "spacing_advanced" },
+    {
+      type: "spaced_redrill",
+      text: "Memory cells recognize the antigen later, multiply quickly, and drive a faster response.",
+      evaluation: {
+        classification: "solid",
+        score_eligible: true,
+        generative_commitment: true,
+        agent_response: "Solid.",
+      },
+      kc_id: "c1_s1",
+    },
+  ];
+  const { kernel, training } = await rehydrate(completeEvents);
+  const record = buildSessionRecord({
+    events: kernel.events,
+    ctx: kernel.ctx,
+    derived: kernel.derived,
+    evidenceHolds: kernel.ctx.evidenceHolds,
+    llmCalls: kernel.llmCalls,
+    training: await training.current("immune-memory"),
+    agentContracts,
+  });
+
+  assert.equal(record.evidence_claim_trace.claim, "durable_solidified");
+  assert.equal(
+    record.evidence_claim_trace.learner_facing,
+    "Solidified by spaced reconstruction.",
+  );
+  assert.deepEqual(record.evidence_claim_trace.disqualifiers, []);
+  assert.equal(
+    record.evidence_claim_trace.evidence[0].attempts[1].contamination,
+    "uncued",
+  );
 });
 
 test("legacy incomplete route events fail clearly instead of partial ctx resume", async () => {

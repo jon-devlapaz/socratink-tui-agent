@@ -718,4 +718,9 @@ test("loop API marks single concept case complete after spaced redrill", async (
   const get = await fetch(`${BASE}/api/session/${session.sessionId}`);
   const saved = await get.json();
   assert.equal(saved.caseComplete, true);
+  assert.equal(saved.record?.evidence_claim_trace?.claim, "same_session_primed");
+  assert.equal(
+    saved.record?.evidence_claim_trace?.learner_facing,
+    "Useful practice. Not stable yet.",
+  );
 });

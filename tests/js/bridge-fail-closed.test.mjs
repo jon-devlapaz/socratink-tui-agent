@@ -185,7 +185,7 @@ setTimeout(() => {
   }
 });
 
-test("route retry exhaustion fails closed without route_generated or cold_attempt advance", async () => {
+test("route retry exhaustion falls back to generic no-leak route", async () => {
   const events = [];
   const ctx = makeRouteCtx();
   const result = await handleRoute({
@@ -203,12 +203,36 @@ test("route retry exhaustion fails closed without route_generated or cold_attemp
 
   assert.deepEqual(events.map((event) => event.type), [
     "route_retry",
-    "bridge_error",
+    "route_generated",
   ]);
+  assert.equal(events.at(-1).retry_reasons[1].fallback, "generic_before_change_after_prompt");
+  assert.equal(
+    ctx.firstNode.learner_prompt,
+    "Explain the before state, the change, and the result in your own words.",
+  );
+  assert.equal(ctx.route.first_node.id, "c1_s1");
+  assert.equal(nextPhase(events), "cold_attempt");
+  assert.equal(result.llm_calls[0].model, "route-fallback");
+});
+
+test("non-retryable route failure still fails closed", async () => {
+  const events = [];
+  const ctx = makeRouteCtx();
+  const result = await handleRoute({
+    events,
+    bridge: {
+      callBridgeResult: () => ({
+        ok: false,
+        error: "ProviderDown",
+        message: "provider unavailable",
+      }),
+    },
+    options: {},
+    ctx,
+  });
+
+  assert.deepEqual(events.map((event) => event.type), ["bridge_error"]);
   assert.equal(events.at(-1).action, "generate-route");
-  assert.equal(events.at(-1).graph_neutral, true);
-  assert.equal(events.at(-1).score_eligible, false);
-  assert.equal(events.some((event) => event.type === "route_generated"), false);
   assert.equal(ctx.route, null);
   assert.equal(nextPhase(events), "idle");
   assert.deepEqual(result.llm_calls, []);

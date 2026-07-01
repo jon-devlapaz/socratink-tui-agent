@@ -37,7 +37,7 @@ routing:
     condition: when setting up the dev environment or running the project for the first time
   - target: patterns/INDEX.md
     condition: when starting a task — check the pattern index for a matching pattern file
-last_updated: 2026-06-30
+last_updated: 2026-07-01
 ---
 
 # Session Bootstrap
@@ -76,7 +76,7 @@ live here.
 **Known issues:**
 - Live LLM work needs `GEMINI_API_KEY` or a configured OpenAI-compatible provider.
 - Vercel cannot host the loop process; Railway or another persistent host is required.
-- Route generation has a retryable `SmallestRouteCapExceeded` guardrail when hidden mechanism phrases leak.
+- Route generation has a retryable `SmallestRouteCapExceeded` guardrail when hidden mechanism phrases leak, with a deterministic no-leak fallback after retry exhaustion.
 - Hosted loop UI tests require a running fake-mode loop server; they are not part of the self-contained Tier 2 JS set.
 - `.env` is local-only; do not commit secrets or API keys.
 

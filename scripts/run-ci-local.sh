@@ -4,6 +4,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
+# shellcheck source=scripts/loop-server-control.sh
+source "$REPO_ROOT/scripts/loop-server-control.sh"
 
 echo "==> version, lint, typecheck"
 npm run agentlint:gate
@@ -56,6 +58,7 @@ cleanup_server() {
   fi
 }
 
+socratink_stop_loop_server_port "$LOOP_TEST_PORT" "run-ci-local"
 SOCRATINK_TUI_ENV_FILE="$CI_ENV_FILE" \
 SOCRATINK_TUI_FAKE_LLM=1 \
 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
@@ -64,13 +67,7 @@ PORT="$LOOP_TEST_PORT" \
 server_pid=$!
 trap cleanup_server EXIT
 
-for _ in {1..30}; do
-  if curl -fsS "http://127.0.0.1:${LOOP_TEST_PORT}/health" >/dev/null; then
-    break
-  fi
-  sleep 1
-done
-curl -fsS "http://127.0.0.1:${LOOP_TEST_PORT}/health" >/dev/null
+socratink_wait_loop_server_health "$LOOP_TEST_PORT"
 SOCRATINK_LOOP_BASE_URL="http://127.0.0.1:${LOOP_TEST_PORT}" \
   node --test tests/js/loop-chat-ui.test.mjs
 

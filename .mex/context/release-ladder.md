@@ -16,7 +16,7 @@ edges:
     condition: when the change touches bridge actions, prompt templates, providers, or fake/live parity
   - target: context/graph-honesty.md
     condition: when the change touches score eligibility, evidence, replay, or mastery claims
-last_updated: 2026-06-30
+last_updated: 2026-07-02
 ---
 
 # Release ladder
@@ -79,7 +79,7 @@ server-backed UI test:
 ```bash
 SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
 SOCRATINK_TUI_FAKE_LLM=1 SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
-  node --no-warnings loop-server.mjs
+  ./socratink-loop-server
 
 SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 \
   node --test tests/js/loop-chat-ui.test.mjs

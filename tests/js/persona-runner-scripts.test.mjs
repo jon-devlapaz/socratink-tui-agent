@@ -21,6 +21,8 @@ test("loop persona live CLI handles help and unknown arguments before preflight"
   });
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Usage: node scripts\/loop-persona-live\.mjs/);
+  assert.match(help.stdout, /canonical single-run path/);
+  assert.match(help.stdout, /Founder Lab batches/);
 
   const unknown = spawnSync("node", ["scripts/loop-persona-live.mjs", "--bogus"], {
     encoding: "utf8",
@@ -35,6 +37,8 @@ test("substrate persona matrix CLI handles help and unknown arguments before pre
   });
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Usage: node scripts\/run-substrate-persona-matrix\.mjs/);
+  assert.match(help.stdout, /compare substrate-gate behavior across learner profiles/);
+  assert.match(help.stdout, /loop-persona-live\.mjs/);
 
   const unknown = spawnSync("node", ["scripts/run-substrate-persona-matrix.mjs", "--bogus"], {
     encoding: "utf8",

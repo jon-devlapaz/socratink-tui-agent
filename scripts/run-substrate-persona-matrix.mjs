@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Three-learner substrate gate matrix (novice / middle / expert cartridges).
+ * Substrate-gate comparison matrix across learner profiles.
+ * Not the canonical single-run persona command.
  *
  * Usage:
  *   node scripts/run-substrate-persona-matrix.mjs
@@ -45,7 +46,12 @@ function parseArgs(argv) {
     else if (arg === "--student") options.student = args.shift();
     else if (arg === "--help" || arg === "-h") {
       console.log(
-        "Usage: node scripts/run-substrate-persona-matrix.mjs [--profile novice] [--student local|cloud] [--allow-fake]",
+        [
+          "Usage: node scripts/run-substrate-persona-matrix.mjs [--profile novice] [--student local|cloud] [--allow-fake]",
+          "",
+          "Purpose: compare substrate-gate behavior across learner profiles.",
+          "For one live persona session or Founder Lab batch execution, use scripts/loop-persona-live.mjs.",
+        ].join("\n"),
       );
       process.exit(0);
     } else throw new Error(`unknown argument: ${arg}`);

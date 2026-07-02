@@ -18,7 +18,7 @@ edges:
     condition: when configuring LLM providers, fake mode, or bridge diagnostics
   - target: patterns/debug-bridge-failure.md
     condition: when live or fake LLM calls fail during setup
-last_updated: 2026-06-30
+last_updated: 2026-07-02
 ---
 
 # Setup
@@ -74,6 +74,6 @@ last_updated: 2026-06-30
 
 **Bridge returns non-JSON or times out:** Inspect diagnostics written by `lib/bridge/client.mjs`; increase `SOCRATINK_BRIDGE_TIMEOUT_MS` for slow local models.
 
-**Hosted loop UI tests fail to connect:** Start `loop-server.mjs` in fake mode first and set `SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787`.
+**Hosted loop UI tests fail to connect:** Start `./socratink-loop-server` in fake mode first and set `SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787`.
 
 **Deployed `/loop` does not work on Vercel:** Vercel cannot host the loop process; configure a persistent loop host and proxy from the main app.

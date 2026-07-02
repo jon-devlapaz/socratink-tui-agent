@@ -127,19 +127,15 @@ jobs:
           ./socratink-harness routing-proof
       - name: Loop chat UI server-backed tests
         run: |
+          source scripts/loop-server-control.sh
+          socratink_stop_loop_server_port 8787 "github-smoke"
           SOCRATINK_TUI_ENV_FILE=.qa-runs/validation-entrypoints/missing.env \
           SOCRATINK_TUI_FAKE_LLM=1 \
           SOCRATINK_TUI_FAKE_COLD_CLASSIFICATION=shallow \
             node --no-warnings loop-server.mjs &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
-          for _ in {1..30}; do
-            if curl -fsS http://127.0.0.1:8787/health >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:8787/health >/dev/null
+          socratink_wait_loop_server_health 8787
           SOCRATINK_LOOP_BASE_URL=http://127.0.0.1:8787 node --test tests/js/loop-chat-ui.test.mjs
       - name: Workspace smoke + contract tests (pytest)
         run: .venv/bin/pytest tests/test_workspace_smoke.py tests/test_app_contract.py -q

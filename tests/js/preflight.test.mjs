@@ -50,20 +50,28 @@ test("preflight reports every missing dependency at once", () => {
   }
 });
 
-test("loop server wrapper owns stale listener cleanup before exec", () => {
+test("loop server wrapper delegates stale listener cleanup before exec", () => {
   const wrapper = readFileSync(new URL("../../socratink-loop-server", import.meta.url), "utf8");
+  const helper = readFileSync(
+    new URL("../../scripts/loop-server-control.sh", import.meta.url),
+    "utf8",
+  );
   const syntax = spawnSync("bash", ["-n", "socratink-loop-server"], {
     cwd: new URL("../..", import.meta.url),
     encoding: "utf8",
   });
   assert.equal(syntax.status, 0, syntax.stderr);
+  const helperSyntax = spawnSync("bash", ["-n", "scripts/loop-server-control.sh"], {
+    cwd: new URL("../..", import.meta.url),
+    encoding: "utf8",
+  });
+  assert.equal(helperSyntax.status, 0, helperSyntax.stderr);
   assert.match(wrapper, /export PORT="\$\{PORT:-8787\}"/);
-  assert.match(wrapper, /lsof -ti "tcp:\$\{PORT\}"/);
-  assert.match(wrapper, /kill \$existing_pids/);
-  assert.match(wrapper, /for _ in \{1\.\.30\}/);
-  assert.match(wrapper, /port \$\{PORT\} still in use/);
-  assert.match(wrapper, /exit 1/);
+  assert.match(wrapper, /source "\$REPO_ROOT\/scripts\/loop-server-control\.sh"/);
+  assert.match(wrapper, /socratink_stop_loop_server_port "\$PORT" "socratink-loop-server"/);
   assert.match(wrapper, /exec node --no-warnings loop-server\.mjs/);
+  assert.match(helper, /socratink_stop_loop_server_port\(\)/);
+  assert.match(helper, /socratink_wait_loop_server_health\(\)/);
 });
 
 test(".env.example lists operator-facing advanced knobs", () => {

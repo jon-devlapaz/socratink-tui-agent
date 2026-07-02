@@ -1,23 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")"
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$REPO_ROOT"
+
+# shellcheck source=scripts/loop-server-control.sh
+source "$REPO_ROOT/scripts/loop-server-control.sh"
 
 export PORT="${PORT:-8787}"
-existing_pids="$(lsof -ti "tcp:${PORT}" 2>/dev/null || true)"
-if [[ -n "$existing_pids" ]]; then
-  echo "[socratink-loop-server] stopping existing listener(s) on port ${PORT}: ${existing_pids//$'\n'/ }"
-  # shellcheck disable=SC2086
-  kill $existing_pids 2>/dev/null || true
-  for _ in {1..30}; do
-    if ! lsof -ti "tcp:${PORT}" >/dev/null 2>&1; then
-      break
-    fi
-    sleep 0.1
-  done
-  if lsof -ti "tcp:${PORT}" >/dev/null 2>&1; then
-    echo "[socratink-loop-server] port ${PORT} still in use; try: lsof -i :${PORT}" >&2
-    exit 1
-  fi
-fi
+socratink_stop_loop_server_port "$PORT" "socratink-loop-server"
 
 exec node --no-warnings loop-server.mjs

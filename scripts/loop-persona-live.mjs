@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Live loop persona walkthrough against /loop API.
+ * Canonical single-run persona command. Founder Lab batch runs call this path.
  *
  * Usage:
  *   node scripts/loop-persona-live.mjs
@@ -57,7 +58,12 @@ function parseArgs(argv) {
     else if (arg === "--cancel-file") options.cancelFile = path.resolve(args.shift());
     else if (arg === "--help" || arg === "-h") {
       console.log(
-        "Usage: node scripts/loop-persona-live.mjs [--cartridge jordan-ai] [--student local|cloud] [--allow-fake] [--out dir]",
+        [
+          "Usage: node scripts/loop-persona-live.mjs [--cartridge jordan-ai] [--student local|cloud] [--allow-fake] [--out dir]",
+          "",
+          "Purpose: run one live persona session. This is the canonical single-run path used by Founder Lab batches.",
+          "For substrate-gate comparisons across learner profiles, use scripts/run-substrate-persona-matrix.mjs.",
+        ].join("\n"),
       );
       process.exit(0);
     } else throw new Error(`unknown argument: ${arg}`);

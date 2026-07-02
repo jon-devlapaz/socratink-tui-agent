@@ -53,6 +53,6 @@ last_updated: 2026-07-02
 
 ## Version Constraints
 
-- Package version is `0.58.0`; loop version sync is handled with `npm run bump:loop` / `npm run version:check`.
+- Package version is `0.59.0`; loop version sync is handled with `npm run bump:loop` / `npm run version:check`.
 - ESLint packages are pinned around `^9.28.0`; keep config compatible with flat ESLint 9.
 - Python version is not declared in this scaffold; use `./scripts/bootstrap-python.sh` to create the repo-supported environment.
